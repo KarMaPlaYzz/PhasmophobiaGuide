@@ -17,7 +17,7 @@ interface GhostDetailSheetProps {
 export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const snapPoints = useMemo(() => ['34%', '60%', '95%'], []);
+  const snapPoints = useMemo(() => ['60%', '95%'], []);
 
   const getDifficultyColor = (difficulty: string) =>
     DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
@@ -120,16 +120,18 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
 const styles = StyleSheet.create({
   imageContainer: {
     width: '100%',
-    height: 250,
+    height: 300,
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 16,
     marginBottom: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   ghostImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
+    resizeMode: 'contain',
   },
   bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
   difficultyBadgeLarge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start', marginBottom: 16 },

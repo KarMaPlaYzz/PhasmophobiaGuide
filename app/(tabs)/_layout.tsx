@@ -20,28 +20,28 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Identifier',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="search-circle" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="finger-print" color={color} />,
         }}
       />
       <Tabs.Screen
         name="ghosts"
         options={{
           title: 'Ghosts',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="book" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="skull" color={color} />,
         }}
       />
       <Tabs.Screen
         name="equipments"
         options={{
           title: 'Equipment',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="build" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="flashlight" color={color} />,
         }}
       />
       <Tabs.Screen
         name="maps"
         options={{
           title: 'Maps',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="map" color={color} />,
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
         }}
       />
     </Tabs>

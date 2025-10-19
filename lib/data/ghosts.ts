@@ -234,7 +234,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
     difficulty: 'Intermediate',
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/7/71/Banshee_Discovered.jpg/revision/latest?cb=20231115114514',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/26/Banshee_Discovered.jpg/revision/latest?cb=20231115114509',
   },
 
   jinn: {
@@ -372,7 +372,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'Medium',
     difficulty: 'Advanced',
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/5/52/Revenant_Discovered.jpg/revision/latest?cb=20231115114537',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/16/Revenant_Discovered.jpg/revision/latest?cb=20231115114538',
   },
 
   shade: {
@@ -1060,7 +1060,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Advanced',
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/9/94/Moroi_Discovered.jpg/revision/latest?cb=20231115114532',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/9/95/Moroi_Discovered.jpg/revision/latest?cb=20231115114530',
   },
 
   deogen: {
