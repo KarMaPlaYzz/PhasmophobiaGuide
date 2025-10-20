@@ -1,10 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, TapGestureHandler } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
+import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, DifficultyColors } from '@/constants/theme';
@@ -16,10 +18,18 @@ export default function GhostsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const route = useRoute();
   
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
+
+  // Use callback ref to always have the latest ref
+  const handleScrollRef = (ref: ScrollView | null) => {
+    if (ref) {
+      scrollRefRegistry.set(route.name, ref as any);
+    }
+  };
 
   const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
@@ -67,6 +77,23 @@ export default function GhostsScreen() {
     }
   };
 
+  const getSanityDrainLevel = (activityLevel: string): { label: string; icon: string; color: string } => {
+    switch (activityLevel) {
+      case 'Low':
+        return { label: 'Low', icon: 'arrow-down', color: '#4CAF50' };
+      case 'Medium':
+        return { label: 'Medium', icon: 'trending-up', color: '#FFC107' };
+      case 'High':
+        return { label: 'High', icon: 'arrow-up', color: '#FF9800' };
+      case 'Very High':
+        return { label: 'Very High', icon: 'flame', color: '#FF6F6F' };
+      case 'Variable':
+        return { label: 'Variable', icon: 'shuffle', color: '#9C27B0' };
+      default:
+        return { label: 'Unknown', icon: 'help', color: colors.text };
+    }
+  };
+
   const handleGhostPress = useCallback((ghost: Ghost) => {
     console.log('🎮 Ghost card tapped:', ghost.name);
     setSelectedGhost(ghost);
@@ -87,6 +114,7 @@ export default function GhostsScreen() {
         </View>
 
         <ScrollView 
+          ref={handleScrollRef}
           style={styles.content} 
           showsVerticalScrollIndicator={false}
           scrollEventThrottle={16}
@@ -221,25 +249,35 @@ export default function GhostsScreen() {
 
                   <View style={styles.ghostStats}>
                     <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>Speed:</ThemedText>
+                      <ThemedText style={styles.statLabel}>Speed</ThemedText>
                       <ThemedText style={styles.statValue}>{ghost.movementSpeed}</ThemedText>
                     </View>
                     <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>Activity:</ThemedText>
+                      <ThemedText style={styles.statLabel}>Activity</ThemedText>
                       <ThemedText style={styles.statValue}>{ghost.activityLevel}%</ThemedText>
                     </View>
                     <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>Hunt Sanity:</ThemedText>
+                      <ThemedText style={styles.statLabel}>Hunt</ThemedText>
                       <ThemedText style={styles.statValue}>{ghost.huntSanityThreshold}%</ThemedText>
                     </View>
                   </View>
+
+                  {/* Sanity Drain Indicator */}
+                  {ghost.activityLevel && (
+                    <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
+                      <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
+                      <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
+                        Sanity drain: {getSanityDrainLevel(ghost.activityLevel).label}
+                      </ThemedText>
+                    </View>
+                  )}
 
                   {ghost.evidence && ghost.evidence.length > 0 && (
                     <View style={styles.evidenceContainer}>
                       <ThemedText style={styles.evidenceLabel}>Evidence:</ThemedText>
                       <View style={styles.evidenceBadges}>
                         {ghost.evidence.map((ev) => (
-                          <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '30' }]}>
+                          <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '25' }]}>
                             <ThemedText style={styles.evidenceText}>{ev}</ThemedText>
                           </View>
                         ))}
@@ -269,64 +307,73 @@ export default function GhostsScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingVertical: 12, paddingHorizontal: 16 },
+  header: { paddingVertical: 16, paddingHorizontal: 16 },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
-  content: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     marginBottom: 16,
-    gap: 8,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
-  filterContainer: { height: 48, flex: 0 },
-  filterContent: { paddingVertical: 4, gap: 8, flexGrow: 0, flexShrink: 0 },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 4 },
+  filterContainer: { height: 52, flex: 0, marginBottom: 12 },
+  filterContent: { paddingVertical: 6, gap: 10, flexGrow: 0, flexShrink: 0 },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
+    minHeight: 46,
   },
   filterCount: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 22,
+    minWidth: 24,
   },
-  resultCounter: { fontSize: 12, opacity: 0.6, marginBottom: 8, marginLeft: 2 },
+  resultCounter: { fontSize: 13, opacity: 0.6, marginBottom: 12, marginLeft: 2, fontWeight: '500' },
   ghostCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderWidth: 0,
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 12,
+    minHeight: 110,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  ghostHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
-  ghostName: { fontSize: 16 },
-  difficultyBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-  difficultyText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-  ghostDescription: { fontSize: 12, marginBottom: 8, lineHeight: 16 },
-  ghostStats: { flexDirection: 'row', gap: 12, marginBottom: 8 },
-  statItem: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  statLabel: { fontSize: 11, opacity: 0.7 },
-  statValue: { fontSize: 11, fontWeight: '600' },
-  evidenceContainer: { marginTop: 8, paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.1)' },
-  evidenceLabel: { fontSize: 11, opacity: 0.7, marginBottom: 6 },
-  evidenceBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  evidenceBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  evidenceText: { fontSize: 10, fontWeight: '500' },
-  noResults: { textAlign: 'center', marginTop: 32, fontSize: 14, opacity: 0.5 },
-  tapTip: { fontSize: 11, opacity: 0.6, marginTop: 8, fontStyle: 'italic' },
+  ghostHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
+  ghostName: { fontSize: 16, fontWeight: '700', flex: 1 },
+  difficultyBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  difficultyText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
+  ghostDescription: { fontSize: 13, marginBottom: 10, lineHeight: 18, display: 'none' },
+  ghostStats: { flexDirection: 'row', gap: 12, marginBottom: 10 },
+  statItem: { flexDirection: 'row', alignItems: 'center', gap: 5, flex: 1 },
+  statLabel: { fontSize: 13, opacity: 0.65, fontWeight: '500' },
+  statValue: { fontSize: 13, fontWeight: '700' },
+  evidenceContainer: { marginTop: 10, paddingTop: 10, borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.08)' },
+  evidenceLabel: { fontSize: 13, opacity: 0.65, marginBottom: 8, fontWeight: '500' },
+  evidenceBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  evidenceBadge: { paddingHorizontal: 10, paddingVertical: 6, borderRadius: 8 },
+  evidenceText: { fontSize: 12, fontWeight: '600' },
+  sanityDrainContainer: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingVertical: 10, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, marginVertical: 10 },
+  sanityDrainText: { fontSize: 13, fontWeight: '600' },
+  noResults: { textAlign: 'center', marginTop: 32, fontSize: 15, opacity: 0.5 },
+  tapTip: { fontSize: 12, opacity: 0.5, marginTop: 10, fontStyle: 'italic', fontWeight: '400' },
 });

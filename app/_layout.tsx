@@ -20,7 +20,6 @@ export default function RootLayout() {
         <BottomSheetModalProvider>
           <Stack>
             <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
           </Stack>
         </BottomSheetModalProvider>
         <StatusBar style="auto" />

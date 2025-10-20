@@ -1,4 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import {
   Dimensions,
@@ -12,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { scrollRefRegistry } from '@/components/haptic-tab';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -31,13 +33,21 @@ export default function MapsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const route = useRoute();
   const { width } = Dimensions.get('window');
   
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
-  const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
+  const viewMode = 'list';
   const [selectedMap, setSelectedMap] = useState<Map | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
+
+  // Use callback ref to always have the latest ref
+  const handleScrollRef = (ref: ScrollView | null) => {
+    if (ref) {
+      scrollRefRegistry.set(route.name, ref as any);
+    }
+  };
 
   const filteredMaps = useMemo(() => {
     return MAP_LIST.filter((map) => {
@@ -95,12 +105,13 @@ export default function MapsScreen() {
     setTimeout(() => setSelectedMap(null), 300);
   };
 
-  const cardWidth = viewMode === 'grid' ? (width - 48) / 2 : width - 32;
+  const cardWidth = width - 32;
 
   return (
     <>
       <ThemedView style={styles.container}>
         <ScrollView 
+          ref={handleScrollRef}
           style={styles.fullScroll} 
           showsVerticalScrollIndicator={false} 
           nestedScrollEnabled={true}
@@ -249,7 +260,7 @@ export default function MapsScreen() {
                 <View
                   style={[
                     styles.mapGrid,
-                    { flexDirection: viewMode === 'grid' ? 'row' : 'column' },
+                    { flexDirection: 'column' },
                   ]}
                 >
                   {mapsInSize.map((map) => (
@@ -257,7 +268,7 @@ export default function MapsScreen() {
                       key={map.id}
                       style={[
                         styles.cardWrapper,
-                        viewMode === 'grid' && { width: cardWidth },
+                        { width: cardWidth },
                       ]}
                     >
                       <TouchableOpacity
@@ -288,7 +299,18 @@ export default function MapsScreen() {
                                 {map.name}
                               </ThemedText>
                               <ThemedText style={styles.mapType}>
-                                {map.type.charAt(0).toUpperCase() + map.type.slice(1)}
+                                {(() => {
+                                  const typeMap: { [key: string]: string } = {
+                                    'house': 'Residential House',
+                                    'campground': 'Campground',
+                                    'campsite': 'Campsite',
+                                    'lighthouse': 'Lighthouse',
+                                    'facility': 'Facility',
+                                    'institution': 'Mental Institution',
+                                    'school': 'School'
+                                  };
+                                  return typeMap[map.type] || (map.type.charAt(0).toUpperCase() + map.type.slice(1));
+                                })()}
                               </ThemedText>
                             </View>
                             <View
@@ -303,7 +325,7 @@ export default function MapsScreen() {
                                 color="white"
                               />
                               <ThemedText style={styles.difficultyText}>
-                                {map.difficulty.charAt(0).toUpperCase()}
+                                {map.difficulty}
                               </ThemedText>
                             </View>
                           </View>
@@ -342,18 +364,10 @@ export default function MapsScreen() {
                                 {map.characteristics.fuse ? 'Fuse' : 'No'}
                               </ThemedText>
                             </View>
-                          </View>
-
-                          {/* Tap to See Details */}
-                          <View style={styles.tapIndicator}>
-                            <Ionicons
-                              size={14}
-                              name="hand-left-outline"
-                              color={colors.tabIconDefault}
-                            />
-                            <ThemedText style={styles.tapIndicatorText}>
-                              Tap for details
-                            </ThemedText>
+                            <View style={[styles.tapIndicator, { marginLeft: 'auto' }]}>
+                              <Ionicons size={16} name="information-circle-outline" color={colors.tabIconDefault} />
+                              <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
+                            </View>
                           </View>
                         </View>
                       </TouchableOpacity>
@@ -391,67 +405,74 @@ export default function MapsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   fullScroll: { flex: 1 },
-  header: { paddingVertical: 12, paddingHorizontal: 16 },
+  header: { paddingVertical: 16, paddingHorizontal: 16 },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
-  headerSubtitle: { fontSize: 12, opacity: 0.6, marginTop: 2 },
+  headerSubtitle: { fontSize: 13, opacity: 0.6, marginTop: 2, fontWeight: '500' },
   viewToggle: {
-    padding: 8,
-    borderRadius: 8,
+    padding: 10,
+    borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center',
+    minHeight: 44,
   },
-  contentPadding: { paddingHorizontal: 16, paddingTop: 12 },
-  content: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
+  contentPadding: { paddingHorizontal: 16, paddingTop: 16 },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     marginBottom: 16,
-    gap: 8,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
-  filterContainer: { height: 48, paddingHorizontal: 16, flex: 0 },
-  filterContent: { paddingVertical: 4, gap: 8, flexGrow: 0, flexShrink: 0 },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 4 },
+  filterContainer: { height: 52, paddingHorizontal: 16, flex: 0, marginBottom: 12 },
+  filterContent: { paddingVertical: 6, gap: 10, flexGrow: 0, flexShrink: 0 },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
+    minHeight: 46,
   },
   filterCount: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 22,
+    minWidth: 24,
   },
 
   // Section Styles
-  sizeSection: { marginBottom: 24 },
+  sizeSection: { marginBottom: 28 },
   sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 14,
     gap: 10,
   },
-  sectionTitle: { fontSize: 16, fontWeight: '600', flex: 1 },
+  sectionTitle: { fontSize: 17, fontWeight: '700', flex: 1 },
   sizeCounter: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
-  sizeCounterText: { fontSize: 11, fontWeight: 'bold' },
+  sizeCounterText: { fontSize: 12, fontWeight: '700' },
 
   // Grid Layout
   mapGrid: {
@@ -463,105 +484,111 @@ const styles = StyleSheet.create({
 
   // Card Styles
   mapCard: {
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 14,
+    minHeight: 130,
+    borderWidth: 0,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
-    marginBottom: 10,
-    gap: 8,
+    marginBottom: 12,
+    gap: 10,
   },
-  mapName: { fontSize: 15, fontWeight: '600', flex: 1 },
-  mapType: { fontSize: 11, opacity: 0.6, marginTop: 2 },
+  mapName: { fontSize: 16, fontWeight: '700', flex: 1 },
+  mapType: { fontSize: 12, opacity: 0.5, marginTop: 3, fontWeight: '400' },
   difficultyBadge: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     justifyContent: 'center',
-    minWidth: 45,
   },
-  difficultyText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
+  difficultyText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
 
   // Quick Stats
   quickStats: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 10,
-    marginBottom: 8,
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    paddingVertical: 12,
+    marginBottom: 0,
     borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: 'rgba(0,0,0,0.05)',
+    borderBottomWidth: 0,
+    borderColor: 'rgba(0,0,0,0.06)',
+    gap: 16,
   },
   quickStatItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
-  quickStatText: { fontSize: 11, fontWeight: '600' },
+  quickStatText: { fontSize: 12, fontWeight: '700' },
 
   // Expand Indicator
   expandIndicator: {
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
   },
   tapIndicator: {
     alignItems: 'center',
-    paddingTop: 8,
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 4,
+    gap: 5,
   },
   tapIndicatorText: {
-    fontSize: 11,
-    opacity: 0.6,
-    fontWeight: '500',
+    fontSize: 12,
+    opacity: 0.5,
+    fontWeight: '400',
   },
 
   // Expanded Content
   expandedContent: {
-    borderBottomLeftRadius: 16,
-    borderBottomRightRadius: 16,
-    borderWidth: 1,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    borderWidth: 0,
     borderTopWidth: 0,
-    padding: 12,
+    padding: 14,
     marginTop: -1,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
   expandedLabel: {
-    fontSize: 12,
+    fontSize: 14,
     fontWeight: '700',
-    marginBottom: 6,
-    marginTop: 8,
+    marginBottom: 8,
+    marginTop: 10,
   },
-  expandedText: { fontSize: 12, lineHeight: 18, opacity: 0.8, marginBottom: 8 },
+  expandedText: { fontSize: 13, lineHeight: 19, opacity: 0.75, marginBottom: 10 },
 
   // Tags and Features
-  hazardsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
+  hazardsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 10 },
   hazardTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 5,
   },
-  hazardText: { fontSize: 11, fontWeight: '600' },
-  featuresRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
+  hazardText: { fontSize: 12, fontWeight: '700' },
+  featuresRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   featureTag: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
     borderRadius: 8,
   },
-  featureText: { fontSize: 11, fontWeight: '600' },
+  featureText: { fontSize: 12, fontWeight: '700' },
 
   // No Results
   noResultsContainer: {
@@ -569,6 +596,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 48,
   },
-  noResults: { textAlign: 'center', marginTop: 16, fontSize: 16, fontWeight: '600' },
-  noResultsHint: { textAlign: 'center', marginTop: 8, fontSize: 12, opacity: 0.5 },
+  noResults: { textAlign: 'center', marginTop: 16, fontSize: 17, fontWeight: '700' },
+  noResultsHint: { textAlign: 'center', marginTop: 8, fontSize: 13, opacity: 0.5 },
 });

@@ -47,6 +47,19 @@ export interface GhostWeakness {
   mechanicalAdvantage?: string;
 }
 
+export interface GhostCounterStrategy {
+  strategy: string;
+  effectiveness: 'High' | 'Medium' | 'Low';
+  tips: string[];
+}
+
+export interface GhostRecommendedEquipment {
+  essential: string[]; // Must-have equipment
+  recommended: string[]; // Should bring
+  optional: string[]; // Nice to have
+  avoid: string[]; // Don't use against this ghost
+}
+
 export interface Ghost {
   id: string;
   name: string;
@@ -56,6 +69,8 @@ export interface Ghost {
   strengths: GhostStrength[];
   weaknesses: GhostWeakness[];
   identificationTips: string[];
+  counterStrategies: GhostCounterStrategy[];
+  recommendedEquipment: GhostRecommendedEquipment;
   huntSanityThreshold: number;
   movementSpeed: 'Slow' | 'Normal' | 'Fast' | 'Variable';
   activityLevel: 'Low' | 'Medium' | 'High' | 'Very High' | 'Variable';
@@ -98,6 +113,14 @@ export interface Equipment {
 
 export type MapSize = 'small' | 'medium' | 'large';
 
+export interface MapZone {
+  name: string;
+  description: string;
+  huntTactics: string[];
+  equipment: string[];
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+}
+
 export interface MapCharacteristics {
   lighting: string;
   ghostSpawns: string;
@@ -121,6 +144,9 @@ export interface Map {
   strategies: string[];
   tips: string[];
   bestFor: string[];
+  zones?: MapZone[];
+  huntStrategy?: string;
+  soloTips?: string[];
   imageUrl?: string;
   floorPlanUrl?: string;
 }

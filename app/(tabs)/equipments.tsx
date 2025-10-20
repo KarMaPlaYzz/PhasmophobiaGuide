@@ -1,9 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useRoute } from '@react-navigation/native';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
+import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
@@ -15,11 +17,18 @@ export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
+  const route = useRoute();
   
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
-  const [isDetailSheetVisible, setIsDetailSheetVisible] = useState(false);
+
+  // Use callback ref to always have the latest ref
+  const handleScrollRef = (ref: ScrollView | null) => {
+    if (ref) {
+      scrollRefRegistry.set(route.name, ref as any);
+    }
+  };
 
   const categories = ['All', 'starter', 'optional', 'truck', 'cursed'];
 
@@ -66,7 +75,6 @@ export default function EquipmentScreen() {
 
   const handleEquipmentPress = (equipment: Equipment) => {
     setSelectedEquipment(equipment);
-    setIsDetailSheetVisible(true);
   };
 
   return (
@@ -75,7 +83,7 @@ export default function EquipmentScreen() {
         {/*<ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>Equipment</ThemedText>*/}
       </View>
 
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
           <Ionicons size={20} name="search" color={colors.spectral} />
           <TextInput
@@ -204,11 +212,10 @@ export default function EquipmentScreen() {
                     <ThemedText style={styles.statValue}>{item.capacity}</ThemedText>
                   </View>
                 ) : null}
-              </View>
-
-              <View style={[styles.tapIndicator, { opacity: 0.5 }]}>
-                <ThemedText style={styles.tapText}>Tap for details</ThemedText>
-                <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
+                <View style={[styles.tapIndicator, { opacity: 0.5, marginLeft: 'auto' }]}>
+                  <Ionicons size={16} name="information-circle-outline" color={colors.tabIconDefault} />
+                  <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
+                </View>
               </View>
             </TouchableOpacity>
           ))
@@ -219,8 +226,8 @@ export default function EquipmentScreen() {
 
       <EquipmentDetailSheet
         equipment={selectedEquipment}
-        isVisible={isDetailSheetVisible}
-        onClose={() => setIsDetailSheetVisible(false)}
+        isVisible={selectedEquipment !== null}
+        onClose={() => setSelectedEquipment(null)}
       />
     </ThemedView>
   );
@@ -228,60 +235,67 @@ export default function EquipmentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingVertical: 12, paddingHorizontal: 16 },
+  header: { paddingVertical: 16, paddingHorizontal: 16 },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
-  content: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
+  content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    borderWidth: 0,
     borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
     marginBottom: 16,
-    gap: 8,
+    gap: 10,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
-  filterContainer: { height: 48, flex: 0 },
-  filterContent: { paddingVertical: 4, gap: 8, flexGrow: 0, flexShrink: 0 },
+  searchInput: { flex: 1, fontSize: 15, paddingVertical: 4 },
+  filterContainer: { height: 52, flex: 0, marginBottom: 12 },
+  filterContent: { paddingVertical: 6, gap: 10, flexGrow: 0, flexShrink: 0 },
   filterButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 7,
+    minHeight: 46,
   },
   filterCount: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
-    minWidth: 22,
+    minWidth: 24,
   },
-  resultCounter: { fontSize: 12, opacity: 0.6, marginBottom: 8, marginLeft: 2 },
+  resultCounter: { fontSize: 13, opacity: 0.6, marginBottom: 12, marginLeft: 2, fontWeight: '500' },
   equipmentCard: {
-    borderWidth: 1,
-    borderRadius: 12,
-    padding: 12,
+    borderWidth: 0,
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 12,
+    minHeight: 100,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 5,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  equipmentHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8, gap: 8 },
-  equipmentName: { fontSize: 16 },
-  categoryBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
-  categoryText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
-  equipmentDescription: { fontSize: 12, marginBottom: 8, lineHeight: 16 },
-  equipmentStats: { flexDirection: 'row', gap: 16, marginBottom: 8 },
+  equipmentHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
+  equipmentName: { fontSize: 16, fontWeight: '700', flex: 1 },
+  categoryBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  categoryText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
+  equipmentDescription: { fontSize: 13, marginBottom: 10, lineHeight: 18, display: 'none' },
+  equipmentStats: { flexDirection: 'row', gap: 12, marginBottom: 10, alignItems: 'center' },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  statLabel: { fontSize: 11, opacity: 0.7 },
-  statValue: { fontSize: 11, fontWeight: '600' },
-  tapIndicator: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
-  tapText: { fontSize: 11 },
-  noResults: { textAlign: 'center', marginTop: 32, fontSize: 14, opacity: 0.5 },
+  statLabel: { fontSize: 13, opacity: 0.65, fontWeight: '500' },
+  statValue: { fontSize: 13, fontWeight: '700' },
+  tapIndicator: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  tapText: { fontSize: 12, opacity: 0.5, fontWeight: '400' },
+  noResults: { textAlign: 'center', marginTop: 32, fontSize: 15, opacity: 0.5 },
 });

@@ -1,9 +1,10 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { useMemo, useState } from 'react';
-import { Dimensions, Image, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native';
 
 import { FloorPlanViewer } from '@/components/floor-plan-viewer';
+import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -21,6 +22,46 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
   const snapPoints = useMemo(() => ['60%', '95%'], []);
   const { width: screenWidth } = Dimensions.get('window');
   const [imageLoading, setImageLoading] = useState(true);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    zones: false,
+    strategies: false,
+    hazards: false,
+    features: false,
+  });
+
+  // Close sheet when tab changes
+  useEffect(() => {
+    const unsubscribe = detailSheetEmitter.subscribe(() => {
+      // Reset sections before closing
+      setExpandedSections({
+        zones: false,
+        strategies: false,
+        hazards: false,
+        features: false,
+      });
+      onClose();
+    });
+    return unsubscribe;
+  }, [onClose]);
+
+  // Reset sections when sheet becomes invisible
+  useEffect(() => {
+    if (!isVisible) {
+      setExpandedSections({
+        zones: false,
+        strategies: false,
+        hazards: false,
+        features: false,
+      });
+    }
+  }, [isVisible]);
+
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
 
   console.log('MapDetailSheet - isVisible:', isVisible, 'map:', map?.name, 'index:', isVisible ? 0 : -1);
 
@@ -58,13 +99,14 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
       }}
     >
       <BottomSheetScrollView
-        style={[styles.container, { backgroundColor: colors.surface }]}
+        style={[styles.container, { backgroundColor: colors.surface, paddingHorizontal: 16 }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
+        nestedScrollEnabled={false}
       >
         {/* Map Image */}
         {map.imageUrl && (
-          <View style={[styles.imageContainer, { backgroundColor: colors.haunted + '30' }]}>
+          <View style={[styles.imageContainer, { marginHorizontal: -16, paddingHorizontal: 16, paddingVertical: 12, paddingBottom: 20 }]}>
             {imageLoading && (
               <View style={styles.imagePlaceholder}>
                 <Ionicons size={48} name="image" color={colors.spectral} />
@@ -72,7 +114,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
             )}
             <Image
               source={{ uri: map.imageUrl }}
-              style={styles.mapImage}
+              style={[styles.mapImage, { borderRadius: 12 }]}
               resizeMode="cover"
               onLoad={() => setImageLoading(false)}
               onError={(error) => {
@@ -81,7 +123,6 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
               }}
               progressiveRenderingEnabled={true}
             />
-            <View style={styles.imageOverlay} />
           </View>
         )}
 
@@ -136,136 +177,243 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
 
         {/* Description */}
         {map.description && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
+          <>
+            <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
               About
             </ThemedText>
-            <ThemedText style={styles.descriptionText}>{map.description}</ThemedText>
-          </View>
+            <ThemedText style={styles.description}>{map.description}</ThemedText>
+          </>
         )}
 
-        {/* Floor Plan */}
-        {map.floorPlanUrl && (
-          <View style={[styles.floorPlanSection]}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Floor Plan
-            </ThemedText>
-            <FloorPlanViewer imageUrl={map.floorPlanUrl} mapName={map.name} />
-          </View>
+        {/* Map Characteristics - Always Visible */}
+        <View>
+          {/* Ghost Spawns */}
+          {map.characteristics.ghostSpawns && (
+            <>
+              <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
+                Ghost Spawns
+              </ThemedText>
+              <ThemedText style={styles.description}>{map.characteristics.ghostSpawns}</ThemedText>
+            </>
+          )}
+
+          {/* Lighting */}
+          {map.characteristics.lighting && (
+            <>
+              <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
+                Lighting
+              </ThemedText>
+              <View style={[styles.infoTag, { backgroundColor: colors.spectral + '20' }]}>
+                <Ionicons size={16} name="bulb" color={colors.spectral} />
+                <ThemedText style={styles.infoTagText}>{map.characteristics.lighting}</ThemedText>
+              </View>
+            </>
+          )}
+
+          {/* Floor Plan */}
+          {map.floorPlanUrl && (
+            <>
+              <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
+                Floor Plan
+              </ThemedText>
+              <View style={{ marginHorizontal: -16, marginVertical: 12, paddingHorizontal: 16 }}>
+                <FloorPlanViewer imageUrl={map.floorPlanUrl} mapName={map.name} />
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* Collapsible: Zones */}
+        {map.zones && map.zones.length > 0 && (
+          <>
+            <Pressable
+              onPress={() => toggleSection('zones')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
+            >
+              <Ionicons
+                name={expandedSections.zones ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Zones ({map.zones.length})
+              </ThemedText>
+            </Pressable>
+            {expandedSections.zones && (
+              <View>
+                {map.zones.map((zone, idx) => (
+                  <View key={idx} style={[styles.zoneItem, { borderColor: colors.paranormal, borderLeftWidth: 3, paddingLeft: 12, paddingVertical: 12, marginBottom: 12 }]}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                      <ThemedText style={[styles.zoneName, { flex: 1 }]}>{zone.name}</ThemedText>
+                      <View
+                        style={[
+                          styles.zoneDifficultyBadge,
+                          {
+                            backgroundColor:
+                              zone.difficulty === 'Easy'
+                                ? '#4CAF50'
+                                : zone.difficulty === 'Medium'
+                                  ? '#FFC107'
+                                  : '#FF6F6F',
+                          },
+                        ]}
+                      >
+                        <ThemedText style={styles.zoneDifficultyText}>{zone.difficulty}</ThemedText>
+                      </View>
+                    </View>
+                    <ThemedText style={[styles.description, { marginBottom: 8 }]}>{zone.description}</ThemedText>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
-        {/* Ghost Spawns */}
-        {map.characteristics.ghostSpawns && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Ghost Spawns
-            </ThemedText>
-            <ThemedText style={styles.descriptionText}>
-              {map.characteristics.ghostSpawns}
-            </ThemedText>
-          </View>
-        )}
-
-        {/* Lighting */}
-        {map.characteristics.lighting && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Lighting
-            </ThemedText>
-            <View style={[styles.infoTag, { backgroundColor: colors.spectral + '20' }]}>
-              <Ionicons size={16} name="bulb" color={colors.spectral} />
-              <ThemedText style={styles.infoTagText}>{map.characteristics.lighting}</ThemedText>
-            </View>
-          </View>
-        )}
-
-        {/* Hazards */}
+        {/* Collapsible: Hazards */}
         {map.characteristics.hazards && map.characteristics.hazards.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Hazards
-            </ThemedText>
-            <View style={styles.tagsContainer}>
-              {map.characteristics.hazards.map((hazard, idx) => (
-                <View key={idx} style={[styles.hazardTag, { backgroundColor: '#FF4444' + '20' }]}>
-                  <Ionicons size={14} name="warning-outline" color="#FF4444" />
-                  <ThemedText style={[styles.tagText, { color: '#FF4444' }]}>{hazard}</ThemedText>
-                </View>
-              ))}
-            </View>
-          </View>
+          <>
+            <Pressable
+              onPress={() => toggleSection('hazards')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
+            >
+              <Ionicons
+                name={expandedSections.hazards ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Hazards ({map.characteristics.hazards.length})
+              </ThemedText>
+            </Pressable>
+            {expandedSections.hazards && (
+              <View style={styles.tagsContainer}>
+                {map.characteristics.hazards.map((hazard, idx) => (
+                  <View key={idx} style={[styles.hazardTag, { backgroundColor: '#FF4444' + '20' }]}>
+                    <Ionicons size={14} name="warning-outline" color="#FF4444" />
+                    <ThemedText style={[styles.tagText, { color: '#FF4444' }]}>{hazard}</ThemedText>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
-        {/* Special Features */}
+        {/* Collapsible: Special Features */}
         {map.characteristics.specialFeatures && map.characteristics.specialFeatures.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Special Features
-            </ThemedText>
-            <View style={styles.tagsContainer}>
-              {map.characteristics.specialFeatures.map((feature, idx) => (
-                <View key={idx} style={[styles.featureTag, { backgroundColor: colors.spectral + '20' }]}>
-                  <Ionicons size={14} name="checkmark-circle" color={colors.spectral} />
-                  <ThemedText style={[styles.tagText, { color: colors.spectral }]}>{feature}</ThemedText>
-                </View>
-              ))}
-            </View>
-          </View>
+          <>
+            <Pressable
+              onPress={() => toggleSection('features')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
+            >
+              <Ionicons
+                name={expandedSections.features ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Special Features ({map.characteristics.specialFeatures.length})
+              </ThemedText>
+            </Pressable>
+            {expandedSections.features && (
+              <View style={styles.tagsContainer}>
+                {map.characteristics.specialFeatures.map((feature, idx) => (
+                  <View key={idx} style={[styles.featureTag, { backgroundColor: colors.spectral + '20' }]}>
+                    <Ionicons size={14} name="checkmark-circle" color={colors.spectral} />
+                    <ThemedText style={[styles.tagText, { color: colors.spectral }]}>{feature}</ThemedText>
+                  </View>
+                ))}
+              </View>
+            )}
+          </>
         )}
 
-        {/* Strategies */}
-        {map.strategies && map.strategies.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Strategies
-            </ThemedText>
-            <View style={styles.listContainer}>
-              {map.strategies.map((strategy, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <ThemedText style={[styles.listBullet, { color: colors.spectral }]}>•</ThemedText>
-                  <ThemedText style={styles.listText}>{strategy}</ThemedText>
-                </View>
-              ))}
-            </View>
-          </View>
+        {/* Collapsible: Strategies & Tips */}
+        {(map.strategies || map.tips) && (
+          <>
+            <Pressable
+              onPress={() => toggleSection('strategies')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
+            >
+              <Ionicons
+                name={expandedSections.strategies ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Strategies & Tips
+              </ThemedText>
+            </Pressable>
+            {expandedSections.strategies && (
+              <View>
+                {/* Strategies */}
+                {map.strategies && map.strategies.length > 0 && (
+                  <>
+                    <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
+                      Strategies
+                    </ThemedText>
+                    <View style={styles.listContainer}>
+                      {map.strategies.map((strategy, idx) => (
+                        <View key={idx} style={styles.listItem}>
+                          <ThemedText style={[styles.listBullet, { color: colors.spectral }]}>•</ThemedText>
+                          <ThemedText style={styles.listText}>{strategy}</ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+
+                {/* Tips */}
+                {map.tips && map.tips.length > 0 && (
+                  <>
+                    <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
+                      Tips
+                    </ThemedText>
+                    <View style={styles.listContainer}>
+                      {map.tips.map((tip, idx) => (
+                        <View key={idx} style={styles.listItem}>
+                          <ThemedText style={styles.listBullet}>💡</ThemedText>
+                          <ThemedText style={styles.listText}>{tip}</ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+
+                {/* Solo Tips */}
+                {map.soloTips && map.soloTips.length > 0 && (
+                  <>
+                    <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
+                      Solo Tips
+                    </ThemedText>
+                    <View style={styles.listContainer}>
+                      {map.soloTips.map((tip, idx) => (
+                        <View key={idx} style={styles.listItem}>
+                          <ThemedText style={styles.listBullet}>👤</ThemedText>
+                          <ThemedText style={styles.listText}>{tip}</ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  </>
+                )}
+
+                {/* Hunt Strategy */}
+                {map.huntStrategy && (
+                  <>
+                    <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
+                      Hunt Strategy
+                    </ThemedText>
+                    <View style={[styles.strategyBox, { backgroundColor: colors.spectral + '15' }]}>
+                      <Ionicons name="shield-checkmark" size={20} color={colors.spectral} />
+                      <ThemedText style={styles.strategyText}>{map.huntStrategy}</ThemedText>
+                    </View>
+                  </>
+                )}
+              </View>
+            )}
+          </>
         )}
 
-        {/* Tips */}
-        {map.tips && map.tips.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Tips
-            </ThemedText>
-            <View style={styles.listContainer}>
-              {map.tips.map((tip, idx) => (
-                <View key={idx} style={styles.listItem}>
-                  <ThemedText style={styles.listBullet}>💡</ThemedText>
-                  <ThemedText style={styles.listText}>{tip}</ThemedText>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        {/* Best For */}
-        {map.bestFor && map.bestFor.length > 0 && (
-          <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
-              Best For
-            </ThemedText>
-            <View style={styles.tagsContainer}>
-              {map.bestFor.map((category, idx) => (
-                <View key={idx} style={[styles.bestForTag, { backgroundColor: colors.paranormal + '20' }]}>
-                  <ThemedText style={[styles.tagText, { color: colors.paranormal }]}>
-                    ✓ {category}
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
-          </View>
-        )}
-
-        <View style={{ height: 32 }} />
+        <View style={{ height: 20 }} />
       </BottomSheetScrollView>
     </BottomSheet>
   );
@@ -276,17 +424,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   section: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 14,
   },
   headerSection: {
-    paddingTop: 16,
+    paddingTop: 0,
   },
   imageContainer: {
     position: 'relative',
     width: Dimensions.get('window').width,
-    height: 240,
-    overflow: 'hidden',
+    height: 'auto',
+    overflow: 'visible',
   },
   imagePlaceholder: {
     position: 'absolute',
@@ -297,8 +444,8 @@ const styles = StyleSheet.create({
     zIndex: 1,
   },
   mapImage: {
-    width: Dimensions.get('window').width,
-    height: 240,
+    width: '100%',
+    height: 200,
   },
   imageOverlay: {
     position: 'absolute',
@@ -353,16 +500,9 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     marginTop: 4,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    marginBottom: 10,
-  },
-  descriptionText: {
-    fontSize: 14,
-    lineHeight: 20,
-    opacity: 0.8,
-  },
+  sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 20, marginBottom: 12, color: '#00D9FF' },
+  description: { fontSize: 13, lineHeight: 20, marginBottom: 12, opacity: 0.85 },
+  collapsibleHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 8, marginBottom: 8 },
   infoTag: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -379,6 +519,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    marginBottom: 12,
   },
   hazardTag: {
     flexDirection: 'row',
@@ -409,7 +550,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   listContainer: {
-    gap: 8,
+    gap: 10,
   },
   listItem: {
     flexDirection: 'row',
@@ -442,5 +583,58 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 12,
     width: '100%',
+  },
+  zoneItem: { paddingLeft: 12, borderLeftWidth: 3, paddingVertical: 12, paddingRight: 10, marginBottom: 10 },
+  zoneCard: {
+    borderLeftWidth: 3,
+    marginVertical: 2,
+  },
+  zoneHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  zoneName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#00D9FF',
+    flex: 1,
+  },
+  zoneDifficultyBadge: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  zoneDifficultyText: {
+    color: 'white',
+    fontSize: 11,
+    fontWeight: 'bold',
+  },
+  zoneDescription: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 8,
+    opacity: 0.8,
+  },
+  equipmentTag: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  strategyBox: {
+    flexDirection: 'row',
+    gap: 12,
+    padding: 12,
+    borderRadius: 8,
+    alignItems: 'flex-start',
+  },
+  strategyText: {
+    fontSize: 13,
+    lineHeight: 18,
+    flex: 1,
   },
 });

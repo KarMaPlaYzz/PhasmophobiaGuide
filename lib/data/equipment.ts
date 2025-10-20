@@ -66,9 +66,27 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
   'thermometer': {
     id: 'thermometer',
     name: 'Thermometer',
-    description: 'Measures temperature changes to detect paranormal activity.',
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/1c/Thermometer090_T1.png/revision/latest?cb=20230822153607',
     category: 'starter',
+    type: 'detector',
+    cost: 30,
+    capacity: 2,
+    description:
+      'A thermometer that measures temperature changes. Used to detect cold spots and gather Freezing Temperatures evidence.',
+    usage:
+      'Hold in hand and watch for temperature drops. Freezing Temperatures evidence appears when temperature drops below 10°C.',
+    unlocksAtLevel: 0,
+    detects: ['Freezing Temperatures'],
+    consumable: false,
+    tiers: [
+      { level: 27, upgradeCost: 3000 },
+      { level: 65, upgradeCost: 3000 },
+    ],
+    recommendedFor: [
+      'Cold ghost detection',
+      'Freezing temperature evidence',
+      'Ghost identification',
+    ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/1c/Thermometer090_T1.png/revision/latest?cb=20230822153607',
   },
 
   'ghost-writing-book': {
@@ -322,7 +340,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Hold incense or firelight and use igniter to light. Can also use on campfires in maps like Maple Lodge and Camp Woodwind.',
     unlocksAtLevel: 12,
     detects: undefined,
-    consumable: false,
+    consumable: true,
     tiers: [
       { level: 37, upgradeCost: 500 },
       { level: 52, upgradeCost: 750 },

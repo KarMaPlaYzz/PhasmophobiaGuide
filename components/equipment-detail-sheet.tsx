@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { useMemo } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import React, { useEffect, useMemo, useState } from 'react';
+import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -19,6 +20,39 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const snapPoints = useMemo(() => ['60%', '95%'], []);
+  const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
+    tiers: false,
+    evidence: false,
+    synergies: false,
+    recommended: false,
+  });
+
+  // Close sheet when tab changes and reset expanded sections
+  useEffect(() => {
+    const unsubscribe = detailSheetEmitter.subscribe(() => {
+      // Reset all sections before closing
+      setExpandedSections({
+        tiers: false,
+        evidence: false,
+        synergies: false,
+        recommended: false,
+      });
+      onClose();
+    });
+    return unsubscribe;
+  }, [onClose]);
+
+  // Reset sections when sheet becomes invisible
+  useEffect(() => {
+    if (!isVisible) {
+      setExpandedSections({
+        tiers: false,
+        evidence: false,
+        synergies: false,
+        recommended: false,
+      });
+    }
+  }, [isVisible]);
 
   const getCategoryColor = (category: string) => {
     switch (category) {
@@ -58,6 +92,13 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
 
   if (!equipment) return null;
 
+  const toggleSection = (section: string) => {
+    setExpandedSections((prev) => ({
+      ...prev,
+      [section]: !prev[section],
+    }));
+  };
+
   const equipmentSynergies = SYNERGIES[equipment.id as keyof typeof SYNERGIES] || [];
 
   return (
@@ -74,7 +115,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         style={{ flex: 1, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Equipment Image */}
+        {/* Equipment Image - Compact */}
         {equipment.imageUrl ? (
           <View style={[styles.imageContainer, { backgroundColor: colors.haunted + '30' }]}>
             <Image
@@ -85,8 +126,8 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
           </View>
         ) : null}
 
+        {/* Header: Name + Badges */}
         <ThemedText style={styles.bottomSheetTitle}>{equipment.name}</ThemedText>
-        
         <View style={styles.badgeContainer}>
           <View
             style={[
@@ -111,46 +152,47 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
           </View>
         </View>
 
-        <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-        <ThemedText style={styles.description}>{equipment.description}</ThemedText>
-
-        <ThemedText style={styles.sectionTitle}>Usage</ThemedText>
-        <ThemedText style={styles.description}>{equipment.usage}</ThemedText>
-
-        <View style={styles.statsContainer}>
-          <ThemedText style={styles.sectionTitle}>Stats</ThemedText>
-          <View style={styles.statsGrid}>
-            {equipment.cost !== undefined && (
-              <View style={[styles.statBox, { borderColor: colors.tabIconDefault + '30' }]}>
-                <ThemedText style={styles.statLabel}>Cost</ThemedText>
-                <ThemedText style={styles.statValue}>
-                  {equipment.cost > 0 ? `$${equipment.cost}` : 'Free'}
-                </ThemedText>
-              </View>
-            )}
-            {equipment.capacity !== undefined && (
-              <View style={[styles.statBox, { borderColor: colors.tabIconDefault + '30' }]}>
-                <ThemedText style={styles.statLabel}>Capacity</ThemedText>
-                <ThemedText style={styles.statValue}>{equipment.capacity}</ThemedText>
-              </View>
-            )}
-            {equipment.unlocksAtLevel !== undefined && (
-              <View style={[styles.statBox, { borderColor: colors.tabIconDefault + '30' }]}>
-                <ThemedText style={styles.statLabel}>Unlocks</ThemedText>
-                <ThemedText style={styles.statValue}>Level {equipment.unlocksAtLevel}</ThemedText>
-              </View>
-            )}
-            {equipment.consumable !== undefined && (
-              <View style={[styles.statBox, { borderColor: colors.tabIconDefault + '30' }]}>
-                <ThemedText style={styles.statLabel}>Type</ThemedText>
-                <ThemedText style={styles.statValue}>
-                  {equipment.consumable ? 'Consumable' : 'Reusable'}
-                </ThemedText>
-              </View>
-            )}
-          </View>
+        {/* Quick Stats - 2x2 Grid */}
+        <View style={styles.quickStatsGrid}>
+          {equipment.cost !== undefined && (
+            <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
+              <ThemedText style={styles.quickStatLabel}>Cost</ThemedText>
+              <ThemedText style={styles.quickStatValue}>
+                {equipment.cost > 0 ? `$${equipment.cost}` : 'Free'}
+              </ThemedText>
+            </View>
+          )}
+          {equipment.capacity !== undefined && (
+            <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
+              <ThemedText style={styles.quickStatLabel}>Capacity</ThemedText>
+              <ThemedText style={styles.quickStatValue}>{equipment.capacity}</ThemedText>
+            </View>
+          )}
+          {equipment.unlocksAtLevel !== undefined && (
+            <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
+              <ThemedText style={styles.quickStatLabel}>Unlocks</ThemedText>
+              <ThemedText style={styles.quickStatValue}>Level {equipment.unlocksAtLevel}</ThemedText>
+            </View>
+          )}
+          {equipment.consumable !== undefined && (
+            <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
+              <ThemedText style={styles.quickStatLabel}>Type</ThemedText>
+              <ThemedText style={styles.quickStatValue}>
+                {equipment.consumable ? 'Consumable' : 'Reusable'}
+              </ThemedText>
+            </View>
+          )}
         </View>
 
+        {/* Description - Key Info Only */}
+        <ThemedText style={styles.sectionTitle}>About</ThemedText>
+        <ThemedText style={styles.description}>{equipment.description}</ThemedText>
+
+        {/* Usage - Key Info Only */}
+        <ThemedText style={styles.sectionTitle}>How to Use</ThemedText>
+        <ThemedText style={styles.description}>{equipment.usage}</ThemedText>
+
+        {/* Evidence Detection - Always Show (if applicable) */}
         {equipment.detects && equipment.detects.length > 0 && (
           <>
             <ThemedText style={styles.sectionTitle}>Detects Evidence</ThemedText>
@@ -164,55 +206,101 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
           </>
         )}
 
+        {/* Collapsible: Tiers */}
         {equipment.tiers && equipment.tiers.length > 0 && (
           <>
-            <ThemedText style={styles.sectionTitle}>Tiers</ThemedText>
-            {equipment.tiers.map((tier, idx) => (
-              <View key={idx} style={[styles.tierItem, { borderColor: colors.paranormal }]}>
-                <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
-                <View style={styles.tierDetails}>
-                  <View style={styles.tierDetail}>
-                    <ThemedText style={styles.tierDetailLabel}>Level:</ThemedText>
-                    <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
+            <Pressable
+              onPress={() => toggleSection('tiers')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12' }]}
+            >
+              <Ionicons
+                name={expandedSections.tiers ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Upgrade Tiers
+              </ThemedText>
+            </Pressable>
+            {expandedSections.tiers && (
+              <View>
+                {equipment.tiers.map((tier, idx) => (
+                  <View key={idx} style={[styles.tierItem, { borderColor: colors.paranormal }]}>
+                    <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
+                    <View style={styles.tierDetails}>
+                      <View style={styles.tierDetail}>
+                        <ThemedText style={styles.tierDetailLabel}>Level:</ThemedText>
+                        <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
+                      </View>
+                      <View style={styles.tierDetail}>
+                        <ThemedText style={styles.tierDetailLabel}>Cost:</ThemedText>
+                        <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
+                      </View>
+                    </View>
                   </View>
-                  <View style={styles.tierDetail}>
-                    <ThemedText style={styles.tierDetailLabel}>Cost:</ThemedText>
-                    <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
-                  </View>
-                </View>
+                ))}
               </View>
-            ))}
+            )}
           </>
         )}
 
+        {/* Collapsible: Synergies */}
         {equipmentSynergies.length > 0 && (
           <>
-            <ThemedText style={styles.sectionTitle}>Synergies</ThemedText>
-            <ThemedText style={[styles.description, { marginBottom: 12 }]}>
-              Works great with these items:
-            </ThemedText>
-            <View style={styles.synergies}>
-              {equipmentSynergies.map((synergyId) => (
-                <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
-                  <Ionicons size={14} name="link" color={colors.spectral} />
-                  <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
-                    {synergyId.replace('-', ' ')}
-                  </ThemedText>
-                </View>
-              ))}
-            </View>
+            <Pressable
+              onPress={() => toggleSection('synergies')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
+            >
+              <Ionicons
+                name={expandedSections.synergies ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Synergies ({equipmentSynergies.length})
+              </ThemedText>
+            </Pressable>
+            {expandedSections.synergies && (
+              <View style={styles.synergies}>
+                {equipmentSynergies.map((synergyId) => (
+                  <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
+                    <Ionicons size={14} name="link" color={colors.spectral} />
+                    <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
+                      {synergyId.replace('-', ' ')}
+                    </ThemedText>
+                  </View>
+                ))}
+              </View>
+            )}
           </>
         )}
 
+        {/* Collapsible: Recommended For */}
         {equipment.recommendedFor && equipment.recommendedFor.length > 0 && (
           <>
-            <ThemedText style={styles.sectionTitle}>Recommended For</ThemedText>
-            {equipment.recommendedFor.map((recommendation, idx) => (
-              <View key={idx} style={styles.recommendationItem}>
-                <ThemedText style={styles.recommendationBullet}>•</ThemedText>
-                <ThemedText style={styles.recommendationText}>{recommendation}</ThemedText>
-              </View>
-            ))}
+            <Pressable
+              onPress={() => toggleSection('recommended')}
+              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
+            >
+              <Ionicons
+                name={expandedSections.recommended ? 'chevron-down' : 'chevron-forward'}
+                size={18}
+                color={colors.spectral}
+              />
+              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
+                Best For ({equipment.recommendedFor.length})
+              </ThemedText>
+            </Pressable>
+            {expandedSections.recommended && (
+              <>
+                {equipment.recommendedFor.map((recommendation, idx) => (
+                  <View key={idx} style={styles.recommendationItem}>
+                    <ThemedText style={styles.recommendationBullet}>•</ThemedText>
+                    <ThemedText style={styles.recommendationText}>{recommendation}</ThemedText>
+                  </View>
+                ))}
+              </>
+            )}
           </>
         )}
 
@@ -225,15 +313,13 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
 const styles = StyleSheet.create({
   imageContainer: {
     width: '100%',
-    height: 250,
+    height: 180,
     borderRadius: 12,
     overflow: 'hidden',
     marginTop: 16,
     marginBottom: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 2,
-    borderColor: '#6B4AAC',
   },
   equipmentImage: {
     width: '100%',
@@ -241,38 +327,44 @@ const styles = StyleSheet.create({
     resizeMode: 'contain',
   },
   bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12, color: '#00D9FF' },
-  badgeContainer: { flexDirection: 'row', gap: 8, marginBottom: 16, flexWrap: 'wrap' },
+  badgeContainer: { flexDirection: 'row', gap: 8, marginBottom: 18, flexWrap: 'wrap' },
   categoryBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
   typeBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center' },
   badgeText: { color: 'white', fontWeight: '600', fontSize: 12 },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 16, marginBottom: 8, color: '#00D9FF' },
-  description: { fontSize: 13, lineHeight: 20, marginBottom: 8 },
-  statsContainer: { marginBottom: 8 },
-  statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 12 },
-  statBox: { 
-    flex: 1, 
-    minWidth: '45%', 
-    borderWidth: 1, 
-    borderRadius: 8, 
+
+  // Quick Stats Grid - Prominent
+  quickStatsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 20 },
+  quickStatBox: {
+    flex: 1,
+    minWidth: '48%',
+    borderRadius: 8,
     padding: 12,
     alignItems: 'center',
-    borderColor: '#3D3847',
   },
-  statLabel: { fontSize: 11, opacity: 0.7, marginBottom: 4 },
-  statValue: { fontSize: 14, fontWeight: '600' },
-  evidenceBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+  quickStatLabel: { fontSize: 11, fontWeight: '600', opacity: 0.7, marginBottom: 6 },
+  quickStatValue: { fontSize: 16, fontWeight: '700' },
+
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 20, marginBottom: 12, color: '#00D9FF' },
+  description: { fontSize: 13, lineHeight: 20, marginBottom: 12, opacity: 0.85 },
+
+  collapsibleHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 8, marginBottom: 8 },
+
+  evidenceBadges: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 20 },
   evidenceBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   evidenceText: { fontSize: 12, fontWeight: '500' },
+
   tierItem: { marginBottom: 12, paddingBottom: 12, paddingLeft: 12, borderLeftWidth: 3 },
   tierLabel: { fontWeight: '600', marginBottom: 6, fontSize: 14 },
   tierDetails: { flexDirection: 'row', gap: 16 },
   tierDetail: { flex: 1 },
   tierDetailLabel: { fontSize: 11, opacity: 0.7, marginBottom: 2 },
   tierDetailValue: { fontSize: 13, fontWeight: '600' },
-  synergies: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
+
+  synergies: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12, paddingLeft: 0 },
   synergy: { flexDirection: 'row', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
   synergyText: { fontSize: 12, fontWeight: '500', textTransform: 'capitalize' },
-  recommendationItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8 },
+
+  recommendationItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8, paddingLeft: 0 },
   recommendationBullet: { fontSize: 16, fontWeight: 'bold', marginTop: -2, color: '#00D9FF' },
   recommendationText: { flex: 1, fontSize: 13, lineHeight: 18 },
 });

@@ -29,13 +29,6 @@ export default function TabLayout() {
         },
       }}>
       <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Identifier',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="finger-print" color={color} />,
-        }}
-      />
-      <Tabs.Screen
         name="ghosts"
         options={{
           title: 'Ghosts',
@@ -54,6 +47,20 @@ export default function TabLayout() {
         options={{
           title: 'Maps',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="index"
+        options={{
+          title: 'Evidence',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="finger-print" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="sanity-calculator"
+        options={{
+          title: 'Sanity',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="pulse" color={color} />,
         }}
       />
     </Tabs>

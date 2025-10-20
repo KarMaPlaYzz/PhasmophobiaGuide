@@ -37,6 +37,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for EMF Level 5 and Spirit Box evidence first',
       'May leave ghost writing quickly',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Use containment methods',
+        effectiveness: 'High',
+        tips: ['Place crucifixes near spawn points', 'Use salt lines at exits'],
+      },
+      {
+        strategy: 'Maintain team cohesion',
+        effectiveness: 'Medium',
+        tips: ['Stay grouped to reduce sanity drain', 'Support teammates when hunts begin'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Spirit Box', 'Ghost Writing Book'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Video Camera'],
+      optional: ['UV Light', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
@@ -84,6 +102,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Very aggressive behavior',
       'Can appear suddenly near players',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Avoid salt at spawn location',
+        effectiveness: 'High',
+        tips: ['Place salt away from suspected spawn points', 'Use crucifixes instead', 'Track where it appears most'],
+      },
+      {
+        strategy: 'Watch for lack of footprints',
+        effectiveness: 'High',
+        tips: ['Check salt lines in all rooms', 'No footprints = likely Wraith', 'No UV evidence on surfaces'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Spirit Box', 'D.O.T.S. Projector'],
+      recommended: ['Video Camera', 'Sanity Medication', 'Crucifixes'],
+      optional: ['Thermometer', 'Ghost Writing Book'],
+      avoid: ['Salt'],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Fast',
     activityLevel: 'High',
@@ -133,6 +169,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for UV fingerprints and D.O.T.S evidence',
       'Heart rate will increase when looking at phantom',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Use Photo Camera strategically',
+        effectiveness: 'High',
+        tips: ['Take photo to banish temporarily', 'Resets hunt aggression', 'Gives team breathing room'],
+      },
+      {
+        strategy: 'Keep head down or covered',
+        effectiveness: 'Medium',
+        tips: ['Look away from ghost manifestations', 'Reduce sanity drain from sight', 'Use darkness to your advantage'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Spirit Box', 'Ultraviolet', 'D.O.T.S. Projector'],
+      recommended: ['Photo Camera', 'Video Camera', 'Sanity Medication'],
+      optional: ['EMF Reader'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'High',
@@ -181,6 +235,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Gather Spirit Box and UV evidence',
       'More active in cluttered rooms',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Move to empty rooms',
+        effectiveness: 'High',
+        tips: ['Find room with no throwables', 'Reduces manifestation power', 'Safer environment'],
+      },
+      {
+        strategy: 'Avoid clutter',
+        effectiveness: 'Medium',
+        tips: ['Stay away from kitchens and warehouses', 'Less objects to throw', 'Easier to evade'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Spirit Box', 'Ultraviolet', 'Ghost Writing Book'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Body Armor'],
+      optional: ['EMF Reader', 'Video Camera'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
@@ -230,6 +302,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'More common singing events',
       'Uses Parabolic Microphone sounds frequently',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Play with multiple players',
+        effectiveness: 'High',
+        tips: ['Spread target around team', 'Each player shares curse', 'Banshee focuses on one player'],
+      },
+      {
+        strategy: 'Identify the target early',
+        effectiveness: 'Medium',
+        tips: ['Target player experiences higher activity', 'Extra preparation for that player', 'Enhanced hunts against target'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['D.O.T.S. Projector', 'Ultraviolet', 'Ghost Orb'],
+      recommended: ['Crucifixes (many)', 'Sanity Medication (extra)', 'Video Camera'],
+      optional: ['EMF Reader', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
@@ -280,6 +370,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Turn off breaker to disable main ability',
       'EMF spikes during ability use',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Turn off power/disable breaker',
+        effectiveness: 'High',
+        tips: ['Jinn needs power to work at full strength', 'Reduce its speed advantage', 'Easier hunts if breaker off'],
+      },
+      {
+        strategy: 'Stay close to power source',
+        effectiveness: 'High',
+        tips: ['Power off reduces speed', 'If power on, stay near fuse box', 'Limits Jinns teleportation range'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Ultraviolet', 'Freezing Temperatures'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Breaker Key'],
+      optional: ['Video Camera', 'Ghost Writing Book'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'High',
@@ -328,6 +436,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Keep lights on to slow activity',
       'More dangerous at night',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Keep lights on everywhere',
+        effectiveness: 'High',
+        tips: ['Mare prefers darkness', 'Lights reduce activity', 'Turn on all switches'],
+      },
+      {
+        strategy: 'Avoid dark rooms entirely',
+        effectiveness: 'High',
+        tips: ['Most dangerous in blackness', 'Stick to lit areas', 'Place flares in dark rooms'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ghost Orb', 'Ghost Writing Book', 'Spirit Box'],
+      recommended: ['Lights (many)', 'Sanity Medication', 'Flares'],
+      optional: ['Video Camera', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 60,
     movementSpeed: 'Normal',
     activityLevel: 'High',
@@ -368,6 +494,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Can trap players with speed changes',
       'Listen for movement changes',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Keep moving during hunts',
+        effectiveness: 'High',
+        tips: ['Revenant speeds up chasing players', 'Stay mobile and evasive', 'Don\'t let it catch you'],
+      },
+      {
+        strategy: 'Hide and wait for hunt end',
+        effectiveness: 'Medium',
+        tips: ['Speed advantage decreases when Revenant loses sight', 'Find safe hiding spots', 'Wait out the hunt'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ghost Orb', 'Ghost Writing Book', 'Freezing Temperatures'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Body Armor'],
+      optional: ['Video Camera', 'EMF Reader'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'Medium',
@@ -411,6 +555,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Separate group to find ghost',
       'Will avoid direct confrontation',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Avoid group activity near ghost',
+        effectiveness: 'High',
+        tips: ['Shade avoids players', 'Breaks activity when grouped', 'Spread team apart for detection'],
+      },
+      {
+        strategy: 'Play solo or in small groups',
+        effectiveness: 'High',
+        tips: ['Less scary with small numbers', 'Single player ideal for evidence', 'Less aggressive when outnumbered psychologically'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Ghost Writing Book', 'Freezing Temperatures'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Video Camera'],
+      optional: ['Spirit Box', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Low',
@@ -454,6 +616,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for Ghost Writing evidence',
       'Best to use crucifixes',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Banish with crucifix early',
+        effectiveness: 'High',
+        tips: ['Demons hunt frequently', 'Crucifix essential for survival', 'Use immediately when hunt starts'],
+      },
+      {
+        strategy: 'Have multiple crucifixes',
+        effectiveness: 'High',
+        tips: ['Demon hunts very often', 'Plan for 3+ crucifix uses', 'Save crucifixes for critical moments'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ultraviolet', 'Ghost Writing Book', 'Freezing Temperatures'],
+      recommended: ['Multiple Crucifixes', 'Sanity Medication (extra)', 'Body Armor'],
+      optional: ['Video Camera', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
@@ -503,6 +683,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Needs open door to drain sanity',
       'More active with open doors',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Limit D.O.T.S. usage',
+        effectiveness: 'High',
+        tips: ['Seeing Yurei drains sanity', 'Use D.O.T.S. strategically', 'Brief viewing only'],
+      },
+      {
+        strategy: 'Maximize team protection',
+        effectiveness: 'Medium',
+        tips: ['Stay grouped for sanity protection', 'Share medication', 'Team buffs reduce drain effects'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['D.O.T.S. Projector', 'Ghost Orb', 'Freezing Temperatures'],
+      recommended: ['Sanity Medication', 'Crucifixes', 'Video Camera'],
+      optional: ['EMF Reader', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'High',
@@ -552,6 +750,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Very active with multiple players',
       'Cannot perform "airball" ghost event',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Prepare for aggressive hunts',
+        effectiveness: 'High',
+        tips: ['Stock crucifixes throughout map', 'Have sanity medication ready', 'Plan safe zones'],
+      },
+      {
+        strategy: 'Coordinate team defense',
+        effectiveness: 'High',
+        tips: ['Team cooperation critical', 'Share equipment strategically', 'Multiple players reduce hunt risk'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'D.O.T.S. Projector', 'Freezing Temperatures'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Video Camera'],
+      optional: ['Ghost Writing Book', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
@@ -596,6 +812,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Silent playstyle is required',
       'Can hear player chatter from distance',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Control noise levels',
+        effectiveness: 'High',
+        tips: ['Minimize voice communication', 'Use hand signals instead', 'Strategic silence only'],
+      },
+      {
+        strategy: 'Use isolated areas',
+        effectiveness: 'Medium',
+        tips: ['Separate team for less voice overlap', 'Setup in quiet zones', 'Minimal walkie-talkie use'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['D.O.T.S. Projector', 'Ghost Orb', 'Spirit Box'],
+      recommended: ['Ultraviolet', 'Thermometer', 'Video Camera'],
+      optional: ['EMF Reader', 'Ghost Writing Book'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'High',
@@ -654,6 +888,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for Freezing Temperatures',
       'Power being off shows breath',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Disable heating systems',
+        effectiveness: 'High',
+        tips: ['Keep warm areas heated', 'Use sanity medication in cold zones', 'Balance temperature'],
+      },
+      {
+        strategy: 'Avoid cold zones',
+        effectiveness: 'High',
+        tips: ['Stay in heated areas during hunts', 'Turn on all heat sources', 'Minimize cold room exposure'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ultraviolet', 'Ghost Orb', 'Freezing Temperatures'],
+      recommended: ['Thermometer', 'Video Camera', 'Sanity Medication'],
+      optional: ['EMF Reader', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'High',
@@ -706,6 +958,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for EMF and UV evidence',
       'Set up camera with D.O.T.S. Projector and leave',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Stay close to D.O.T.S. projector',
+        effectiveness: 'High',
+        tips: ['Remain in ghost room with camera', 'Setup video trap immediately', 'Monitor D.O.T.S. from outside'],
+      },
+      {
+        strategy: 'Monitor ghost room closely',
+        effectiveness: 'High',
+        tips: ['Never leave room unmonitored', 'Use multiple cameras if possible', 'Track D.O.T.S. activity'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'D.O.T.S. Projector', 'Ultraviolet'],
+      recommended: ['Video Camera', 'Tripod', 'Thermometer'],
+      optional: ['Ghost Orb', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
@@ -751,6 +1021,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for EMF Level 5 evidence',
       'Sound Recorder will capture many sounds',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Listen for distinctive sound',
+        effectiveness: 'High',
+        tips: ['Use Parabolic Microphone constantly', 'Record all audio evidence', 'Identify within minutes'],
+      },
+      {
+        strategy: 'Use audio equipment strategically',
+        effectiveness: 'Medium',
+        tips: ['Position microphone in common areas', 'Monitor for frequent vocalizations', 'Sound Recorder essential'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Ultraviolet', 'Ghost Writing Book'],
+      recommended: ['Parabolic Microphone', 'Sound Recorder', 'Thermometer'],
+      optional: ['D.O.T.S. Projector', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
@@ -794,6 +1082,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for freezing temperatures',
       'Aggressive fire manipulation',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Avoid using fire',
+        effectiveness: 'High',
+        tips: ['Do not light candles/fires', 'Use flashlights instead', 'Prevent flame interaction'],
+      },
+      {
+        strategy: 'Use alternative lighting',
+        effectiveness: 'High',
+        tips: ['Electronic lights instead of flames', 'Avoid all fire sources', 'Minimize hunting triggers'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ghost Orb', 'Spirit Box', 'Freezing Temperatures'],
+      recommended: ['Flashlight', 'Video Camera', 'Sanity Medication'],
+      optional: ['Thermometer', 'EMF Reader'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'High',
@@ -845,6 +1151,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Look for EMF and Spirit Box evidence',
       'Can appear to hunt together',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Identify dual manifestation patterns',
+        effectiveness: 'High',
+        tips: ['Monitor multiple areas simultaneously', 'Track both twins separately', 'Use multiple cameras'],
+      },
+      {
+        strategy: 'Monitor multiple rooms closely',
+        effectiveness: 'Medium',
+        tips: ['Divide team to cover locations', 'Watch for simultaneous activity', 'Predict next manifestation'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Spirit Box', 'Freezing Temperatures'],
+      recommended: ['Video Camera', 'D.O.T.S. Projector', 'Sanity Medication'],
+      optional: ['Ghost Orb', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'Very High',
@@ -894,6 +1218,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Equipment constantly malfunctions',
       'Aggressive near power sources',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Avoid electronic interference',
+        effectiveness: 'High',
+        tips: ['Minimize active equipment use', 'Distance cameras away from ghost room', 'Keep EMF Reader away'],
+      },
+      {
+        strategy: 'Minimize tech in ghost area',
+        effectiveness: 'High',
+        tips: ['Turn off unnecessary devices', 'Use minimal equipment setup', 'Reduce electrical activity'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'D.O.T.S. Projector', 'Ghost Orb'],
+      recommended: ['Video Camera (positioned away)', 'Thermometer', 'Sanity Medication'],
+      optional: ['Spirit Box', 'Ghost Writing Book'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'High',
@@ -953,6 +1295,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Missing fingerprints are suspicious',
       'May need multiple attempts to confirm',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Collect evidence quickly',
+        effectiveness: 'High',
+        tips: ['Rush UV scanning immediately', 'Document all fingerprints fast', 'Minimize time in ghost room'],
+      },
+      {
+        strategy: 'Use UV light comprehensively',
+        effectiveness: 'High',
+        tips: ['Full room UV scans required', 'Check for special fingerprints', 'Multiple UV checks essential'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['EMF Reader', 'Ultraviolet', 'Ghost Orb'],
+      recommended: ['Video Camera', 'Ghost Writing Book', 'Thermometer'],
+      optional: ['D.O.T.S. Projector', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
@@ -1004,6 +1364,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Hardest ghost to identify',
       'Process of elimination is key',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Understand Mimic copies ghosts',
+        effectiveness: 'High',
+        tips: ['It is always a Mimic if Ghost Orbs appear', 'Extra evidence is the key indicator', 'Verify with multiple tests'],
+      },
+      {
+        strategy: 'Look for Ghost Orbs',
+        effectiveness: 'High',
+        tips: ['Ghost Orbs + 3 other evidence = Mimic', 'Always triggers this combination', 'Most reliable identification'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ultraviolet', 'Spirit Box', 'Freezing Temperatures'],
+      recommended: ['Ghost Orb', 'EMF Reader', 'Video Camera'],
+      optional: ['D.O.T.S. Projector', 'Ghost Writing Book'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'High',
@@ -1056,6 +1434,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Doubles sanity drain when cursed',
       'Stay high sanity to keep it slow',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Minimize direct questioning',
+        effectiveness: 'High',
+        tips: ['Avoid Spirit Box communication', 'Use Spirit Box only when necessary', 'Reduce curse chances'],
+      },
+      {
+        strategy: 'Prepare sanity management',
+        effectiveness: 'High',
+        tips: ['Keep sanity high always', 'Use sanity medication preemptively', 'Manage team sanity carefully'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Spirit Box', 'Ultraviolet', 'Freezing Temperatures'],
+      recommended: ['Ghost Writing Book', 'Sanity Medication', 'Incense'],
+      optional: ['EMF Reader', 'Thermometer'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'High',
@@ -1107,6 +1503,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Very high level difficulty',
       'Requires strategy to survive',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Recognize hunt frequency',
+        effectiveness: 'High',
+        tips: ['Prepare for constant hunts', 'Very aggressive from start', 'Expect frequent manifestations'],
+      },
+      {
+        strategy: 'Use crucifixes strategically',
+        effectiveness: 'High',
+        tips: ['Place crucifixes in multiple rooms', 'Prepare escape routes', 'Have backup crucifixes ready'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ghost Orb', 'Spirit Box', 'Freezing Temperatures'],
+      recommended: ['Crucifixes', 'Sanity Medication', 'Video Camera'],
+      optional: ['D.O.T.S. Projector', 'Ghost Writing Book'],
+      avoid: [],
+    },
     huntSanityThreshold: 40,
     movementSpeed: 'Variable',
     activityLevel: 'High',
@@ -1155,6 +1569,24 @@ export const GHOSTS: Record<string, Ghost> = {
       'Early activity is minimal',
       'Time-based changes are distinctive',
     ],
+    counterStrategies: [
+      {
+        strategy: 'Hunt often initially',
+        effectiveness: 'High',
+        tips: ['Quick identification at start', 'Less aggressive early on', 'Gather evidence quickly'],
+      },
+      {
+        strategy: 'Manage early aggression',
+        effectiveness: 'High',
+        tips: ['Prepare for escalation over time', 'Rush initial hunts', 'Complete contract before it strengthens'],
+      },
+    ],
+    recommendedEquipment: {
+      essential: ['Ghost Orb', 'Ghost Writing Book', 'Freezing Temperatures'],
+      recommended: ['D.O.T.S. Projector', 'Video Camera', 'Sanity Medication'],
+      optional: ['EMF Reader', 'Spirit Box'],
+      avoid: [],
+    },
     huntSanityThreshold: 50,
     movementSpeed: 'Variable',
     activityLevel: 'Variable',
