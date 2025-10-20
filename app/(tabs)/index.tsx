@@ -3,13 +3,14 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { EVIDENCE_LIST, identifyGhostsByEvidence } from '@/lib/data/evidence';
 import { GHOST_LIST } from '@/lib/data/ghosts';
-import { EvidenceType } from '@/lib/types';
+import { EvidenceType, Ghost } from '@/lib/types';
 
 export default function IdentifierScreen() {
   const colorScheme = useColorScheme();
@@ -17,6 +18,7 @@ export default function IdentifierScreen() {
   const insets = useSafeAreaInsets();
   
   const [selectedEvidence, setSelectedEvidence] = useState<EvidenceType[]>([]);
+  const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
   
   const matchingGhosts = useMemo(() => {
     if (selectedEvidence.length === 0) return [];
@@ -136,13 +138,17 @@ export default function IdentifierScreen() {
                   return null;
                 }
                 return (
-                  <View
+                  <TouchableOpacity
                     key={ghostName}
-                    style={[
-                      styles.ghostResult,
-                      { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },
-                    ]}
+                    onPress={() => setSelectedGhost(ghostData)}
+                    activeOpacity={0.7}
                   >
+                    <View
+                      style={[
+                        styles.ghostResult,
+                        { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },
+                      ]}
+                    >
                     <View style={styles.ghostHeader}>
                       <ThemedText type="defaultSemiBold" style={styles.ghostName}>
                         {ghostData.name}
@@ -206,7 +212,8 @@ export default function IdentifierScreen() {
                         </View>
                       ))}
                     </View>
-                  </View>
+                    </View>
+                  </TouchableOpacity>
                 );
               })}
             </>
@@ -217,6 +224,12 @@ export default function IdentifierScreen() {
           )}
         </View>
       </ScrollView>
+
+      <GhostDetailSheet
+        ghost={selectedGhost}
+        isVisible={selectedGhost !== null}
+        onClose={() => setSelectedGhost(null)}
+      />
     </ThemedView>
   );
 }

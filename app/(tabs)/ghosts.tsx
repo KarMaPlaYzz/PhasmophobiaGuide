@@ -24,11 +24,27 @@ export default function GhostsScreen() {
   const difficulties = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
   const filteredGhosts = useMemo(() => {
-    return GHOST_LIST.filter((ghost) => {
+    const difficultyOrder: Record<string, number> = { 
+      'Beginner': 0, 
+      'Intermediate': 1, 
+      'Advanced': 2, 
+      'Expert': 3 
+    };
+
+    let filtered = GHOST_LIST.filter((ghost) => {
       const matchesSearch = ghost.name.toLowerCase().includes(searchText.toLowerCase());
       const matchesDifficulty = selectedDifficulty === 'all' || ghost.difficulty === selectedDifficulty;
       return matchesSearch && matchesDifficulty;
     });
+
+    // Sort by difficulty
+    filtered.sort((a, b) => {
+      const orderA = difficultyOrder[a.difficulty] ?? 999;
+      const orderB = difficultyOrder[b.difficulty] ?? 999;
+      return orderA - orderB;
+    });
+
+    return filtered;
   }, [searchText, selectedDifficulty]);
 
   const getDifficultyColor = (difficulty: string) => DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
