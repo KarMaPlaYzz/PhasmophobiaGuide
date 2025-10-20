@@ -33,8 +33,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
-      backgroundStyle={{ backgroundColor: colors.background }}
-      handleIndicatorStyle={{ backgroundColor: colors.text }}
+      backgroundStyle={{ backgroundColor: colors.surface }}
+      handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >
       <BottomSheetScrollView
         style={{ flex: 1, paddingHorizontal: 16 }}
@@ -42,7 +42,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
       >
         {/* Ghost Image */}
         {ghost.imageUrl ? (
-          <View style={[styles.imageContainer, { backgroundColor: colors.tabIconDefault + '10' }]}>
+          <View style={[styles.imageContainer, { backgroundColor: colors.haunted + '30' }]}>
             <Image
               source={{ uri: ghost.imageUrl }}
               style={styles.ghostImage}
@@ -67,13 +67,13 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         <ThemedText style={styles.description}>{ghost.description}</ThemedText>
 
         <ThemedText style={styles.sectionTitle}>Evidence</ThemedText>
-        <View style={styles.evidenceBadgesLarge}>
+        <ThemedText style={styles.evidenceBadgesLarge}>
           {ghost.evidence.map((ev) => (
-            <View key={ev} style={[styles.evidenceBadgeLarge, { backgroundColor: colors.tint + '20' }]}>
+            <View key={ev} style={[styles.evidenceBadgeLarge, { backgroundColor: colors.spectral + '25' }]}>
               <ThemedText style={styles.evidenceTextLarge}>{ev}</ThemedText>
             </View>
           ))}
-        </View>
+        </ThemedText>
 
         <ThemedText style={styles.sectionTitle}>Abilities</ThemedText>
         {ghost.abilities.map((ability, idx) => (
@@ -85,8 +85,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
 
         <ThemedText style={styles.sectionTitle}>Strengths & Weaknesses</ThemedText>
         {ghost.strengths.map((strength, idx) => (
-          <View key={`strength-${idx}`} style={[styles.strengthItem, { borderColor: colors.tint }]}>
-            <Ionicons size={16} name="checkmark-circle" color={colors.tint} />
+          <View key={`strength-${idx}`} style={[styles.strengthItem, { borderColor: colors.paranormal }]}>
+            <Ionicons size={16} name="checkmark-circle" color={colors.paranormal} />
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.strengthLabel}>{strength.description}</ThemedText>
               <ThemedText style={styles.strengthDetail}>{strength.mechanicalAdvantage}</ThemedText>
@@ -94,8 +94,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
           </View>
         ))}
         {ghost.weaknesses.map((weakness, idx) => (
-          <View key={`weakness-${idx}`} style={[styles.weaknessItem, { borderColor: '#F44336' }]}>
-            <Ionicons size={16} name="close-circle" color="#F44336" />
+          <View key={`weakness-${idx}`} style={[styles.weaknessItem, { borderColor: '#FF4444' }]}>
+            <Ionicons size={16} name="close-circle" color="#FF4444" />
             <View style={{ flex: 1 }}>
               <ThemedText style={styles.weaknessLabel}>{weakness.description}</ThemedText>
               <ThemedText style={styles.weaknessDetail}>{weakness.counter}</ThemedText>
@@ -127,21 +127,23 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 2,
+    borderColor: '#6B4AAC',
   },
   ghostImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
   },
-  bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
+  bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 8, color: '#00D9FF' },
   difficultyBadgeLarge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, alignSelf: 'flex-start', marginBottom: 16 },
   difficultyTextLarge: { color: 'white', fontWeight: '600' },
-  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 16, marginBottom: 8 },
+  sectionTitle: { fontSize: 16, fontWeight: 'bold', marginTop: 16, marginBottom: 8, color: '#00D9FF' },
   description: { fontSize: 14, lineHeight: 20, marginBottom: 16 },
   evidenceBadgesLarge: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
   evidenceBadgeLarge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8 },
   evidenceTextLarge: { fontSize: 12, fontWeight: '500' },
-  abilityItem: { marginBottom: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(0,0,0,0.1)' },
+  abilityItem: { marginBottom: 12, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: 'rgba(107,74,172,0.2)' },
   abilityName: { fontWeight: '600', marginBottom: 4 },
   abilityDescription: { fontSize: 13, lineHeight: 18 },
   strengthItem: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 10, gap: 8, paddingLeft: 8, borderLeftWidth: 3 },
@@ -151,6 +153,6 @@ const styles = StyleSheet.create({
   weaknessLabel: { fontWeight: '600', marginBottom: 2 },
   weaknessDetail: { fontSize: 12, opacity: 0.7 },
   tipItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 8, marginBottom: 8 },
-  tipBullet: { fontSize: 16, fontWeight: 'bold', marginTop: -2 },
+  tipBullet: { fontSize: 16, fontWeight: 'bold', marginTop: -2, color: '#00D9FF' },
   tipText: { flex: 1, fontSize: 13, lineHeight: 18 },
 });

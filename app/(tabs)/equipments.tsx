@@ -3,11 +3,13 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { EQUIPMENT_LIST } from '@/lib/data/equipment';
+import { Equipment } from '@/lib/types';
 
 export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
@@ -15,42 +17,67 @@ export default function EquipmentScreen() {
   const insets = useSafeAreaInsets();
   
   const [searchText, setSearchText] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [isDetailSheetVisible, setIsDetailSheetVisible] = useState(false);
 
-  const categories = ['all', 'starter', 'optional', 'truck', 'cursed'];
+  const categories = ['All', 'starter', 'optional', 'truck', 'cursed'];
 
   const filteredEquipment = useMemo(() => {
     return EQUIPMENT_LIST.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
-      const matchesCategory = selectedCategory === 'all' || item.category === selectedCategory;
+      const matchesCategory = selectedCategory === 'All' || item.category.toLowerCase() === selectedCategory.toLowerCase();
       return matchesSearch && matchesCategory;
     });
   }, [searchText, selectedCategory]);
 
-  const getCategoryColor = (category: string) => {
-    switch (category) {
+  const getCategoryIcon = (category: string): string => {
+    const cat = category.toLowerCase();
+    switch (cat) {
       case 'starter':
-        return '#4CAF50';
+        return 'play';
       case 'optional':
-        return '#2196F3';
+        return 'star';
       case 'truck':
-        return '#FF9800';
+        return 'car';
       case 'cursed':
-        return '#9C27B0';
+        return 'skull';
+      default:
+        return 'grid';
+    }
+  };
+
+  const getCategoryColor = (category: string) => {
+    if (category === 'All') return colors.spectral;
+    const cat = category.toLowerCase();
+    switch (cat) {
+      case 'starter':
+        return '#1FB46B';
+      case 'optional':
+        return '#00D9FF';
+      case 'truck':
+        return '#FFB84D';
+      case 'cursed':
+        return '#6B4AAC';
       default:
         return colors.text;
     }
   };
 
+  const handleEquipmentPress = (equipment: Equipment) => {
+    setSelectedEquipment(equipment);
+    setIsDetailSheetVisible(true);
+  };
+
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-        <ThemedText type="title" style={styles.headerTitle}>Equipment</ThemedText>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        {/*<ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>Equipment</ThemedText>*/}
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.searchContainer, { borderColor: colors.tabIconDefault }]}>
-          <Ionicons size={20} name="search" color={colors.tabIconDefault} />
+        <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+          <Ionicons size={20} name="search" color={colors.spectral} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
             placeholder="Search equipment..."
@@ -60,7 +87,7 @@ export default function EquipmentScreen() {
           />
           {searchText ? (
             <TouchableOpacity onPress={() => setSearchText('')}>
-              <Ionicons size={20} name="close-circle" color={colors.tabIconDefault} />
+              <Ionicons size={20} name="close-circle" color={colors.spectral} />
             </TouchableOpacity>
           ) : null}
         </View>
@@ -68,28 +95,66 @@ export default function EquipmentScreen() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={styles.filterContainer}
+          style={[styles.filterContainer]}
           contentContainerStyle={styles.filterContent}>
-          {categories.map((cat) => (
-            <TouchableOpacity
-              key={cat}
-              onPress={() => setSelectedCategory(cat)}
-              style={[
-                styles.filterButton,
-                {
-                  backgroundColor: selectedCategory === cat ? colors.tint : colors.tabIconDefault + '20',
-                },
-              ]}>
-              <ThemedText
-                style={{
-                  color: selectedCategory === cat ? 'white' : colors.text,
-                  fontSize: 12,
-                  fontWeight: '600',
-                }}>
-                {cat === 'all' ? 'All' : cat.replace('_', ' ')}
-              </ThemedText>
-            </TouchableOpacity>
-          ))}
+          {categories.map((cat) => {
+            const count =
+              cat === 'All'
+                ? EQUIPMENT_LIST.length
+                : EQUIPMENT_LIST.filter((item) => item.category.toLowerCase() === cat.toLowerCase()).length;
+            const catColor = getCategoryColor(cat);
+            const displayLabel = cat === 'All' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1);
+            return (
+              <TouchableOpacity
+                key={cat}
+                onPress={() => setSelectedCategory(cat)}
+                style={[
+                  styles.filterButton,
+                  {
+                    backgroundColor:
+                      selectedCategory === cat
+                        ? catColor
+                        : colors.tabIconDefault + '15',
+                    borderWidth: selectedCategory === cat ? 0 : 1,
+                    borderColor: colors.border,
+                  },
+                ]}>
+                <Ionicons
+                  size={12}
+                  name={getCategoryIcon(cat) as any}
+                  color={selectedCategory === cat ? 'white' : colors.text}
+                />
+                <ThemedText
+                  style={{
+                    color: selectedCategory === cat ? 'white' : colors.text,
+                    fontSize: 11,
+                    fontWeight: '600',
+                    marginLeft: 4,
+                  }}>
+                  {displayLabel}
+                </ThemedText>
+                <View
+                  style={[
+                    styles.filterCount,
+                    {
+                      backgroundColor:
+                        selectedCategory === cat ? 'rgba(255,255,255,0.3)' : catColor + '30',
+                    },
+                  ]}
+                >
+                  <ThemedText
+                    style={{
+                      color: selectedCategory === cat ? 'white' : catColor,
+                      fontSize: 10,
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {count}
+                  </ThemedText>
+                </View>
+              </TouchableOpacity>
+            );
+          })}
         </ScrollView>
 
         <ThemedText style={styles.resultCounter}>
@@ -98,8 +163,9 @@ export default function EquipmentScreen() {
 
         {filteredEquipment.length > 0 ? (
           filteredEquipment.map((item) => (
-            <View
+            <TouchableOpacity
               key={item.id}
+              onPress={() => handleEquipmentPress(item)}
               style={[
                 styles.equipmentCard,
                 { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },
@@ -116,7 +182,7 @@ export default function EquipmentScreen() {
                     { backgroundColor: getCategoryColor(item.category) },
                   ]}>
                   <ThemedText style={styles.categoryText}>
-                    {item.category.replace('_', ' ')}
+                    {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                   </ThemedText>
                 </View>
               </View>
@@ -139,12 +205,23 @@ export default function EquipmentScreen() {
                   </View>
                 ) : null}
               </View>
-            </View>
+
+              <View style={[styles.tapIndicator, { opacity: 0.5 }]}>
+                <ThemedText style={styles.tapText}>Tap for details</ThemedText>
+                <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
+              </View>
+            </TouchableOpacity>
           ))
         ) : (
           <ThemedText style={styles.noResults}>No equipment matches your search</ThemedText>
         )}
       </ScrollView>
+
+      <EquipmentDetailSheet
+        equipment={selectedEquipment}
+        isVisible={isDetailSheetVisible}
+        onClose={() => setIsDetailSheetVisible(false)}
+      />
     </ThemedView>
   );
 }
@@ -158,19 +235,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
-  filterContainer: { marginBottom: 12 },
-  filterContent: { paddingVertical: 4, gap: 8 },
+  filterContainer: { height: 48, flex: 0 },
+  filterContent: { paddingVertical: 4, gap: 8, flexGrow: 0, flexShrink: 0 },
   filterButton: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  filterCount: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 22,
   },
   resultCounter: { fontSize: 12, opacity: 0.6, marginBottom: 8, marginLeft: 2 },
   equipmentCard: {
@@ -189,9 +277,11 @@ const styles = StyleSheet.create({
   categoryBadge: { paddingHorizontal: 8, paddingVertical: 4, borderRadius: 4 },
   categoryText: { color: 'white', fontSize: 10, fontWeight: 'bold' },
   equipmentDescription: { fontSize: 12, marginBottom: 8, lineHeight: 16 },
-  equipmentStats: { flexDirection: 'row', gap: 16 },
+  equipmentStats: { flexDirection: 'row', gap: 16, marginBottom: 8 },
   statItem: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   statLabel: { fontSize: 11, opacity: 0.7 },
   statValue: { fontSize: 11, fontWeight: '600' },
+  tapIndicator: { flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 4 },
+  tapText: { fontSize: 11 },
   noResults: { textAlign: 'center', marginTop: 32, fontSize: 14, opacity: 0.5 },
 });

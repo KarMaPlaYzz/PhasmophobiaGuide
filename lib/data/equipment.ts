@@ -34,6 +34,7 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'First-time players (reliable)',
       'Active ghosts',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/1d/EMF090_T1.png/revision/latest?cb=20230822153119',
   },
 
   'spirit-box': {
@@ -59,31 +60,15 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'Ghost identification',
       'Evidence collection',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/ca/SpiritBox090_T1.png/revision/latest?cb=20230822153517',
   },
 
-  thermometer: {
+  'thermometer': {
     id: 'thermometer',
     name: 'Thermometer',
+    description: 'Measures temperature changes to detect paranormal activity.',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/1c/Thermometer090_T1.png/revision/latest?cb=20230822153607',
     category: 'starter',
-    type: 'detector',
-    cost: 30,
-    capacity: 2,
-    description:
-      'A digital thermometer that measures the temperature in the area. Used to detect Freezing Temperatures evidence.',
-    usage:
-      'Walk around and monitor temperature. Below 0°C (32°F) indicates Freezing Temperatures. Takes a few seconds to register.',
-    unlocksAtLevel: 0,
-    detects: ['Freezing Temperatures'],
-    consumable: false,
-    tiers: [
-      { level: 27, upgradeCost: 3000 },
-      { level: 65, upgradeCost: 3000 },
-    ],
-    recommendedFor: [
-      'Ice ghosts (Hantu, Yurei)',
-      'Basic ghost identification',
-      'Temperature monitoring',
-    ],
   },
 
   'ghost-writing-book': {
@@ -109,6 +94,7 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'Ghost identification',
       'Passive evidence collection',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/a/a2/WritingBook090_T1.png/revision/latest?cb=20230822153748',
   },
 
   'uv-light': {
@@ -134,6 +120,7 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'Surface examination',
       'Ghost path tracking',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/0/0b/UV090_T2.png/revision/latest?cb=20230822153654',
   },
 
   'video-camera': {
@@ -159,9 +146,10 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'Remote monitoring',
       'Safe evidence collection',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/d/d4/VideoCamera090_T1.png/revision/latest?cb=20230822153721',
   },
 
-  'dots-projector': {
+    'dots-projector': {
     id: 'dots-projector',
     name: 'D.O.T.S. Projector',
     category: 'starter',
@@ -169,21 +157,22 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
     cost: 65,
     capacity: 2,
     description:
-      'Projects a grid of infrared dots. Ghosts with D.O.T.S evidence will be visible walking through the dots.',
+      'A device that projects a laser matrix to make ghosts visible. Used to collect D.O.T.S evidence and track ghost movement.',
     usage:
-      'Place in ghost room and watch for silhouettes walking through dots. Can be viewed via video camera or in person.',
+      'Place in rooms where ghost activity is suspected. When ghost moves through the laser grid, a silhouette becomes visible.',
     unlocksAtLevel: 0,
     detects: ['D.O.T.S. Projector'],
     consumable: false,
     tiers: [
       { level: 27, upgradeCost: 3000 },
-      { level: 49, upgradeCost: 3000 },
+      { level: 49, upgradeCost: 4500 },
     ],
     recommendedFor: [
-      'D.O.T.S ghosts',
-      'Ghost movement tracking',
-      'Passive evidence collection',
+      'Visual ghost tracking',
+      'Evidence confirmation',
+      'Ghost activity monitoring',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/0/08/DOTS090_T1.png/revision/latest?cb=20230822153100',
   },
 
   flashlight: {
@@ -208,6 +197,7 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'Basic illumination',
       'All playstyles',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/4/43/Flash090_T1.png/revision/latest?cb=20230822153200',
   },
 };
 
@@ -239,6 +229,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Beginner safety',
       'Difficult ghosts',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/e/e0/CrucifixModel.png/revision/latest',
   },
 
   salt: {
@@ -264,6 +255,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Ghost path identification',
       'Wraith detection (no footprints)',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/6/69/SaltModel.png/revision/latest',
   },
 
   'sanity-medication': {
@@ -289,6 +281,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Hunt prevention',
       'Extended contracts',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/c1/SanityMedicationModel.png/revision/latest',
   },
 
   incense: {
@@ -314,6 +307,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Hunt evasion',
       'Emergency defense',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/8/8a/IncenseModel.png/revision/latest',
   },
 
   igniter: {
@@ -338,6 +332,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Firelight usage',
       'General utility',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/22/IgniterModel.png/revision/latest',
   },
 
   firelight: {
@@ -363,6 +358,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Comfort/light source',
       'Onryo prevention',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/3/31/FirelightModel.png/revision/latest',
   },
 
   'photo-camera': {
@@ -388,6 +384,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Evidence documentation',
       'Photo challenges',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/5/59/PhotoCamera090_T1.png/revision/latest?cb=20230822153435',
   },
 
   'parabolic-microphone': {
@@ -413,6 +410,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Myling identification',
       'Ghost activity monitoring',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/c1/Parabolic090_T1.png/revision/latest?cb=20241127123220',
   },
 
   'sound-recorder': {
@@ -438,6 +436,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Backup evidence gathering',
       'Vocal ghost detection',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/0/01/SoundRecorder_T1.png/revision/latest?cb=20250704191450',
   },
 
   'sound-sensor': {
@@ -463,6 +462,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Data collection',
       'Advanced tracking',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/4/4d/SoundSensor090_T1.png/revision/latest?cb=20230822153530',
   },
 
   'motion-sensor': {
@@ -488,6 +488,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Room boundaries',
       'Hunt alerts',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/5/52/MotionSensor090_T1.png/revision/latest?cb=20230822153355',
   },
 
   tripod: {
@@ -513,6 +514,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Hands-free recording',
       'Orb detection',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/b/bd/Tripod090_T1.png/revision/latest?cb=20230822153630',
   },
 
   'head-gear': {
@@ -538,6 +540,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Orb detection',
       'Solo playstyle',
     ],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/b/b8/HeadGear090_T1.png/revision/latest?cb=20230822153239',
   },
 };
 
@@ -560,6 +563,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Objective tracking', 'Mission planning'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/7/7f/ObjectiveBoard.png/revision/latest?cb=20250627175457',
   },
 
   'site-map': {
@@ -576,6 +580,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Navigation', 'Location planning'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/13/Site_map_0.6.png/revision/latest?cb=20220408034152',
   },
 
   'sanity-monitor': {
@@ -592,6 +597,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Sanity tracking', 'Hunt prediction'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/b/b9/Sanity_monitor_0.6.png/revision/latest?cb=20220411120049',
   },
 
   'site-activity-monitor': {
@@ -608,6 +614,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Activity tracking', 'Hunt alerts'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/8/80/Site_activity_monitor_0.6.png/revision/latest?cb=20220408034106',
   },
 
   computer: {
@@ -624,6 +631,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Remote monitoring', 'Orb detection'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/0/02/Computer.png/revision/latest?cb=20250627163211',
   },
 
   'sound-monitor': {
@@ -640,6 +648,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Audio monitoring', 'Activity tracking'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/5/5a/Sound_monitor_0.6.png/revision/latest?cb=20220408034224',
   },
 
   clipboards: {
@@ -656,6 +665,23 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Task tracking', 'Challenges'],
+  },
+
+  'setup-timer': {
+    id: 'setup-timer',
+    name: 'Setup Timer',
+    category: 'truck',
+    type: 'utility',
+    cost: 0,
+    capacity: 1,
+    description: 'Displays remaining time in the setup phase before the ghost can hunt.',
+    usage: 'Timer on truck. Starts when the exit door is opened. Shows setup phase duration.',
+    unlocksAtLevel: 0,
+    detects: undefined,
+    consumable: false,
+    tiers: [],
+    recommendedFor: ['Time management', 'Hunt preparation'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/8/8d/SetupTimer.png/revision/latest?cb=20250627162053',
   },
 };
 
@@ -680,6 +706,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Ghost communication', 'Sanity risk', 'Challenge'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/2f/Ouija_Board_New.png/revision/latest?cb=20211210172553',
   },
 
   'tarot-cards': {
@@ -697,6 +724,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Gamble', 'Risky sanity management', 'Challenge'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/a/a7/Tarot_Cards.png/revision/latest?cb=20211210181436',
   },
 
   'music-box': {
@@ -714,6 +742,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Sanity drain', 'Haunting', 'Forced hunts'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/f/fb/Music_Box.png/revision/latest?cb=20231226012106',
   },
 
   'haunted-mirror': {
@@ -731,6 +760,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Sanity drain', 'Test of will', 'Danger'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/7/7b/Cursed_Mirror.jpg/revision/latest?cb=20220303041525',
   },
 
   'voodoo-doll': {
@@ -748,6 +778,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Sanity drain', 'Risk/reward', 'Cursed hunts'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/e/e2/Voodoo_Doll_New.jpg/revision/latest?cb=20211210173413',
   },
 
   'summoning-circle': {
@@ -765,6 +796,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Forced activity', 'Risk/reward', 'Challenges'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/d/de/Sc_new1.jpg/revision/latest?cb=20231230161505',
   },
 
   'monkey-paw': {
@@ -783,6 +815,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Risky wishes', 'Cursed hunts', 'Challenge'],
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/cc/Monkey_Paw.png/revision/latest?cb=20230228154004',
   },
 };
 

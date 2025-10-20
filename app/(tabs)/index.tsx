@@ -47,13 +47,13 @@ export default function IdentifierScreen() {
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Beginner':
-        return '#4CAF50';
+        return '#1FB46B';
       case 'Intermediate':
-        return '#FF9800';
+        return '#FFB84D';
       case 'Advanced':
-        return '#F44336';
+        return '#FF4444';
       case 'Expert':
-        return '#9C27B0';
+        return '#6B4AAC';
       default:
         return colors.text;
     }
@@ -61,10 +61,10 @@ export default function IdentifierScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-        <ThemedText type="title" style={styles.headerTitle}>
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        {/*<ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>
           Ghost Identifier
-        </ThemedText>
+        </ThemedText>*/}
       </View>
 
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
@@ -88,9 +88,10 @@ export default function IdentifierScreen() {
                   styles.evidenceCard,
                   isSelected && [
                     styles.evidenceCardSelected,
-                    { backgroundColor: colors.tint + '20' },
+                    { backgroundColor: colors.spectral + '20', borderColor: colors.spectral },
                   ],
                   isDisabled && styles.evidenceCardDisabled,
+                  { borderColor: colors.border },
                 ]}
               >
                 <View style={styles.evidenceContent}>
@@ -98,7 +99,7 @@ export default function IdentifierScreen() {
                     {evidence.name}
                   </ThemedText>
                   {isSelected && (
-                    <Ionicons size={20} name="checkmark-circle" color={colors.tint} />
+                    <Ionicons size={20} name="checkmark-circle" color={colors.spectral} />
                   )}
                 </View>
               </TouchableOpacity>
@@ -110,10 +111,10 @@ export default function IdentifierScreen() {
         {selectedEvidence.length > 0 && (
           <TouchableOpacity
             onPress={clearSelection}
-            style={[styles.clearButton, { backgroundColor: colors.tint + '20' }]}
+            style={[styles.clearButton, { backgroundColor: colors.spectral + '20' }]}
           >
-            <Ionicons size={16} name="close-circle" color={colors.tint} />
-            <ThemedText style={[styles.clearButtonText, { color: colors.tint }]}>
+            <Ionicons size={16} name="close-circle" color={colors.spectral} />
+            <ThemedText style={[styles.clearButtonText, { color: colors.spectral }]}>
               Clear Selection
             </ThemedText>
           </TouchableOpacity>
@@ -127,7 +128,7 @@ export default function IdentifierScreen() {
             </ThemedText>
           ) : matchingGhosts.length > 0 ? (
             <>
-              <ThemedText style={styles.resultsTitle}>
+              <ThemedText style={[styles.resultsTitle, { color: colors.spectral }]}>
                 Matching Ghosts ({matchingGhosts.length})
               </ThemedText>
               {matchingGhosts.map((ghostName) => {
@@ -146,11 +147,11 @@ export default function IdentifierScreen() {
                     <View
                       style={[
                         styles.ghostResult,
-                        { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },
+                        { borderColor: colors.border, backgroundColor: colors.surfaceLight },
                       ]}
                     >
                     <View style={styles.ghostHeader}>
-                      <ThemedText type="defaultSemiBold" style={styles.ghostName}>
+                      <ThemedText type="defaultSemiBold" style={[styles.ghostName, { color: colors.spectral }]}>
                         {ghostData.name}
                       </ThemedText>
                       <View
@@ -195,7 +196,7 @@ export default function IdentifierScreen() {
                             styles.evidenceBadge,
                             {
                               backgroundColor:
-                                selectedEvidence.includes(ev as EvidenceType) ? colors.tint : colors.tint + '30',
+                                selectedEvidence.includes(ev as EvidenceType) ? colors.spectral : colors.spectral + '30',
                             },
                           ]}
                         >
@@ -239,7 +240,7 @@ const styles = StyleSheet.create({
   header: { paddingVertical: 12, paddingHorizontal: 16 },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 12 },
-  subtitle: { fontSize: 16, fontWeight: '600', marginBottom: 4 },
+  subtitle: { fontSize: 16, fontWeight: '600', marginBottom: 4, color: '#00D9FF' },
   description: { fontSize: 12, opacity: 0.6, marginBottom: 16 },
   evidenceGrid: { marginBottom: 16 },
   evidenceCard: {
@@ -247,7 +248,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     marginBottom: 8,
-    borderColor: '#ccc',
   },
   evidenceCardSelected: { borderWidth: 2 },
   evidenceCardDisabled: { opacity: 0.4 },

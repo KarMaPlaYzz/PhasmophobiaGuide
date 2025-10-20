@@ -89,6 +89,7 @@ export interface Equipment {
   detects?: EvidenceType[];
   consumable: boolean;
   recommendedFor: string[];
+  imageUrl?: string;
 }
 
 // ============================================================================

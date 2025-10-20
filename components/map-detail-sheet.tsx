@@ -27,13 +27,13 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'Beginner':
-        return '#4CAF50';
+        return '#1FB46B';
       case 'Intermediate':
-        return '#FF9800';
+        return '#FFB84D';
       case 'Advanced':
-        return '#F44336';
+        return '#FF4444';
       case 'Expert':
-        return '#9C27B0';
+        return '#6B4AAC';
       default:
         return colors.text;
     }
@@ -51,23 +51,23 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
       animatedPosition={undefined}
       animatedIndex={undefined}
       backgroundStyle={{
-        backgroundColor: colors.background,
+        backgroundColor: colors.surface,
       }}
       handleIndicatorStyle={{
-        backgroundColor: colors.tabIconDefault,
+        backgroundColor: colors.spectral,
       }}
     >
       <BottomSheetScrollView
-        style={[styles.container, { backgroundColor: colors.background }]}
+        style={[styles.container, { backgroundColor: colors.surface }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
       >
         {/* Map Image */}
         {map.imageUrl && (
-          <View style={[styles.imageContainer, { backgroundColor: colors.tabIconDefault + '20' }]}>
+          <View style={[styles.imageContainer, { backgroundColor: colors.haunted + '30' }]}>
             {imageLoading && (
               <View style={styles.imagePlaceholder}>
-                <Ionicons size={48} name="image" color={colors.tabIconDefault} />
+                <Ionicons size={48} name="image" color={colors.spectral} />
               </View>
             )}
             <Image
@@ -112,12 +112,12 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Quick Stats */}
         <View style={[styles.section, styles.statsGrid]}>
           <View style={styles.statCard}>
-            <Ionicons size={20} name="home-outline" color={colors.tint} />
+            <Ionicons size={20} name="home-outline" color={colors.spectral} />
             <ThemedText style={styles.statValue}>{map.maxRooms}</ThemedText>
             <ThemedText style={styles.statLabel}>Rooms</ThemedText>
           </View>
           <View style={styles.statCard}>
-            <Ionicons size={20} name="people-outline" color={colors.tint} />
+            <Ionicons size={20} name="people-outline" color={colors.spectral} />
             <ThemedText style={styles.statValue}>{map.maxPlayers}</ThemedText>
             <ThemedText style={styles.statLabel}>Players</ThemedText>
           </View>
@@ -125,7 +125,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
             <Ionicons
               size={20}
               name={map.characteristics.fuse ? 'flash' : 'close'}
-              color={map.characteristics.fuse ? '#FFD700' : colors.tabIconDefault}
+              color={map.characteristics.fuse ? '#FFB84D' : colors.tabIconDefault}
             />
             <ThemedText style={styles.statValue}>
               {map.characteristics.fuse ? 'Yes' : 'No'}
@@ -137,7 +137,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Description */}
         {map.description && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               About
             </ThemedText>
             <ThemedText style={styles.descriptionText}>{map.description}</ThemedText>
@@ -147,7 +147,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Floor Plan */}
         {map.floorPlanUrl && (
           <View style={[styles.floorPlanSection]}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Floor Plan
             </ThemedText>
             <FloorPlanViewer imageUrl={map.floorPlanUrl} mapName={map.name} />
@@ -157,7 +157,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Ghost Spawns */}
         {map.characteristics.ghostSpawns && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Ghost Spawns
             </ThemedText>
             <ThemedText style={styles.descriptionText}>
@@ -169,11 +169,11 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Lighting */}
         {map.characteristics.lighting && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Lighting
             </ThemedText>
-            <View style={[styles.infoTag, { backgroundColor: colors.tint + '20' }]}>
-              <Ionicons size={16} name="bulb" color={colors.tint} />
+            <View style={[styles.infoTag, { backgroundColor: colors.spectral + '20' }]}>
+              <Ionicons size={16} name="bulb" color={colors.spectral} />
               <ThemedText style={styles.infoTagText}>{map.characteristics.lighting}</ThemedText>
             </View>
           </View>
@@ -182,14 +182,14 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Hazards */}
         {map.characteristics.hazards && map.characteristics.hazards.length > 0 && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Hazards
             </ThemedText>
             <View style={styles.tagsContainer}>
               {map.characteristics.hazards.map((hazard, idx) => (
-                <View key={idx} style={[styles.hazardTag, { backgroundColor: '#F44336' + '20' }]}>
-                  <Ionicons size={14} name="warning-outline" color="#F44336" />
-                  <ThemedText style={[styles.tagText, { color: '#F44336' }]}>{hazard}</ThemedText>
+                <View key={idx} style={[styles.hazardTag, { backgroundColor: '#FF4444' + '20' }]}>
+                  <Ionicons size={14} name="warning-outline" color="#FF4444" />
+                  <ThemedText style={[styles.tagText, { color: '#FF4444' }]}>{hazard}</ThemedText>
                 </View>
               ))}
             </View>
@@ -199,14 +199,14 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Special Features */}
         {map.characteristics.specialFeatures && map.characteristics.specialFeatures.length > 0 && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Special Features
             </ThemedText>
             <View style={styles.tagsContainer}>
               {map.characteristics.specialFeatures.map((feature, idx) => (
-                <View key={idx} style={[styles.featureTag, { backgroundColor: colors.tint + '20' }]}>
-                  <Ionicons size={14} name="checkmark-circle" color={colors.tint} />
-                  <ThemedText style={[styles.tagText, { color: colors.tint }]}>{feature}</ThemedText>
+                <View key={idx} style={[styles.featureTag, { backgroundColor: colors.spectral + '20' }]}>
+                  <Ionicons size={14} name="checkmark-circle" color={colors.spectral} />
+                  <ThemedText style={[styles.tagText, { color: colors.spectral }]}>{feature}</ThemedText>
                 </View>
               ))}
             </View>
@@ -216,13 +216,13 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Strategies */}
         {map.strategies && map.strategies.length > 0 && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Strategies
             </ThemedText>
             <View style={styles.listContainer}>
               {map.strategies.map((strategy, idx) => (
                 <View key={idx} style={styles.listItem}>
-                  <ThemedText style={styles.listBullet}>•</ThemedText>
+                  <ThemedText style={[styles.listBullet, { color: colors.spectral }]}>•</ThemedText>
                   <ThemedText style={styles.listText}>{strategy}</ThemedText>
                 </View>
               ))}
@@ -233,7 +233,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Tips */}
         {map.tips && map.tips.length > 0 && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Tips
             </ThemedText>
             <View style={styles.listContainer}>
@@ -250,13 +250,13 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {/* Best For */}
         {map.bestFor && map.bestFor.length > 0 && (
           <View style={styles.section}>
-            <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
+            <ThemedText type="defaultSemiBold" style={[styles.sectionTitle, { color: '#00D9FF' }]}>
               Best For
             </ThemedText>
             <View style={styles.tagsContainer}>
               {map.bestFor.map((category, idx) => (
-                <View key={idx} style={[styles.bestForTag, { backgroundColor: colors.tint + '15' }]}>
-                  <ThemedText style={[styles.tagText, { color: colors.tint }]}>
+                <View key={idx} style={[styles.bestForTag, { backgroundColor: colors.paranormal + '20' }]}>
+                  <ThemedText style={[styles.tagText, { color: colors.paranormal }]}>
                     ✓ {category}
                   </ThemedText>
                 </View>
@@ -317,6 +317,7 @@ const styles = StyleSheet.create({
   mapName: {
     fontSize: 24,
     fontWeight: '700',
+    color: '#00D9FF',
   },
   mapType: {
     fontSize: 13,

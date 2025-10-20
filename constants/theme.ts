@@ -1,90 +1,106 @@
 /**
- * Enhanced Color Palette for Phasmophobia Guide App
- * Includes theme colors, difficulty levels, ghost types, and paranormal elements
+ * Phasmophobia-Themed Color Palette for Guide App
+ * Dark horror aesthetic with purple, cyan, and ghostly accents
+ * Inspired by Phasmophobia's supernatural atmosphere
  */
 
 import { Platform } from 'react-native';
 
-const tintColorLight = '#0a7ea4';
-const tintColorDark = '#fff';
+// Primary Phasmophobia colors
+const PRIMARY_PURPLE = '#6B4AAC';
+const ACCENT_CYAN = '#00D9FF';
+const ACCENT_GREEN = '#1FB46B';
+const DARK_BG = '#0F0E17';
+const DARKER_BG = '#050404';
+const SURFACE_DARK = '#1A1820';
+const SURFACE_LIGHTER = '#2B2737';
+
+const tintColorLight = ACCENT_CYAN;
+const tintColorDark = ACCENT_CYAN;
 
 export const Colors = {
   light: {
-    text: '#11181C',
-    background: '#fff',
+    text: '#E8E8F0',
+    background: DARK_BG,
     tint: tintColorLight,
-    icon: '#687076',
-    tabIconDefault: '#687076',
-    tabIconSelected: tintColorLight,
+    icon: ACCENT_CYAN,
+    tabIconDefault: '#9A95A8',
+    tabIconSelected: ACCENT_CYAN,
     // Enhanced palette
-    surface: '#f5f5f5',
-    border: '#e0e0e0',
-    success: '#4CAF50',
-    warning: '#FF9800',
-    error: '#F44336',
-    info: '#2196F3',
+    surface: SURFACE_DARK,
+    surfaceLight: SURFACE_LIGHTER,
+    border: '#3D3847',
+    success: ACCENT_GREEN,
+    warning: '#FFB84D',
+    error: '#FF4444',
+    info: ACCENT_CYAN,
     // Paranormal/Ghost themed
-    supernatural: '#2D1B4E',
-    paranormal: '#1a4d2e',
-    spectral: '#6B4FBB',
+    supernatural: PRIMARY_PURPLE,
+    paranormal: ACCENT_GREEN,
+    spectral: ACCENT_CYAN,
     cursed: '#8B0000',
+    ghostWhite: '#E8E8F0',
+    haunted: '#4A3F78',
   },
   dark: {
-    text: '#ECEDEE',
-    background: '#151718',
+    text: '#E8E8F0',
+    background: DARKER_BG,
     tint: tintColorDark,
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: tintColorDark,
+    icon: ACCENT_CYAN,
+    tabIconDefault: '#9A95A8',
+    tabIconSelected: ACCENT_CYAN,
     // Enhanced palette
-    surface: '#242526',
-    border: '#3a3a3c',
-    success: '#66BB6A',
-    warning: '#FFA726',
-    error: '#EF5350',
-    info: '#42A5F5',
+    surface: SURFACE_DARK,
+    surfaceLight: SURFACE_LIGHTER,
+    border: '#3D3847',
+    success: ACCENT_GREEN,
+    warning: '#FFB84D',
+    error: '#FF4444',
+    info: ACCENT_CYAN,
     // Paranormal/Ghost themed
-    supernatural: '#7C5FCC',
-    paranormal: '#2D6A4F',
-    spectral: '#9B7FBB',
-    cursed: '#B22222',
+    supernatural: PRIMARY_PURPLE,
+    paranormal: ACCENT_GREEN,
+    spectral: ACCENT_CYAN,
+    cursed: '#8B0000',
+    ghostWhite: '#E8E8F0',
+    haunted: '#4A3F78',
   },
 };
 
 // Difficulty Colors
 export const DifficultyColors = {
-  Beginner: '#4CAF50',
-  Intermediate: '#FF9800',
-  Advanced: '#F44336',
-  Expert: '#9C27B0',
+  Beginner: ACCENT_GREEN,
+  Intermediate: '#FFB84D',
+  Advanced: '#FF4444',
+  Expert: PRIMARY_PURPLE,
 };
 
-// Ghost Type Colors
+// Ghost Type Colors - Phasmophobia Themed
 export const GhostTypeColors: Record<string, string> = {
-  spirit: '#FFD700',
-  wraith: '#87CEEB',
-  phantom: '#DDA0DD',
-  poltergeist: '#FF6347',
-  banshee: '#9932CC',
+  spirit: '#A8D5FF',
+  wraith: '#00D9FF',
+  phantom: '#9B5FFF',
+  poltergeist: '#FF6B6B',
+  banshee: '#B45FFF',
   jinn: '#FF69B4',
-  mare: '#4B0082',
+  mare: '#6B4AAC',
   revenant: '#8B0000',
-  shade: '#2F4F4F',
-  demon: '#DC143C',
-  yurei: '#00CED1',
-  oni: '#FF4500',
-  yokai: '#20B2AA',
-  hantu: '#00BFFF',
-  goryo: '#708090',
-  myling: '#FF8C00',
-  onryo: '#CD5C5C',
-  'the-twins': '#BA55D3',
+  shade: '#1A1820',
+  demon: '#FF3333',
+  yurei: '#00D9FF',
+  oni: '#FF5722',
+  yokai: '#00D9FF',
+  hantu: '#5DDEF4',
+  goryo: '#8A8A9E',
+  myling: '#FF8C42',
+  onryo: '#FF6B6B',
+  'the-twins': '#9B5FFF',
   raiju: '#FFD700',
-  obake: '#FF1493',
-  'the-mimic': '#696969',
+  obake: '#FF69B4',
+  'the-mimic': '#6B5B95',
   moroi: '#8B4513',
   deogen: '#A9A9A9',
-  thaye: '#DEB887',
+  thaye: '#8B6B47',
 };
 
 export const Fonts = Platform.select({
@@ -112,27 +128,27 @@ export const Fonts = Platform.select({
   },
 });
 
-// Enhanced Shadow System
+// Enhanced Shadow System - Supernatural Glow Effect
 export const Shadows = {
   small: {
-    shadowColor: '#000',
+    shadowColor: PRIMARY_PURPLE,
     shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 3,
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
     elevation: 2,
   },
   medium: {
-    shadowColor: '#000',
+    shadowColor: ACCENT_CYAN,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
     elevation: 4,
   },
   large: {
-    shadowColor: '#000',
+    shadowColor: PRIMARY_PURPLE,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
 };

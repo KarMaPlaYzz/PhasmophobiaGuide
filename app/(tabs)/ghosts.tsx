@@ -18,10 +18,10 @@ export default function GhostsScreen() {
   const insets = useSafeAreaInsets();
   
   const [searchText, setSearchText] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
 
-  const difficulties = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
+  const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
 
   const filteredGhosts = useMemo(() => {
     const difficultyOrder: Record<string, number> = { 
@@ -33,7 +33,7 @@ export default function GhostsScreen() {
 
     let filtered = GHOST_LIST.filter((ghost) => {
       const matchesSearch = ghost.name.toLowerCase().includes(searchText.toLowerCase());
-      const matchesDifficulty = selectedDifficulty === 'all' || ghost.difficulty === selectedDifficulty;
+      const matchesDifficulty = selectedDifficulty === 'All' || ghost.difficulty === selectedDifficulty;
       return matchesSearch && matchesDifficulty;
     });
 
@@ -47,7 +47,25 @@ export default function GhostsScreen() {
     return filtered;
   }, [searchText, selectedDifficulty]);
 
-  const getDifficultyColor = (difficulty: string) => DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
+  const getDifficultyColor = (difficulty: string) => {
+    if (difficulty === 'All') return colors.spectral;
+    return DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
+  };
+
+  const getDifficultyIcon = (difficulty: string): string => {
+    switch (difficulty) {
+      case 'Beginner':
+        return 'star';
+      case 'Intermediate':
+        return 'star-half';
+      case 'Advanced':
+        return 'flame';
+      case 'Expert':
+        return 'flash';
+      default:
+        return 'grid';
+    }
+  };
 
   const handleGhostPress = useCallback((ghost: Ghost) => {
     console.log('🎮 Ghost card tapped:', ghost.name);
@@ -62,10 +80,10 @@ export default function GhostsScreen() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-          <ThemedText type="title" style={styles.headerTitle}>
+        <View style={[styles.header, { paddingTop: insets.top }]}>
+          {/*<ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>
             Ghosts
-          </ThemedText>
+          </ThemedText>*/}
         </View>
 
         <ScrollView 
@@ -74,8 +92,8 @@ export default function GhostsScreen() {
           scrollEventThrottle={16}
           nestedScrollEnabled
         >
-          <View style={[styles.searchContainer, { borderColor: colors.tabIconDefault }]}>
-            <Ionicons size={20} name="search" color={colors.tabIconDefault} />
+          <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+            <Ionicons size={20} name="search" color={colors.spectral} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
               placeholder="Search ghosts..."
@@ -85,7 +103,7 @@ export default function GhostsScreen() {
             />
             {searchText && (
               <TouchableOpacity onPress={() => setSearchText('')}>
-                <Ionicons size={20} name="close-circle" color={colors.tabIconDefault} />
+                <Ionicons size={20} name="close-circle" color={colors.spectral} />
               </TouchableOpacity>
             )}
           </View>
@@ -93,34 +111,68 @@ export default function GhostsScreen() {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            style={styles.filterContainer}
+            style={[styles.filterContainer]}
             contentContainerStyle={styles.filterContent}
           >
-            {difficulties.map((diff) => (
-              <TouchableOpacity
-                key={diff}
-                onPress={() => setSelectedDifficulty(diff)}
-                style={[
-                  styles.filterButton,
-                  {
-                    backgroundColor:
-                      selectedDifficulty === diff
-                        ? colors.tint
-                        : colors.tabIconDefault + '20',
-                  },
-                ]}
-              >
-                <ThemedText
-                  style={{
-                    color: selectedDifficulty === diff ? 'white' : colors.text,
-                    fontSize: 12,
-                    fontWeight: '600',
-                  }}
+            {difficulties.map((diff) => {
+              const count =
+                diff === 'all'
+                  ? GHOST_LIST.length
+                  : GHOST_LIST.filter((g) => g.difficulty === diff).length;
+              const diffColor = getDifficultyColor(diff);
+              return (
+                <TouchableOpacity
+                  key={diff}
+                  onPress={() => setSelectedDifficulty(diff)}
+                  style={[
+                    styles.filterButton,
+                    {
+                      backgroundColor:
+                        selectedDifficulty === diff
+                          ? diffColor
+                          : colors.tabIconDefault + '15',
+                      borderWidth: selectedDifficulty === diff ? 0 : 1,
+                      borderColor: colors.border,
+                    },
+                  ]}
                 >
-                  {diff === 'all' ? 'All' : diff}
-                </ThemedText>
-              </TouchableOpacity>
-            ))}
+                  <Ionicons
+                    size={12}
+                    name={getDifficultyIcon(diff) as any}
+                    color={selectedDifficulty === diff ? 'white' : colors.text}
+                  />
+                  <ThemedText
+                    style={{
+                      color: selectedDifficulty === diff ? 'white' : colors.text,
+                      fontSize: 11,
+                      fontWeight: '600',
+                      marginLeft: 4,
+                    }}
+                  >
+                    {diff === 'all' ? 'All' : diff}
+                  </ThemedText>
+                  <View
+                    style={[
+                      styles.filterCount,
+                      {
+                        backgroundColor:
+                          selectedDifficulty === diff ? 'rgba(255,255,255,0.3)' : diffColor + '30',
+                      },
+                    ]}
+                  >
+                    <ThemedText
+                      style={{
+                        color: selectedDifficulty === diff ? 'white' : diffColor,
+                        fontSize: 10,
+                        fontWeight: 'bold',
+                      }}
+                    >
+                      {count}
+                    </ThemedText>
+                  </View>
+                </TouchableOpacity>
+              );
+            })}
           </ScrollView>
 
           <ThemedText style={styles.resultCounter}>
@@ -224,19 +276,30 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: 8,
+    borderRadius: 12,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginBottom: 12,
+    paddingVertical: 10,
+    marginBottom: 16,
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
-  filterContainer: { marginBottom: 12 },
-  filterContent: { paddingVertical: 4, gap: 8 },
+  filterContainer: { height: 48, flex: 0 },
+  filterContent: { paddingVertical: 4, gap: 8, flexGrow: 0, flexShrink: 0 },
   filterButton: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  filterCount: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    justifyContent: 'center',
+    alignItems: 'center',
+    minWidth: 22,
   },
   resultCounter: { fontSize: 12, opacity: 0.6, marginBottom: 8, marginLeft: 2 },
   ghostCard: {

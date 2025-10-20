@@ -24,7 +24,7 @@ if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental
   UIManager.setLayoutAnimationEnabledExperimental(true);
 }
 
-const DIFFICULTY_LEVELS = ['all', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
+const DIFFICULTY_LEVELS = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
 const SIZE_ORDER = ['small', 'medium', 'large'];
 
 export default function MapsScreen() {
@@ -34,7 +34,7 @@ export default function MapsScreen() {
   const { width } = Dimensions.get('window');
   
   const [searchText, setSearchText] = useState('');
-  const [selectedDifficulty, setSelectedDifficulty] = useState('all');
+  const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('grid');
   const [selectedMap, setSelectedMap] = useState<Map | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -42,7 +42,7 @@ export default function MapsScreen() {
   const filteredMaps = useMemo(() => {
     return MAP_LIST.filter((map) => {
       const matchesSearch = map.name.toLowerCase().includes(searchText.toLowerCase());
-      const matchesDifficulty = selectedDifficulty === 'all' || map.difficulty === selectedDifficulty;
+      const matchesDifficulty = selectedDifficulty === 'All' || map.difficulty === selectedDifficulty;
       return matchesSearch && matchesDifficulty;
     });
   }, [searchText, selectedDifficulty]);
@@ -60,6 +60,7 @@ export default function MapsScreen() {
   }, [filteredMaps]);
 
   const getDifficultyColor = (difficulty: string) => {
+    if (difficulty === 'All') return colors.spectral;
     return DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
   };
 
@@ -70,11 +71,11 @@ export default function MapsScreen() {
       case 'Intermediate':
         return 'star-half';
       case 'Advanced':
-        return 'flash';
+        return 'flame';
       case 'Expert':
         return 'flash';
       default:
-        return 'help-circle';
+        return 'grid';
     }
   };
 
@@ -105,10 +106,10 @@ export default function MapsScreen() {
           nestedScrollEnabled={true}
           scrollEventThrottle={16}
         >
-          <View style={[styles.header, { backgroundColor: colors.background, paddingTop: insets.top }]}>
-            <View style={styles.headerContent}>
+          <View style={[styles.header, { /*backgroundColor: colors.surface,*/ paddingTop: insets.top }]}>
+            {/*<View style={styles.headerContent}>
               <View>
-                <ThemedText type="title" style={styles.headerTitle}>
+                <ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>
                   Maps
                 </ThemedText>
                 <ThemedText style={styles.headerSubtitle}>
@@ -117,21 +118,21 @@ export default function MapsScreen() {
               </View>
               <TouchableOpacity
                 onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                style={[styles.viewToggle, { backgroundColor: colors.tabIconDefault + '20' }]}
+                style={[styles.viewToggle, { backgroundColor: colors.spectral + '20' }]}
               >
                 <Ionicons
                   size={20}
                   name={viewMode === 'grid' ? 'list' : 'grid'}
-                  color={colors.tint}
+                  color={colors.spectral}
                 />
               </TouchableOpacity>
-            </View>
+            </View>*/}
           </View>
 
           {/* Search Bar */}
-          <View style={[styles.contentPadding, { backgroundColor: colors.background }]}>
-            <View style={[styles.searchContainer, { borderColor: colors.tabIconDefault }]}>
-              <Ionicons size={20} name="search" color={colors.tabIconDefault} />
+          <View style={[styles.contentPadding ]}>
+            <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
+              <Ionicons size={20} name="search" color={colors.spectral} />
               <TextInput
                 style={[styles.searchInput, { color: colors.text }]}
                 placeholder="Search maps..."
@@ -141,7 +142,7 @@ export default function MapsScreen() {
               />
               {searchText && (
                 <TouchableOpacity onPress={() => setSearchText('')}>
-                  <Ionicons size={20} name="close-circle" color={colors.tabIconDefault} />
+                  <Ionicons size={20} name="close-circle" color={colors.spectral} />
                 </TouchableOpacity>
               )}
             </View>
@@ -153,14 +154,15 @@ export default function MapsScreen() {
             scrollEnabled={true}
             scrollEventThrottle={16}
             showsHorizontalScrollIndicator={false}
-            style={styles.filterContainer}
+            style={[styles.filterContainer]}
             contentContainerStyle={styles.filterContent}
           >
               {DIFFICULTY_LEVELS.map((level) => {
             const count =
-              level === 'all'
-                ? filteredMaps.length
-                : filteredMaps.filter((m) => m.difficulty === level).length;
+              level === 'All'
+                ? MAP_LIST.length
+                : MAP_LIST.filter((m) => m.difficulty === level).length;
+            const diffColor = getDifficultyColor(level);
             return (
               <TouchableOpacity
                 key={level}
@@ -170,10 +172,10 @@ export default function MapsScreen() {
                   {
                     backgroundColor:
                       selectedDifficulty === level
-                        ? colors.tint
+                        ? diffColor
                         : colors.tabIconDefault + '15',
                     borderWidth: selectedDifficulty === level ? 0 : 1,
-                    borderColor: colors.tabIconDefault + '30',
+                    borderColor: colors.border,
                   },
                 ]}
               >
@@ -190,29 +192,27 @@ export default function MapsScreen() {
                     marginLeft: 4,
                   }}
                 >
-                  {level === 'all' ? 'All' : level}
+                  {level === 'All' ? 'All' : level}
                 </ThemedText>
-                {count > 0 && (
-                  <View
-                    style={[
-                      styles.filterCount,
-                      {
-                        backgroundColor:
-                          selectedDifficulty === level ? 'rgba(255,255,255,0.3)' : colors.tint + '30',
-                      },
-                    ]}
+                <View
+                  style={[
+                    styles.filterCount,
+                    {
+                      backgroundColor:
+                        selectedDifficulty === level ? 'rgba(255,255,255,0.3)' : diffColor + '30',
+                    },
+                  ]}
+                >
+                  <ThemedText
+                    style={{
+                      color: selectedDifficulty === level ? 'white' : diffColor,
+                      fontSize: 10,
+                      fontWeight: 'bold',
+                    }}
                   >
-                    <ThemedText
-                      style={{
-                        color: selectedDifficulty === level ? 'white' : colors.tint,
-                        fontSize: 10,
-                        fontWeight: 'bold',
-                      }}
-                    >
-                      {count}
-                    </ThemedText>
-                  </View>
-                )}
+                    {count}
+                  </ThemedText>
+                </View>
               </TouchableOpacity>
               );
               })}
@@ -391,12 +391,7 @@ export default function MapsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   fullScroll: { flex: 1 },
-  header: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-  },
+  header: { paddingVertical: 12, paddingHorizontal: 16 },
   headerContent: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -423,7 +418,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   searchInput: { flex: 1, fontSize: 14, paddingVertical: 4 },
-  filterContainer: { marginBottom: 16, height: 48, paddingHorizontal: 16, flex: 0 },
+  filterContainer: { height: 48, paddingHorizontal: 16, flex: 0 },
   filterContent: { paddingVertical: 4, gap: 8, flexGrow: 0, flexShrink: 0 },
   filterButton: {
     paddingHorizontal: 12,
@@ -434,11 +429,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   filterCount: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
+    minWidth: 22,
   },
 
   // Section Styles
