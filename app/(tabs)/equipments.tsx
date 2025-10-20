@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -94,7 +95,10 @@ export default function EquipmentScreen() {
             onChangeText={setSearchText}
           />
           {searchText ? (
-            <TouchableOpacity onPress={() => setSearchText('')}>
+            <TouchableOpacity onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              setSearchText('');
+            }}>
               <Ionicons size={20} name="close-circle" color={colors.spectral} />
             </TouchableOpacity>
           ) : null}
@@ -115,7 +119,10 @@ export default function EquipmentScreen() {
             return (
               <TouchableOpacity
                 key={cat}
-                onPress={() => setSelectedCategory(cat)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSelectedCategory(cat);
+                }}
                 style={[
                   styles.filterButton,
                   {
@@ -173,7 +180,10 @@ export default function EquipmentScreen() {
           filteredEquipment.map((item) => (
             <TouchableOpacity
               key={item.id}
-              onPress={() => handleEquipmentPress(item)}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                handleEquipmentPress(item);
+              }}
               style={[
                 styles.equipmentCard,
                 { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },

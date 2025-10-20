@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import {
   Dimensions,
@@ -152,7 +153,10 @@ export default function MapsScreen() {
                 onChangeText={setSearchText}
               />
               {searchText && (
-                <TouchableOpacity onPress={() => setSearchText('')}>
+                <TouchableOpacity onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSearchText('');
+                }}>
                   <Ionicons size={20} name="close-circle" color={colors.spectral} />
                 </TouchableOpacity>
               )}
@@ -177,7 +181,10 @@ export default function MapsScreen() {
             return (
               <TouchableOpacity
                 key={level}
-                onPress={() => setSelectedDifficulty(level)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSelectedDifficulty(level);
+                }}
                 style={[
                   styles.filterButton,
                   {
@@ -272,7 +279,10 @@ export default function MapsScreen() {
                       ]}
                     >
                       <TouchableOpacity
-                        onPress={() => handleMapPress(map)}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          handleMapPress(map);
+                        }}
                         activeOpacity={0.7}
                       >
                         <View

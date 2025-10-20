@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, TapGestureHandler } from 'react-native-gesture-handler';
@@ -130,7 +131,10 @@ export default function GhostsScreen() {
               onChangeText={setSearchText}
             />
             {searchText && (
-              <TouchableOpacity onPress={() => setSearchText('')}>
+              <TouchableOpacity onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setSearchText('');
+              }}>
                 <Ionicons size={20} name="close-circle" color={colors.spectral} />
               </TouchableOpacity>
             )}
@@ -151,7 +155,10 @@ export default function GhostsScreen() {
               return (
                 <TouchableOpacity
                   key={diff}
-                  onPress={() => setSelectedDifficulty(diff)}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setSelectedDifficulty(diff);
+                  }}
                   style={[
                     styles.filterButton,
                     {
@@ -215,7 +222,10 @@ export default function GhostsScreen() {
                 maxDurationMs={500}
               >
                 <TouchableOpacity
-                  onPress={() => handleGhostPress(ghost)}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    handleGhostPress(ghost);
+                  }}
                   activeOpacity={0.6}
                   delayPressIn={0}
                 >

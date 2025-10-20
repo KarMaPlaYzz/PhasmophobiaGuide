@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
@@ -210,7 +211,10 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         {equipment.tiers && equipment.tiers.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('tiers')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('tiers');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12' }]}
             >
               <Ionicons
@@ -248,7 +252,10 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         {equipmentSynergies.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('synergies')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('synergies');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
             >
               <Ionicons
@@ -279,7 +286,10 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         {equipment.recommendedFor && equipment.recommendedFor.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('recommended')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('recommended');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
             >
               <Ionicons

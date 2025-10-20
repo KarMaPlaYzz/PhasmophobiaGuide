@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
@@ -124,7 +125,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
 
         {/* Special Abilities - Collapsible (starts expanded) */}
         <Pressable
-          onPress={() => toggleSection('abilities')}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            toggleSection('abilities');
+          }}
           style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '15', marginTop: 16 }]}
         >
           <Ionicons
@@ -159,7 +163,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
 
         {/* Strengths & Weaknesses - Collapsible */}
         <Pressable
-          onPress={() => toggleSection('strengths')}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            toggleSection('strengths');
+          }}
           style={[styles.collapsibleHeader, { backgroundColor: colors.paranormal + '15', marginTop: 16 }]}
         >
           <Ionicons
@@ -205,7 +212,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         {ghost.counterStrategies && ghost.counterStrategies.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('tactics')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('tactics');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: '#4CAF50' + '15', marginTop: 16 }]}
             >
               <Ionicons
@@ -274,7 +284,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         {ghost.recommendedEquipment && (
           <>
             <Pressable
-              onPress={() => toggleSection('equipment')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('equipment');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: '#FF1744' + '15', marginTop: 16 }]}
             >
               <Ionicons
@@ -386,7 +399,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         {ghost.identificationTips && ghost.identificationTips.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('identification')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('identification');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '15', marginTop: 16 }]}
             >
               <Ionicons

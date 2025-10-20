@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRoute } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -151,7 +152,10 @@ export default function SanityCulculatorScreen() {
             {DIFFICULTIES.map((diff) => (
               <TouchableOpacity
                 key={diff.key}
-                onPress={() => setSelectedDifficulty(diff.key)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSelectedDifficulty(diff.key);
+                }}
                 style={[
                   styles.difficultyButton,
                   {
@@ -192,7 +196,10 @@ export default function SanityCulculatorScreen() {
             {MAP_SIZES.map((size) => (
               <TouchableOpacity
                 key={size.key}
-                onPress={() => setSelectedMapSize(size.key)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSelectedMapSize(size.key);
+                }}
                 style={[
                   styles.sizeButton,
                   {
@@ -258,9 +265,10 @@ export default function SanityCulculatorScreen() {
           </View>
           <View style={styles.sliderButtonRow}>
             <TouchableOpacity
-              onPress={() =>
-                setCurrentSanity(Math.max(0, currentSanity - 10))
-              }
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setCurrentSanity(Math.max(0, currentSanity - 10));
+              }}
               style={[
                 styles.sliderButton,
                 { backgroundColor: colors.spectral + '20' },
@@ -275,9 +283,10 @@ export default function SanityCulculatorScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() =>
-                setCurrentSanity(Math.min(100, currentSanity + 10))
-              }
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setCurrentSanity(Math.min(100, currentSanity + 10));
+              }}
               style={[
                 styles.sliderButton,
                 { backgroundColor: colors.spectral + '20' },

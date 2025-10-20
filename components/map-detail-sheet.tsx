@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native';
 
@@ -227,7 +228,10 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {map.zones && map.zones.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('zones')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('zones');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
             >
               <Ionicons
@@ -273,7 +277,10 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {map.characteristics.hazards && map.characteristics.hazards.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('hazards')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('hazards');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
             >
               <Ionicons
@@ -302,7 +309,10 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {map.characteristics.specialFeatures && map.characteristics.specialFeatures.length > 0 && (
           <>
             <Pressable
-              onPress={() => toggleSection('features')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('features');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
             >
               <Ionicons
@@ -331,7 +341,10 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {(map.strategies || map.tips) && (
           <>
             <Pressable
-              onPress={() => toggleSection('strategies')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                toggleSection('strategies');
+              }}
               style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
             >
               <Ionicons
