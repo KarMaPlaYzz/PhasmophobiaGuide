@@ -3,6 +3,7 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import React, { useMemo, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 
+import { FloorPlanViewer } from '@/components/floor-plan-viewer';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -145,22 +146,11 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
 
         {/* Floor Plan */}
         {map.floorPlanUrl && (
-          <View style={styles.section}>
+          <View style={[styles.floorPlanSection]}>
             <ThemedText type="defaultSemiBold" style={styles.sectionTitle}>
               Floor Plan
             </ThemedText>
-            <View style={[styles.floorPlanContainer, { backgroundColor: colors.tabIconDefault + '10' }]}>
-              {imageLoading && (
-                <View style={styles.imagePlaceholder}>
-                  <Ionicons size={48} name="image" color={colors.tabIconDefault} />
-                </View>
-              )}
-              <Image
-                source={{ uri: map.floorPlanUrl }}
-                style={styles.floorPlanImage}
-                resizeMode="contain"
-              />
-            </View>
+            <FloorPlanViewer imageUrl={map.floorPlanUrl} mapName={map.name} />
           </View>
         )}
 
@@ -446,5 +436,10 @@ const styles = StyleSheet.create({
   floorPlanImage: {
     width: '100%',
     height: '100%',
+  },
+  floorPlanSection: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    width: '100%',
   },
 });
