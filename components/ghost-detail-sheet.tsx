@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { useNavigation } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
@@ -8,6 +9,7 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { ALL_EQUIPMENT } from '@/lib/data/equipment';
 import { Ghost } from '@/lib/types';
 
 interface GhostDetailSheetProps {
@@ -19,6 +21,7 @@ interface GhostDetailSheetProps {
 export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const navigation = useNavigation<any>();
   const snapPoints = useMemo(() => ['75%', '95%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     evidence: true,
@@ -28,6 +31,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
     equipment: false,
     identification: false,
   });
+  const [pressedEquipmentId, setPressedEquipmentId] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = detailSheetEmitter.subscribe(() => {
@@ -64,6 +68,33 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
       ...prev,
       [section]: !prev[section],
     }));
+  };
+
+  const handleEquipmentPress = (equipmentName: string) => {
+    setPressedEquipmentId(equipmentName);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+
+    // Find the equipment in the database
+    const equipment = Object.values(ALL_EQUIPMENT).find(
+      (item: any) => item?.name === equipmentName
+    );
+
+    if (equipment) {
+      // Navigate after brief delay for visual feedback
+      setTimeout(() => {
+        navigation.navigate('(tabs)', {
+          screen: 'equipments',
+          params: {
+            selectedEquipmentId: (equipment as any).id,
+            scrollToEquipment: true,
+          },
+        });
+
+        // Emit event to close this detail sheet
+        detailSheetEmitter.emit();
+        setPressedEquipmentId(null);
+      }, 100);
+    }
   };
 
   const getDifficultyColor = (difficulty: string) =>
@@ -316,10 +347,30 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.essential.map((item, idx) => (
-                        <View key={idx} style={[styles.equipmentItem, { backgroundColor: 'rgba(255, 23, 68, 0.08)', paddingVertical: 8, paddingHorizontal: 8, borderRadius: 4, borderLeftWidth: 3, borderLeftColor: '#FF1744' }]}>
+                        <Pressable
+                          key={idx}
+                          onPress={() => handleEquipmentPress(item)}
+                          style={[
+                            styles.equipmentItem,
+                            {
+                              backgroundColor: pressedEquipmentId === item 
+                                ? 'rgba(255, 23, 68, 0.2)' 
+                                : 'rgba(255, 23, 68, 0.08)',
+                              paddingVertical: 8,
+                              paddingHorizontal: 8,
+                              borderRadius: 4,
+                              borderLeftWidth: 3,
+                              borderLeftColor: '#FF1744',
+                              opacity: pressedEquipmentId === item ? 0.8 : 1,
+                            },
+                          ]}
+                        >
                           <Ionicons name="checkmark-circle" size={16} color="#FF1744" />
-                          <ThemedText style={[styles.equipmentItemText, { fontWeight: '600' }]}>{item}</ThemedText>
-                        </View>
+                          <ThemedText style={[styles.equipmentItemText, { fontWeight: '600' }]}>
+                            {item}
+                          </ThemedText>
+                          <Ionicons name="open-outline" size={14} color="#FF1744" style={{ marginLeft: 'auto' }} />
+                        </Pressable>
                       ))}
                     </View>
                   </>
@@ -338,10 +389,23 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.recommended.map((item, idx) => (
-                        <View key={idx} style={styles.equipmentItem}>
+                        <Pressable
+                          key={idx}
+                          onPress={() => handleEquipmentPress(item)}
+                          style={[
+                            styles.equipmentItem,
+                            {
+                              backgroundColor: pressedEquipmentId === item 
+                                ? 'rgba(255, 193, 7, 0.15)' 
+                                : 'rgba(255, 193, 7, 0.05)',
+                              opacity: pressedEquipmentId === item ? 0.8 : 1,
+                            },
+                          ]}
+                        >
                           <Ionicons name="ellipse" size={12} color="#FFC107" />
                           <ThemedText style={styles.equipmentItemText}>{item}</ThemedText>
-                        </View>
+                          <Ionicons name="open-outline" size={14} color="#FFC107" style={{ marginLeft: 'auto' }} />
+                        </Pressable>
                       ))}
                     </View>
                   </>
@@ -360,10 +424,23 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.optional.map((item, idx) => (
-                        <View key={idx} style={styles.equipmentItem}>
+                        <Pressable
+                          key={idx}
+                          onPress={() => handleEquipmentPress(item)}
+                          style={[
+                            styles.equipmentItem,
+                            {
+                              backgroundColor: pressedEquipmentId === item 
+                                ? 'rgba(33, 150, 243, 0.15)' 
+                                : 'rgba(33, 150, 243, 0.05)',
+                              opacity: pressedEquipmentId === item ? 0.8 : 1,
+                            },
+                          ]}
+                        >
                           <Ionicons name="ellipse-outline" size={12} color="#2196F3" />
                           <ThemedText style={styles.equipmentItemText}>{item}</ThemedText>
-                        </View>
+                          <Ionicons name="open-outline" size={14} color="#2196F3" style={{ marginLeft: 'auto' }} />
+                        </Pressable>
                       ))}
                     </View>
                   </>
@@ -382,10 +459,25 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.avoid.map((item, idx) => (
-                        <View key={idx} style={styles.equipmentItem}>
+                        <Pressable
+                          key={idx}
+                          onPress={() => handleEquipmentPress(item)}
+                          style={[
+                            styles.equipmentItem,
+                            {
+                              backgroundColor: pressedEquipmentId === item 
+                                ? 'rgba(153, 153, 153, 0.15)' 
+                                : 'rgba(153, 153, 153, 0.05)',
+                              opacity: pressedEquipmentId === item ? 0.8 : 0.6,
+                            },
+                          ]}
+                        >
                           <Ionicons name="close" size={14} color="#999" />
-                          <ThemedText style={[styles.equipmentItemText, { opacity: 0.6 }]}>{item}</ThemedText>
-                        </View>
+                          <ThemedText style={[styles.equipmentItemText, { opacity: 0.6 }]}>
+                            {item}
+                          </ThemedText>
+                          <Ionicons name="open-outline" size={14} color="#999" style={{ marginLeft: 'auto' }} />
+                        </Pressable>
                       ))}
                     </View>
                   </>

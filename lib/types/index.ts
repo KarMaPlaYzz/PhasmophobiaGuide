@@ -182,12 +182,56 @@ export interface SanityMechanic {
 // USER DATA TYPES
 // ============================================================================
 
+export type Playstyle = 'aggressive' | 'defensive' | 'balanced' | 'solo' | 'team';
+
+export interface PlaystyleProfile {
+  id: Playstyle;
+  name: string;
+  description: string;
+  emoji: string;
+  budgetAllocation: {
+    detection: number;
+    safety: number;
+    utility: number;
+  };
+  priorityEquipment: string[];
+  avoidEquipment: string[];
+  recommendedForGhosts: string[];
+}
+
+export interface LoadoutRecommendation {
+  id: string;
+  name: string;
+  description: string;
+  playstyle: Playstyle;
+  difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+  mapSize?: MapSize;
+  ghostType?: string;
+  essential: string[];
+  recommended: string[];
+  optional: string[];
+  totalCost: number;
+  maxBudget: number;
+  efficiency: number; // 0-100
+  explanation: string[];
+  gaps: string[];
+  ghostMatchup: {
+    ghostId: string;
+    ghostName: string;
+    effectiveness: number; // 0-100
+    reason: string;
+  }[];
+  savedAt?: number;
+  tags: string[];
+}
+
 export interface UserProgress {
   favoriteGhosts: string[];
   favoriteEquipment: string[];
   favoriteMaps: string[];
   lastVisitedSection: string;
   lastUpdated: number;
+  savedLoadouts?: LoadoutRecommendation[];
 }
 
 export interface EvidenceSelection {

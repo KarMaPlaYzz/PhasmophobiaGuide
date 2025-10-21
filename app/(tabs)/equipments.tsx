@@ -1,17 +1,18 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
+import { EquipmentOptimizerSheet } from '@/components/equipment-optimizer-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { EQUIPMENT_LIST } from '@/lib/data/equipment';
+import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { Equipment } from '@/lib/types';
 
 export default function EquipmentScreen() {
@@ -19,10 +20,38 @@ export default function EquipmentScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
+  const navigation = useNavigation<any>();
   
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [optimizerVisible, setOptimizerVisible] = useState(false);
+
+  // Handle incoming equipment ID from navigation params
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      const params = route.params as any;
+      if (params?.selectedEquipmentId) {
+        // Find equipment by ID and open detail sheet
+        const equipment = ALL_EQUIPMENT[params.selectedEquipmentId];
+        if (equipment) {
+          setSelectedEquipment(equipment);
+          
+          // Clear params to prevent opening the same equipment on subsequent tab visits
+          navigation.setParams({ selectedEquipmentId: undefined });
+          
+          // Optionally scroll to equipment if requested
+          if (params?.scrollToEquipment) {
+            setTimeout(() => {
+              // Equipment sheet is now open, user can see details
+            }, 100);
+          }
+        }
+      }
+    });
+
+    return unsubscribe;
+  }, [navigation, route]);
 
   // Use callback ref to always have the latest ref
   const handleScrollRef = (ref: ScrollView | null) => {
@@ -81,7 +110,7 @@ export default function EquipmentScreen() {
   return (
     <ThemedView style={styles.container}>
       <View style={[styles.header, { paddingTop: insets.top }]}>
-        {/*<ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>Equipment</ThemedText>*/}
+        {/* Header kept for insets, but content removed */}
       </View>
 
       <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
@@ -234,10 +263,35 @@ export default function EquipmentScreen() {
         )}
       </ScrollView>
 
+      {/* Floating Action Button - Hidden when detail sheet is open */}
+      {selectedEquipment === null && !optimizerVisible && (
+        <TouchableOpacity
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+            setOptimizerVisible(true);
+          }}
+          style={[
+            styles.fab,
+            { 
+              backgroundColor: colors.spectral,
+              bottom: insets.bottom,
+              right: 20,
+            },
+          ]}
+        >
+          <Ionicons name="construct" size={24} color="white" />
+        </TouchableOpacity>
+      )}
+
       <EquipmentDetailSheet
         equipment={selectedEquipment}
         isVisible={selectedEquipment !== null}
         onClose={() => setSelectedEquipment(null)}
+      />
+
+      <EquipmentOptimizerSheet
+        isVisible={optimizerVisible}
+        onClose={() => setOptimizerVisible(false)}
       />
     </ThemedView>
   );
@@ -245,8 +299,9 @@ export default function EquipmentScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: { paddingVertical: 16, paddingHorizontal: 16 },
+  header: { paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'flex-end' },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
+  fab: { position: 'absolute', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, zIndex: 5 },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   searchContainer: {
     flexDirection: 'row',
