@@ -27,7 +27,8 @@ export default function TabLayout() {
           fontWeight: '600',
           marginBottom: 4,
         },
-      }}>
+      }}
+    >
       <Tabs.Screen
         name="ghosts"
         options={{
@@ -43,14 +44,14 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="maps"
+        name="index"
         options={{
           title: 'Maps',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="index"
+        name="evidence"
         options={{
           title: 'Evidence',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="finger-print" color={color} />,
