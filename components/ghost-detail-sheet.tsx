@@ -1,6 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
@@ -13,6 +15,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ALL_EQUIPMENT } from '@/lib/data/equipment';
 import { HistoryService } from '@/lib/storage/storageService';
 import { Ghost } from '@/lib/types';
+import { getSanityColor } from '@/lib/utils/colors';
 
 interface GhostDetailSheetProps {
   ghost: Ghost | null;
@@ -24,7 +27,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const navigation = useNavigation<any>();
-  const snapPoints = useMemo(() => ['75%', '95%'], []);
+  const snapPoints = useMemo(() => ['75%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     evidence: true,
     abilities: true,
@@ -109,6 +112,21 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
   const getDifficultyColor = (difficulty: string) =>
     DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
 
+  const getDifficultyIcon = (difficulty: string): string => {
+    switch (difficulty) {
+      case 'Beginner':
+        return 'star';
+      case 'Intermediate':
+        return 'star-half';
+      case 'Advanced':
+        return 'flame';
+      case 'Expert':
+        return 'flash';
+      default:
+        return 'grid';
+    }
+  };
+
   if (!ghost) return null;
 
   return (
@@ -118,7 +136,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
-      backgroundStyle={{ backgroundColor: colors.surface }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+      backgroundComponent={() => (
+        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+      )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >
       <BottomSheetScrollView
@@ -143,11 +164,20 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
             <View
               style={[
                 styles.difficultyBadgeLarge,
-                { backgroundColor: getDifficultyColor(ghost.difficulty) },
+                {
+                  backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
+                  borderColor: getDifficultyColor(ghost.difficulty),
+                  borderWidth: 1,
+                },
               ]}
             >
-              <ThemedText style={styles.difficultyTextLarge}>
-                {ghost.difficulty} Difficulty
+              <Ionicons
+                size={14}
+                name={getDifficultyIcon(ghost.difficulty) as any}
+                color={getDifficultyColor(ghost.difficulty)}
+              />
+              <ThemedText style={[styles.difficultyTextLarge, { color: getDifficultyColor(ghost.difficulty) }]}>
+                {ghost.difficulty}
               </ThemedText>
             </View>
           </View>
@@ -172,6 +202,37 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
               <ThemedText style={styles.evidenceTextLarge}>{ev}</ThemedText>
             </View>
           ))}
+        </View>
+
+        {/* Hunt Sanity Threshold Visualization */}
+        <View style={[styles.thresholdContainer, { marginTop: 16, backgroundColor: colors.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border }]}>
+          <ThemedText style={styles.sectionTitle}>Hunt Sanity Threshold</ThemedText>
+          <View style={styles.thresholdLabelRow}>
+            <ThemedText style={styles.thresholdValue}>{ghost.huntSanityThreshold}%</ThemedText>
+            <ThemedText style={styles.thresholdDescription}>
+              Ghost hunts when sanity drops below {ghost.huntSanityThreshold}%
+            </ThemedText>
+          </View>
+          
+          {/* Threshold Bar */}
+          <View style={[styles.thresholdBar, { backgroundColor: colors.tabIconDefault + '15', borderColor: colors.border }]}>
+            <View
+              style={[
+                styles.thresholdMarker,
+                {
+                  left: `${ghost.huntSanityThreshold}%`,
+                  backgroundColor: getSanityColor(ghost.huntSanityThreshold),
+                  shadowColor: getSanityColor(ghost.huntSanityThreshold),
+                },
+              ]}
+            />
+          </View>
+          
+          {/* Threshold Labels */}
+          <View style={styles.thresholdLabelsRow}>
+            <ThemedText style={styles.thresholdLabelText}>Safe</ThemedText>
+            <ThemedText style={styles.thresholdLabelText}>Danger</ThemedText>
+          </View>
         </View>
 
         {/* Special Abilities - Collapsible (starts expanded) */}
@@ -360,7 +421,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                         { borderColor: '#FF1744', backgroundColor: 'rgba(255, 23, 68, 0.12)', marginBottom: 12, paddingVertical: 12, paddingHorizontal: 10, borderRadius: 8 },
                       ]}
                     >
-                      <Ionicons name="star" size={18} color="#FF1744" style={{ fontWeight: 'bold' }} />
+                      <MaterialIcons name="star" size={18} color="#FF1744" style={{ fontWeight: 'bold' }} />
                       <ThemedText style={[styles.equipmentCategoryTitle, { fontWeight: '700', fontSize: 14 }]}>
                         ⚠️ MUST BRING
                       </ThemedText>
@@ -385,18 +446,18 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                             },
                           ]}
                         >
-                          <Ionicons name="checkmark-circle" size={16} color="#FF1744" />
+                          <MaterialIcons name="check-circle" size={16} color="#FF1744" />
                           <ThemedText style={[styles.equipmentItemText, { fontWeight: '600' }]}>
                             {item}
                           </ThemedText>
-                          <Ionicons name="open-outline" size={14} color="#FF1744" style={{ marginLeft: 'auto' }} />
+                          <MaterialIcons name="open-in-new" size={14} color="#FF1744" style={{ marginLeft: 'auto' }} />
                         </Pressable>
                       ))}
                     </View>
                   </>
                 )}
 
-                {ghost.recommendedEquipment?.recommended && ghost.recommendedEquipment.recommended.length > 0 && (
+                    {ghost.recommendedEquipment?.recommended && ghost.recommendedEquipment.recommended.length > 0 && (
                   <>
                     <View
                       style={[
@@ -404,7 +465,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                         { borderColor: '#FFC107', marginTop: 12 },
                       ]}
                     >
-                      <Ionicons name="star-half" size={16} color="#FFC107" />
+                      <MaterialIcons name="star-half" size={16} color="#FFC107" />
                       <ThemedText style={styles.equipmentCategoryTitle}>Recommended</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
@@ -422,9 +483,9 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                             },
                           ]}
                         >
-                          <Ionicons name="ellipse" size={12} color="#FFC107" />
+                          <MaterialIcons name="circle" size={12} color="#FFC107" />
                           <ThemedText style={styles.equipmentItemText}>{item}</ThemedText>
-                          <Ionicons name="open-outline" size={14} color="#FFC107" style={{ marginLeft: 'auto' }} />
+                          <MaterialIcons name="open-in-new" size={14} color="#FFC107" style={{ marginLeft: 'auto' }} />
                         </Pressable>
                       ))}
                     </View>
@@ -439,7 +500,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                         { borderColor: '#2196F3', marginTop: 12 },
                       ]}
                     >
-                      <Ionicons name="help-circle" size={16} color="#2196F3" />
+                      <MaterialIcons name="help" size={16} color="#2196F3" />
                       <ThemedText style={styles.equipmentCategoryTitle}>Optional</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
@@ -457,9 +518,9 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                             },
                           ]}
                         >
-                          <Ionicons name="ellipse-outline" size={12} color="#2196F3" />
+                          <MaterialIcons name="radio-button-unchecked" size={12} color="#2196F3" />
                           <ThemedText style={styles.equipmentItemText}>{item}</ThemedText>
-                          <Ionicons name="open-outline" size={14} color="#2196F3" style={{ marginLeft: 'auto' }} />
+                          <MaterialIcons name="open-in-new" size={14} color="#2196F3" style={{ marginLeft: 'auto' }} />
                         </Pressable>
                       ))}
                     </View>
@@ -474,7 +535,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                         { borderColor: '#999', marginTop: 12 },
                       ]}
                     >
-                      <Ionicons name="close-circle" size={16} color="#999" />
+                      <MaterialIcons name="cancel" size={16} color="#999" />
                       <ThemedText style={styles.equipmentCategoryTitle}>Avoid</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
@@ -492,11 +553,11 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                             },
                           ]}
                         >
-                          <Ionicons name="close" size={14} color="#999" />
+                          <MaterialIcons name="close" size={14} color="#999" />
                           <ThemedText style={[styles.equipmentItemText, { opacity: 0.6 }]}>
                             {item}
                           </ThemedText>
-                          <Ionicons name="open-outline" size={14} color="#999" style={{ marginLeft: 'auto' }} />
+                          <MaterialIcons name="open-in-new" size={14} color="#999" style={{ marginLeft: 'auto' }} />
                         </Pressable>
                       ))}
                     </View>
@@ -569,7 +630,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   bottomSheetTitle: { fontSize: 26, fontWeight: '700', marginBottom: 10, color: '#00D9FF' },
-  difficultyBadgeLarge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 20 },
+  difficultyBadgeLarge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 20, flexDirection: 'row', alignItems: 'center', gap: 6 },
   difficultyTextLarge: { color: 'white', fontWeight: '700', fontSize: 13 },
 
   sectionTitle: { fontSize: 16, fontWeight: '700', marginTop: 20, marginBottom: 12, color: '#00D9FF' },
@@ -612,4 +673,51 @@ const styles = StyleSheet.create({
   tipItem: { flexDirection: 'row', alignItems: 'flex-start', gap: 10, marginBottom: 10 },
   tipBullet: { fontSize: 17, fontWeight: 'bold', marginTop: -1, color: '#00D9FF' },
   tipText: { flex: 1, fontSize: 14, lineHeight: 20 },
+  thresholdContainer: {},
+  thresholdLabelRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+    gap: 8,
+  },
+  thresholdValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#00D9FF',
+  },
+  thresholdDescription: {
+    fontSize: 12,
+    opacity: 0.7,
+    flex: 1,
+    lineHeight: 16,
+  },
+  thresholdBar: {
+    height: 8,
+    borderRadius: 4,
+    position: 'relative',
+    marginBottom: 8,
+    borderWidth: 1,
+    overflow: 'hidden',
+  },
+  thresholdMarker: {
+    width: 3,
+    height: 16,
+    borderRadius: 1.5,
+    position: 'absolute',
+    top: -4,
+    shadowOpacity: 0.5,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  thresholdLabelsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+  },
+  thresholdLabelText: {
+    fontSize: 11,
+    opacity: 0.6,
+    fontWeight: '500',
+  },
 });

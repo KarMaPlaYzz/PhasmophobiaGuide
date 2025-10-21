@@ -1,6 +1,6 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
@@ -283,7 +283,7 @@ export default function EvidenceScreen() {
                             <ThemedText style={styles.ghostName}>{ghost.ghostName}</ThemedText>
                             <ThemedText style={styles.ghostReason}>{ghost.reason}</ThemedText>
                           </View>
-                          <Ionicons name="chevron-forward" size={20} color={colors.text} opacity={0.5} />
+                          <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
                         </View>
                       </View>
                     </TouchableOpacity>
@@ -453,7 +453,7 @@ export default function EvidenceScreen() {
           activeOpacity={0.8}
           style={[styles.fab, { backgroundColor: colors.spectral }]}
         >
-          <Ionicons name="refresh" size={24} color="white" />
+          <MaterialIcons name="refresh" size={24} color="white" />
         </TouchableOpacity>
       )}
     </ThemedView>

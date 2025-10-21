@@ -1,6 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
     Alert,
@@ -163,7 +164,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
             { backgroundColor: getCategoryColor(item.type) + '20' },
           ]}
         >
-          <Ionicons
+          <MaterialIcons
             name={getCategoryIcon(item.type)}
             size={16}
             color={getCategoryColor(item.type)}
@@ -175,13 +176,13 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
             {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
           </ThemedText>
         </View>
-        <Ionicons name="chevron-forward" size={20} color={colors.text} opacity={0.5} />
+        <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
       </View>
       <Pressable
         onPress={() => handleRemoveBookmark(item.id)}
         style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
       >
-        <Ionicons name="close" size={20} color={colors.error} />
+        <MaterialIcons name="close" size={20} color={colors.error} />
       </Pressable>
     </Pressable>
   );
@@ -217,7 +218,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   const renderEmptyState = () => (
     <View style={styles.centerContainer}>
       <View style={[styles.emptyIconContainer, { backgroundColor: colors.spectral + '20' }]}>
-        <Ionicons name="heart-outline" size={48} color={colors.spectral} />
+        <MaterialIcons name="favorite-border" size={48} color={colors.spectral} />
       </View>
       <ThemedText style={styles.emptyText}>No bookmarks yet</ThemedText>
       <ThemedText style={styles.emptySubtext}>
@@ -235,7 +236,10 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
-      backgroundStyle={{ backgroundColor: colors.surface }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+      backgroundComponent={() => (
+        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+      )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >
       <BottomSheetScrollView
@@ -257,7 +261,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
               { opacity: bookmarks.length === 0 ? 0.4 : pressed ? 0.6 : 1 },
             ]}
           >
-            <Ionicons name="trash-outline" size={24} color={colors.error} />
+            <MaterialIcons name="delete-outline" size={24} color={colors.error} />
           </Pressable>
         </View>
 
@@ -298,7 +302,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: 'bold',
     marginBottom: 2,
-    lineHeight: 32,
+    lineHeight: 28,
   },
   subtitle: {
     fontSize: 14,

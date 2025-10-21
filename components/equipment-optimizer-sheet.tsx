@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
@@ -28,7 +28,7 @@ const formatEquipmentName = (name: string): string => {
 export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimizerSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const snapPoints = useMemo(() => ['80%', '95%'], []);
+  const snapPoints = useMemo(() => ['80%', '100%'], []);
 
   // Filter state
   const [budget, setBudget] = useState(500);
@@ -62,7 +62,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
       >
         {/* Header */}
         <View style={styles.headerSection}>
-          <ThemedText style={styles.mainTitle}>Loadout Builder</ThemedText>
+          <ThemedText style={styles.mainTitle} numberOfLines={1}>Loadout Builder</ThemedText>
           <ThemedText style={styles.subtitle}>Get optimal equipment recommendations</ThemedText>
         </View>
 
@@ -248,7 +248,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
                 style={[styles.difficultyButton, { backgroundColor: colors.spectral + '15' }]}
               >
                 <ThemedText style={styles.difficultyLabel}>{selectedDifficulty}</ThemedText>
-                <Ionicons name="arrow-forward" size={14} color={colors.spectral} />
+                <MaterialIcons name="arrow-forward" size={14} color={colors.spectral} />
               </TouchableOpacity>
             </View>
           </View>
@@ -282,13 +282,13 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
             {recommendation.essential.length > 0 && (
               <View style={styles.equipmentListContainer}>
                 <View style={styles.equipmentListHeader}>
-                  <Ionicons name="checkmark-circle" size={16} color={colors.spectral} />
+                  <MaterialIcons name="check-circle" size={16} color={colors.spectral} />
                   <ThemedText style={styles.equipmentListTitle}>Essential ({recommendation.essential.length})</ThemedText>
                 </View>
                 {recommendation.essential.map((item, idx) => (
                   <View key={idx} style={styles.equipmentListItem}>
                     <View style={[styles.checkmark, { backgroundColor: colors.spectral + '20' }]}>
-                      <Ionicons name="checkmark" size={12} color={colors.spectral} />
+                      <MaterialIcons name="check" size={12} color={colors.spectral} />
                     </View>
                     <ThemedText style={styles.equipmentName}>{formatEquipmentName(item)}</ThemedText>
                   </View>
@@ -299,13 +299,13 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
             {recommendation.recommended.length > 0 && (
               <View style={styles.equipmentListContainer}>
                 <View style={styles.equipmentListHeader}>
-                  <Ionicons name="star" size={16} color={colors.spectral} />
+                  <MaterialIcons name="star" size={16} color={colors.spectral} />
                   <ThemedText style={styles.equipmentListTitle}>Recommended ({recommendation.recommended.length})</ThemedText>
                 </View>
                 {recommendation.recommended.map((item, idx) => (
                   <View key={idx} style={styles.equipmentListItem}>
                     <View style={[styles.checkmark, { backgroundColor: colors.tabIconDefault + '15' }]}>
-                      <Ionicons name="add" size={12} color={colors.tabIconDefault} />
+                      <MaterialIcons name="add" size={12} color={colors.tabIconDefault} />
                     </View>
                     <ThemedText style={styles.equipmentName}>{formatEquipmentName(item)}</ThemedText>
                   </View>
@@ -317,7 +317,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
             {recommendation.explanation.length > 0 && (
               <View style={[styles.infoBox, { backgroundColor: colors.spectral + '08', borderLeftColor: colors.spectral }]}>
                 <View style={styles.infoBoxHeader}>
-                  <Ionicons name="information-circle" size={14} color={colors.spectral} />
+                  <MaterialIcons name="info" size={14} color={colors.spectral} />
                   <ThemedText style={styles.infoBoxTitle}>Why this loadout?</ThemedText>
                 </View>
                 {recommendation.explanation.slice(0, 2).map((reason, idx) => (
@@ -330,7 +330,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
             {recommendation.gaps.length > 0 && (
               <View style={[styles.warningBox, { backgroundColor: '#FF6B6B15', borderLeftColor: '#FF6B6B' }]}>
                 <View style={styles.infoBoxHeader}>
-                  <Ionicons name="warning" size={14} color="#FF6B6B" />
+                  <MaterialIcons name="warning" size={14} color="#FF6B6B" />
                   <ThemedText style={[styles.infoBoxTitle, { color: '#FF6B6B' }]}>Gaps to Consider</ThemedText>
                 </View>
                 {recommendation.gaps.slice(0, 2).map((gap, idx) => (
@@ -370,7 +370,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
 const styles = StyleSheet.create({
   // Header
   headerSection: { marginBottom: 24, gap: 4 },
-  mainTitle: { fontSize: 26, fontWeight: '800', color: '#00D9FF' },
+  mainTitle: { fontSize: 26, fontWeight: '800', color: '#00D9FF', lineHeight: 32,},
   subtitle: { fontSize: 13, opacity: 0.6, fontWeight: '500' },
 
   // Primary Filters Container

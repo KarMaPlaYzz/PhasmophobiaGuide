@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -14,6 +16,7 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { Equipment } from '@/lib/types';
+import { getCategoryColor } from '@/lib/utils/colors';
 
 export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
@@ -86,21 +89,9 @@ export default function EquipmentScreen() {
     }
   };
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColorLocal = (category: string) => {
     if (category === 'All') return colors.spectral;
-    const cat = category.toLowerCase();
-    switch (cat) {
-      case 'starter':
-        return '#1FB46B';
-      case 'optional':
-        return '#00D9FF';
-      case 'truck':
-        return '#FFB84D';
-      case 'cursed':
-        return '#6B4AAC';
-      default:
-        return colors.text;
-    }
+    return getCategoryColor(category);
   };
 
   const handleEquipmentPress = (equipment: Equipment) => {
@@ -139,7 +130,7 @@ export default function EquipmentScreen() {
               cat === 'All'
                 ? EQUIPMENT_LIST.length
                 : EQUIPMENT_LIST.filter((item) => item.category.toLowerCase() === cat.toLowerCase()).length;
-            const catColor = getCategoryColor(cat);
+            const catColor = getCategoryColorLocal(cat);
             const displayLabel = cat === 'All' ? 'All' : cat.charAt(0).toUpperCase() + cat.slice(1);
             return (
               <TouchableOpacity
@@ -153,22 +144,22 @@ export default function EquipmentScreen() {
                   {
                     backgroundColor:
                       selectedCategory === cat
-                        ? catColor
-                        : colors.tabIconDefault + '15',
-                    borderWidth: selectedCategory === cat ? 0 : 1,
-                    borderColor: colors.border,
+                        ? catColor + '25'
+                        : colors.tabIconDefault + '10',
+                    borderWidth: selectedCategory === cat ? 2 : 1,
+                    borderColor: catColor,
                   },
                 ]}>
                 <Ionicons
                   size={12}
                   name={getCategoryIcon(cat) as any}
-                  color={selectedCategory === cat ? 'white' : colors.text}
+                  color={catColor}
                 />
                 <ThemedText
                   style={{
-                    color: selectedCategory === cat ? 'white' : colors.text,
+                    color: catColor,
                     fontSize: 11,
-                    fontWeight: '600',
+                    fontWeight: selectedCategory === cat ? '700' : '500',
                     marginLeft: 4,
                   }}>
                   {displayLabel}
@@ -177,14 +168,13 @@ export default function EquipmentScreen() {
                   style={[
                     styles.filterCount,
                     {
-                      backgroundColor:
-                        selectedCategory === cat ? 'rgba(255,255,255,0.3)' : catColor + '30',
+                      backgroundColor: catColor + '30',
                     },
                   ]}
                 >
                   <ThemedText
                     style={{
-                      color: selectedCategory === cat ? 'white' : catColor,
+                      color: catColor,
                       fontSize: 10,
                       fontWeight: 'bold',
                     }}
@@ -211,7 +201,12 @@ export default function EquipmentScreen() {
               }}
               style={[
                 styles.equipmentCard,
-                { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },
+                {
+                  borderLeftWidth: 4,
+                  borderLeftColor: getCategoryColor(item.category),
+                  backgroundColor: getCategoryColor(item.category) + '10',
+                  borderColor: getCategoryColor(item.category) + '30',
+                },
               ]}>
               <View style={styles.equipmentHeader}>
                 <View style={{ flex: 1 }}>
@@ -222,9 +217,18 @@ export default function EquipmentScreen() {
                 <View
                   style={[
                     styles.categoryBadge,
-                    { backgroundColor: getCategoryColor(item.category) },
+                    {
+                      backgroundColor: getCategoryColor(item.category) + '20',
+                      borderColor: getCategoryColor(item.category),
+                      borderWidth: 1,
+                    },
                   ]}>
-                  <ThemedText style={styles.categoryText}>
+                  <Ionicons
+                    size={12}
+                    name={getCategoryIcon(item.category) as any}
+                    color={getCategoryColor(item.category)}
+                  />
+                  <ThemedText style={[styles.categoryText, { color: getCategoryColor(item.category) }]}>
                     {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
                   </ThemedText>
                 </View>
@@ -259,24 +263,29 @@ export default function EquipmentScreen() {
         )}
       </ScrollView>
 
-      {/* Floating Action Button - Hidden when detail sheet is open */}
+      {/* Floating Action Button - Glassmorphism Design with BlurView */}
       {selectedEquipment === null && !optimizerVisible && (
-        <TouchableOpacity
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-            setOptimizerVisible(true);
-          }}
-          style={[
-            styles.fab,
-            { 
-              backgroundColor: colors.spectral,
-              bottom: insets.bottom,
-              right: 20,
-            },
-          ]}
-        >
-          <Ionicons name="construct" size={24} color="white" />
-        </TouchableOpacity>
+        <BlurView intensity={15} style={[
+          styles.fab,
+          { 
+            bottom: insets.bottom + 20,
+            right: 20,
+            borderWidth: 1.5,
+            borderColor: colors.spectral + '50',
+            overflow: 'hidden',
+          },
+        ]}>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setOptimizerVisible(true);
+            }}
+            activeOpacity={0.7}
+            style={styles.fabContent}
+          >
+            <MaterialIcons name="construction" size={28} color={colors.spectral} />
+          </TouchableOpacity>
+        </BlurView>
       )}
 
       <EquipmentDetailSheet
@@ -297,7 +306,27 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'flex-end' },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
-  fab: { position: 'absolute', width: 56, height: 56, borderRadius: 28, justifyContent: 'center', alignItems: 'center', shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 4, zIndex: 5 },
+  fab: { 
+    position: 'absolute', 
+    width: 64, 
+    height: 64, 
+    borderRadius: 32, 
+    justifyContent: 'center', 
+    alignItems: 'center', 
+    shadowColor: '#00D9FF',
+    shadowOffset: { width: 0, height: 4 }, 
+    shadowOpacity: 0.15, 
+    shadowRadius: 8, 
+    elevation: 5, 
+    zIndex: 5,
+    overflow: 'hidden',
+  },
+  fabContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
   searchContainer: {
     flexDirection: 'row',
@@ -323,7 +352,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'center',
+    gap: 6,
     minHeight: 46,
   },
   filterCount: {
@@ -349,7 +379,7 @@ const styles = StyleSheet.create({
   },
   equipmentHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
   equipmentName: { fontSize: 16, fontWeight: '700', flex: 1 },
-  categoryBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  categoryBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
   categoryText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
   equipmentDescription: { fontSize: 13, marginBottom: 10, lineHeight: 18, display: 'none' },
   equipmentStats: { flexDirection: 'row', gap: 12, marginBottom: 10, alignItems: 'center' },

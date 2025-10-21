@@ -1,11 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, TapGestureHandler } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { GhostComparisonSheet } from '@/components/ghost-comparison-sheet';
 import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
@@ -14,6 +17,7 @@ import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { Ghost } from '@/lib/types';
+import { getActivityIndicator, getMovementIndicator } from '@/lib/utils/colors';
 
 export default function GhostsScreen() {
   const colorScheme = useColorScheme();
@@ -24,6 +28,7 @@ export default function GhostsScreen() {
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
+  const [showComparisonSheet, setShowComparisonSheet] = useState(false);
 
   // Use callback ref to always have the latest ref
   const handleScrollRef = (ref: ScrollView | null) => {
@@ -79,20 +84,8 @@ export default function GhostsScreen() {
   };
 
   const getSanityDrainLevel = (activityLevel: string): { label: string; icon: string; color: string } => {
-    switch (activityLevel) {
-      case 'Low':
-        return { label: 'Low', icon: 'arrow-down', color: '#4CAF50' };
-      case 'Medium':
-        return { label: 'Medium', icon: 'trending-up', color: '#FFC107' };
-      case 'High':
-        return { label: 'High', icon: 'arrow-up', color: '#FF9800' };
-      case 'Very High':
-        return { label: 'Very High', icon: 'flame', color: '#FF6F6F' };
-      case 'Variable':
-        return { label: 'Variable', icon: 'shuffle', color: '#9C27B0' };
-      default:
-        return { label: 'Unknown', icon: 'help', color: colors.text };
-    }
+    const indicator = getActivityIndicator(activityLevel);
+    return { label: activityLevel, icon: indicator.icon, color: indicator.color };
   };
 
   const handleGhostPress = useCallback((ghost: Ghost) => {
@@ -130,7 +123,7 @@ export default function GhostsScreen() {
           nestedScrollEnabled
         >
           <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-            <Ionicons size={20} name="search" color={colors.spectral} />
+            <MaterialIcons size={20} name="search" color={colors.spectral} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
               placeholder="Search ghosts..."
@@ -143,7 +136,7 @@ export default function GhostsScreen() {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setSearchText('');
               }}>
-                <Ionicons size={20} name="close-circle" color={colors.spectral} />
+                <MaterialIcons size={20} name="cancel" color={colors.spectral} />
               </TouchableOpacity>
             )}
           </View>
@@ -172,23 +165,23 @@ export default function GhostsScreen() {
                     {
                       backgroundColor:
                         selectedDifficulty === diff
-                          ? diffColor
-                          : colors.tabIconDefault + '15',
-                      borderWidth: selectedDifficulty === diff ? 0 : 1,
-                      borderColor: colors.border,
+                          ? diffColor + '25'
+                          : colors.tabIconDefault + '10',
+                      borderWidth: selectedDifficulty === diff ? 2 : 1,
+                      borderColor: diffColor,
                     },
                   ]}
                 >
                   <Ionicons
                     size={12}
                     name={getDifficultyIcon(diff) as any}
-                    color={selectedDifficulty === diff ? 'white' : colors.text}
+                    color={diffColor}
                   />
                   <ThemedText
                     style={{
-                      color: selectedDifficulty === diff ? 'white' : colors.text,
+                      color: diffColor,
                       fontSize: 11,
-                      fontWeight: '600',
+                      fontWeight: selectedDifficulty === diff ? '700' : '500',
                       marginLeft: 4,
                     }}
                   >
@@ -198,14 +191,13 @@ export default function GhostsScreen() {
                     style={[
                       styles.filterCount,
                       {
-                        backgroundColor:
-                          selectedDifficulty === diff ? 'rgba(255,255,255,0.3)' : diffColor + '30',
+                        backgroundColor: diffColor + '30',
                       },
                     ]}
                   >
                     <ThemedText
                       style={{
-                        color: selectedDifficulty === diff ? 'white' : diffColor,
+                        color: diffColor,
                         fontSize: 10,
                         fontWeight: 'bold',
                       }}
@@ -240,7 +232,12 @@ export default function GhostsScreen() {
                   <View
                     style={[
                       styles.ghostCard,
-                      { borderColor: colors.tabIconDefault + '30', backgroundColor: colors.tabIconDefault + '10' },
+                      { 
+                        borderLeftWidth: 4,
+                        borderLeftColor: getDifficultyColor(ghost.difficulty),
+                        backgroundColor: getDifficultyColor(ghost.difficulty) + '10',
+                        borderColor: getDifficultyColor(ghost.difficulty) + '30',
+                      },
                     ]}
                   >
                   <View style={styles.ghostHeader}>
@@ -252,10 +249,19 @@ export default function GhostsScreen() {
                     <View
                       style={[
                         styles.difficultyBadge,
-                        { backgroundColor: getDifficultyColor(ghost.difficulty) },
+                        {
+                          backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
+                          borderColor: getDifficultyColor(ghost.difficulty),
+                          borderWidth: 1,
+                        },
                       ]}
                     >
-                      <ThemedText style={styles.difficultyText}>
+                      <Ionicons
+                        size={12}
+                        name={getDifficultyIcon(ghost.difficulty) as any}
+                        color={getDifficultyColor(ghost.difficulty)}
+                      />
+                      <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(ghost.difficulty) }]}>
                         {ghost.difficulty}
                       </ThemedText>
                     </View>
@@ -268,7 +274,16 @@ export default function GhostsScreen() {
                   <View style={styles.ghostStats}>
                     <View style={styles.statItem}>
                       <ThemedText style={styles.statLabel}>Speed</ThemedText>
-                      <ThemedText style={styles.statValue}>{ghost.movementSpeed}</ThemedText>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                        <Ionicons 
+                          name={getMovementIndicator(ghost.movementSpeed).icon as any} 
+                          size={14} 
+                          color={getMovementIndicator(ghost.movementSpeed).color} 
+                        />
+                        <ThemedText style={[styles.statValue, { color: getMovementIndicator(ghost.movementSpeed).color }]}>
+                          {ghost.movementSpeed}
+                        </ThemedText>
+                      </View>
                     </View>
                     <View style={styles.statItem}>
                       <ThemedText style={styles.statLabel}>Hunt</ThemedText>
@@ -279,7 +294,7 @@ export default function GhostsScreen() {
                   {/* Sanity Drain Indicator */}
                   {ghost.activityLevel && (
                     <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                      <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
+                      <MaterialIcons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
                       <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
                         Sanity drain: {getSanityDrainLevel(ghost.activityLevel).label}
                       </ThemedText>
@@ -315,6 +330,36 @@ export default function GhostsScreen() {
         isVisible={selectedGhost !== null}
         onClose={handleBottomSheetClose}
       />
+
+      <GhostComparisonSheet
+        isVisible={showComparisonSheet}
+        onClose={() => setShowComparisonSheet(false)}
+      />
+
+      {/* Comparison FAB - Glassmorphism Design with BlurView */}
+      {selectedGhost === null && !showComparisonSheet && (
+        <BlurView intensity={15} style={[
+          styles.fab,
+          { 
+            bottom: insets.bottom + 20,
+            right: 20,
+            borderWidth: 1.5,
+            borderColor: colors.spectral + '50',
+            overflow: 'hidden',
+          },
+        ]}>
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setShowComparisonSheet(true);
+            }}
+            activeOpacity={0.7}
+            style={styles.fabContent}
+          >
+            <MaterialIcons name="compare-arrows" size={28} color={colors.spectral} />
+          </TouchableOpacity>
+        </BlurView>
+      )}
     </GestureHandlerRootView>
   );
 }
@@ -348,7 +393,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'center',
+    gap: 6,
     minHeight: 46,
   },
   filterCount: {
@@ -374,7 +420,7 @@ const styles = StyleSheet.create({
   },
   ghostHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 10, gap: 10 },
   ghostName: { fontSize: 16, fontWeight: '700', flex: 1 },
-  difficultyBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6 },
+  difficultyBadge: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 4 },
   difficultyText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
   ghostDescription: { fontSize: 13, marginBottom: 10, lineHeight: 18, display: 'none' },
   ghostStats: { flexDirection: 'row', gap: 12, marginBottom: 10 },
@@ -390,4 +436,25 @@ const styles = StyleSheet.create({
   sanityDrainText: { fontSize: 13, fontWeight: '600' },
   noResults: { textAlign: 'center', marginTop: 32, fontSize: 15, opacity: 0.5 },
   tapTip: { fontSize: 12, opacity: 0.5, marginTop: 10, fontStyle: 'italic', fontWeight: '400' },
+  fab: {
+    position: 'absolute',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowColor: '#00D9FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 5,
+    overflow: 'hidden',
+  },
+  fabContent: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
 });

@@ -1,5 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native';
@@ -22,7 +24,7 @@ interface MapDetailSheetProps {
 export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const snapPoints = useMemo(() => ['60%', '95%'], []);
+  const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { width: screenWidth } = Dimensions.get('window');
   const [imageLoading, setImageLoading] = useState(true);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -90,6 +92,16 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
     }
   };
 
+  const getDifficultyIcon = (difficulty: string) => {
+    switch (difficulty) {
+      case 'Beginner': return 'star' as const;
+      case 'Intermediate': return 'star-half' as const;
+      case 'Advanced': return 'flame' as const;
+      case 'Expert': return 'flash' as const;
+      default: return 'grid' as const;
+    }
+  };
+
   if (!map) return null;
 
   return (
@@ -101,15 +113,16 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
       animateOnMount={true}
       animatedPosition={undefined}
       animatedIndex={undefined}
-      backgroundStyle={{
-        backgroundColor: colors.surface,
-      }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+      backgroundComponent={() => (
+        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+      )}
       handleIndicatorStyle={{
         backgroundColor: colors.spectral,
       }}
     >
       <BottomSheetScrollView
-        style={[styles.container, { backgroundColor: colors.surface, paddingHorizontal: 16 }]}
+        style={[styles.container, { paddingHorizontal: 16 }]}
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         nestedScrollEnabled={false}
@@ -151,10 +164,15 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
               <View
                 style={[
                   styles.difficultyBadgeSheet,
-                  { backgroundColor: getDifficultyColor(map.difficulty) },
+                  {
+                    backgroundColor: getDifficultyColor(map.difficulty) + '20',
+                    borderColor: getDifficultyColor(map.difficulty),
+                    borderWidth: 1,
+                  },
                 ]}
               >
-                <ThemedText style={styles.difficultyBadgeText}>
+                <Ionicons size={14} name={getDifficultyIcon(map.difficulty)} color={getDifficultyColor(map.difficulty)} />
+                <ThemedText style={[styles.difficultyBadgeText, { color: getDifficultyColor(map.difficulty) }]}>
                   {map.difficulty}
                 </ThemedText>
               </View>
@@ -434,7 +452,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                       Hunt Strategy
                     </ThemedText>
                     <View style={[styles.strategyBox, { backgroundColor: colors.spectral + '15' }]}>
-                      <Ionicons name="shield-checkmark" size={20} color={colors.spectral} />
+                      <MaterialIcons name="verified" size={20} color={colors.spectral} />
                       <ThemedText style={styles.strategyText}>{map.huntStrategy}</ThemedText>
                     </View>
                   </>
@@ -506,9 +524,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   difficultyBadgeText: {
-    color: 'white',
     fontSize: 12,
     fontWeight: 'bold',
   },

@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
@@ -76,7 +76,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
           accessibilityLabel={`Library with ${totalBookmarks} bookmarks`}
           accessibilityRole="button"
         >
-          <Ionicons name="heart" size={28} color={colors.spectral} />
+          <MaterialIcons name="bookmark" size={28} color={colors.spectral} />
           {totalBookmarks > 0 && (
             <View style={[styles.badge, { backgroundColor: colors.haunted }]}>
               <ThemedText style={styles.badgeText}>
@@ -93,7 +93,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
           accessibilityLabel={`History with ${totalHistory} items`}
           accessibilityRole="button"
         >
-          <Ionicons name="time" size={28} color={colors.spectral} />
+          <MaterialIcons name="history" size={28} color={colors.spectral} />
           {totalHistory > 0 && (
             <View style={[styles.badge, { backgroundColor: colors.haunted }]}>
               <ThemedText style={styles.badgeText}>
@@ -117,7 +117,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
           accessibilityLabel={`Library with ${totalBookmarks} bookmarks`}
           accessibilityRole="button"
         >
-          <Ionicons name="heart" size={24} color={colors.spectral} />
+          <MaterialIcons name="favorite" size={24} color={colors.spectral} />
           <View style={styles.fullButtonText}>
             <ThemedText style={styles.label}>Bookmarks</ThemedText>
             <ThemedText style={styles.count}>{totalBookmarks}</ThemedText>
@@ -135,7 +135,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
           accessibilityLabel={`History with ${totalHistory} items`}
           accessibilityRole="button"
         >
-          <Ionicons name="time" size={24} color={colors.haunted} />
+          <MaterialIcons name="history" size={24} color={colors.haunted} />
           <View style={styles.fullButtonText}>
             <ThemedText style={styles.label}>History</ThemedText>
             <ThemedText style={styles.count}>{totalHistory}</ThemedText>

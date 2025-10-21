@@ -1,5 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
@@ -7,7 +8,7 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { BookmarkButton } from '@/components/bookmark-button';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
+import { Colors, EquipmentCategoryColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SYNERGIES } from '@/lib/data/equipment';
 import { HistoryService } from '@/lib/storage/storageService';
@@ -22,7 +23,7 @@ interface EquipmentDetailSheetProps {
 export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: EquipmentDetailSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
-  const snapPoints = useMemo(() => ['60%', '95%'], []);
+  const snapPoints = useMemo(() => ['60%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     tiers: false,
     evidence: false,
@@ -65,17 +66,21 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
   }, [isVisible]);
 
   const getCategoryColor = (category: string) => {
+    return EquipmentCategoryColors[category as keyof typeof EquipmentCategoryColors] || colors.text;
+  };
+
+  const getCategoryIcon = (category: string): string => {
     switch (category) {
       case 'starter':
-        return '#1FB46B';
+        return 'play';
       case 'optional':
-        return '#00D9FF';
+        return 'star';
       case 'truck':
-        return '#FFB84D';
+        return 'car';
       case 'cursed':
-        return '#6B4AAC';
+        return 'skull';
       default:
-        return colors.text;
+        return 'grid';
     }
   };
 
@@ -118,7 +123,10 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
-      backgroundStyle={{ backgroundColor: colors.surface }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+      backgroundComponent={() => (
+        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+      )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >
       <BottomSheetScrollView
@@ -151,22 +159,31 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
           <View
             style={[
               styles.categoryBadge,
-              { backgroundColor: getCategoryColor(equipment.category) },
+              {
+                backgroundColor: getCategoryColor(equipment.category) + '20',
+                borderColor: getCategoryColor(equipment.category),
+                borderWidth: 1,
+              },
             ]}
           >
-            <ThemedText style={styles.badgeText}>
-              {equipment.category.replace('_', ' ')}
+            <Ionicons size={14} name={getCategoryIcon(equipment.category) as any} color={getCategoryColor(equipment.category)} />
+            <ThemedText style={[styles.badgeText, { color: getCategoryColor(equipment.category) }]}>
+              {equipment.category.replace('_', ' ').charAt(0).toUpperCase() + equipment.category.replace('_', ' ').slice(1)}
             </ThemedText>
           </View>
           <View
             style={[
               styles.typeBadge,
-              { backgroundColor: colors.spectral },
+              {
+                backgroundColor: getCategoryColor(equipment.category) + '20',
+                borderColor: getCategoryColor(equipment.category),
+                borderWidth: 1,
+              },
             ]}
           >
-            <Ionicons size={14} name={getTypeIcon(equipment.type) as any} color="white" />
-            <ThemedText style={[styles.badgeText, { marginLeft: 4 }]}>
-              {equipment.type}
+            <Ionicons size={14} name={getTypeIcon(equipment.type) as any} color={getCategoryColor(equipment.category)}/>
+            <ThemedText style={[styles.badgeText, { color: getCategoryColor(equipment.category) }]}>
+              {equipment.type.charAt(0).toUpperCase() + equipment.type.slice(1)}
             </ThemedText>
           </View>
         </View>
@@ -193,15 +210,30 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
               <ThemedText style={styles.quickStatValue}>Level {equipment.unlocksAtLevel}</ThemedText>
             </View>
           )}
-          {equipment.consumable !== undefined && (
-            <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
-              <ThemedText style={styles.quickStatLabel}>Type</ThemedText>
-              <ThemedText style={styles.quickStatValue}>
-                {equipment.consumable ? 'Consumable' : 'Reusable'}
-              </ThemedText>
-            </View>
-          )}
         </View>
+
+        {/* Consumable Badge - Styled */}
+        {equipment.consumable !== undefined && (
+          <View
+            style={[
+              styles.consumableBadge,
+              {
+                backgroundColor: equipment.consumable ? '#FFB84D' + '20' : colors.spectral + '20',
+                borderColor: equipment.consumable ? '#FFB84D' : colors.spectral,
+                borderWidth: 1,
+              },
+            ]}
+          >
+            <Ionicons
+              size={14}
+              name={equipment.consumable ? 'flame' : 'repeat'}
+              color={equipment.consumable ? '#FFB84D' : colors.spectral}
+            />
+            <ThemedText style={[styles.badgeText, { color: equipment.consumable ? '#FFB84D' : colors.spectral }]}>
+              {equipment.consumable ? 'Consumable' : 'Reusable'}
+            </ThemedText>
+          </View>
+        )}
 
         {/* Description - Key Info Only */}
         <ThemedText style={styles.sectionTitle}>About</ThemedText>
@@ -363,8 +395,9 @@ const styles = StyleSheet.create({
   },
   bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12, color: '#00D9FF', flex: 1 },
   badgeContainer: { flexDirection: 'row', gap: 8, marginBottom: 18, flexWrap: 'wrap' },
-  categoryBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
-  typeBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center' },
+  categoryBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  typeBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  consumableBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center', gap: 6, marginBottom: 16 },
   badgeText: { color: 'white', fontWeight: '600', fontSize: 12 },
 
   // Quick Stats Grid - Prominent

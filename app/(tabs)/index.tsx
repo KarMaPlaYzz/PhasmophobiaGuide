@@ -167,23 +167,23 @@ export default function MapsScreen() {
                   {
                     backgroundColor:
                       selectedDifficulty === level
-                        ? diffColor
-                        : colors.tabIconDefault + '15',
-                    borderWidth: selectedDifficulty === level ? 0 : 1,
-                    borderColor: colors.border,
+                        ? diffColor + '25'
+                        : colors.tabIconDefault + '10',
+                    borderWidth: selectedDifficulty === level ? 2 : 1,
+                    borderColor: diffColor,
                   },
                 ]}
               >
                 <Ionicons
                   size={12}
                   name={getDifficultyIcon(level)}
-                  color={selectedDifficulty === level ? 'white' : colors.text}
+                  color={diffColor}
                 />
                 <ThemedText
                   style={{
-                    color: selectedDifficulty === level ? 'white' : colors.text,
+                    color: diffColor,
                     fontSize: 11,
-                    fontWeight: '600',
+                    fontWeight: selectedDifficulty === level ? '700' : '500',
                     marginLeft: 4,
                   }}
                 >
@@ -193,14 +193,13 @@ export default function MapsScreen() {
                   style={[
                     styles.filterCount,
                     {
-                      backgroundColor:
-                        selectedDifficulty === level ? 'rgba(255,255,255,0.3)' : diffColor + '30',
+                      backgroundColor: diffColor + '30',
                     },
                   ]}
                 >
                   <ThemedText
                     style={{
-                      color: selectedDifficulty === level ? 'white' : diffColor,
+                      color: diffColor,
                       fontSize: 10,
                       fontWeight: 'bold',
                     }}
@@ -266,12 +265,10 @@ export default function MapsScreen() {
                           style={[
                             styles.mapCard,
                             {
-                              borderColor: colors.tabIconDefault + '20',
-                              backgroundColor:
-                                colorScheme === 'dark'
-                                  ? colors.tabIconDefault + '10'
-                                  : colors.background,
-                              borderWidth: 1,
+                              borderLeftWidth: 4,
+                              borderLeftColor: getDifficultyColor(map.difficulty),
+                              backgroundColor: getDifficultyColor(map.difficulty) + '10',
+                              borderColor: getDifficultyColor(map.difficulty) + '30',
                             },
                           ]}
                         >
@@ -303,15 +300,19 @@ export default function MapsScreen() {
                             <View
                               style={[
                                 styles.difficultyBadge,
-                                { backgroundColor: getDifficultyColor(map.difficulty) },
+                                {
+                                  backgroundColor: getDifficultyColor(map.difficulty) + '20',
+                                  borderColor: getDifficultyColor(map.difficulty),
+                                  borderWidth: 1,
+                                },
                               ]}
                             >
                               <Ionicons
                                 size={10}
                                 name={getDifficultyIcon(map.difficulty)}
-                                color="white"
+                                color={getDifficultyColor(map.difficulty)}
                               />
-                              <ThemedText style={styles.difficultyText}>
+                              <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(map.difficulty) }]}>
                                 {map.difficulty}
                               </ThemedText>
                             </View>
@@ -433,7 +434,8 @@ const styles = StyleSheet.create({
     borderRadius: 22,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 7,
+    justifyContent: 'center',
+    gap: 6,
     minHeight: 46,
   },
   filterCount: {
@@ -491,15 +493,14 @@ const styles = StyleSheet.create({
   mapName: { fontSize: 16, fontWeight: '700', flex: 1 },
   mapType: { fontSize: 12, opacity: 0.5, marginTop: 3, fontWeight: '400' },
   difficultyBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    justifyContent: 'center',
   },
-  difficultyText: { color: 'white', fontSize: 12, fontWeight: 'bold' },
+  difficultyText: { fontSize: 12, fontWeight: 'bold' },
 
   // Quick Stats
   quickStats: {

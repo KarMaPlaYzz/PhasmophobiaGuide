@@ -41,6 +41,28 @@ export const Colors = {
     cursed: '#8B0000',
     ghostWhite: '#E8E8F0',
     haunted: '#4A3F78',
+    // Difficulty colors
+    difficulty: {
+      beginner: '#4CAF50',
+      intermediate: '#FFC107',
+      advanced: '#FF9800',
+      expert: '#FF5252',
+    },
+    // Activity level colors
+    activity: {
+      low: '#4CAF50',
+      medium: '#FFC107',
+      high: '#FF9800',
+      veryHigh: '#FF5252',
+      variable: '#9C27B0',
+    },
+    // Movement speed colors
+    movement: {
+      slow: '#4CAF50',
+      normal: '#2196F3',
+      fast: '#FF9800',
+      variable: '#9C27B0',
+    },
   },
   dark: {
     text: '#E8E8F0',
@@ -64,6 +86,34 @@ export const Colors = {
     cursed: '#8B0000',
     ghostWhite: '#E8E8F0',
     haunted: '#4A3F78',
+    // Difficulty colors (lighter for dark mode)
+    difficulty: {
+      beginner: '#66bb6a',
+      intermediate: '#fdd835',
+      advanced: '#ffb74d',
+      expert: '#ff6e6e',
+    },
+    // Activity level colors (lighter for dark mode)
+    activity: {
+      low: '#66bb6a',
+      medium: '#fdd835',
+      high: '#ffb74d',
+      veryHigh: '#ff6e6e',
+      variable: '#ba68c8',
+    },
+    // Movement speed colors (lighter for dark mode)
+    movement: {
+      slow: '#66bb6a',
+      normal: '#42a5f5',
+      fast: '#ffb74d',
+      variable: '#ba68c8',
+    },
+    // Overlay colors for better dark mode text readability
+    overlays: {
+      dark: 'rgba(0, 0, 0, 0.7)',
+      light: 'rgba(255, 255, 255, 0.1)',
+      medium: 'rgba(255, 255, 255, 0.05)',
+    },
   },
 };
 
@@ -73,6 +123,31 @@ export const DifficultyColors = {
   Intermediate: '#FFB84D',
   Advanced: '#FF4444',
   Expert: PRIMARY_PURPLE,
+};
+
+// Activity Level Colors
+export const ActivityColors = {
+  'Low': '#4CAF50',
+  'Medium': '#FFC107',
+  'High': '#FF9800',
+  'Very High': '#FF5252',
+  'Variable': '#9C27B0',
+};
+
+// Movement Speed Colors
+export const MovementColors = {
+  'Slow': '#4CAF50',
+  'Normal': '#2196F3',
+  'Fast': '#FF9800',
+  'Variable': '#9C27B0',
+};
+
+// Equipment Category Colors
+export const EquipmentCategoryColors = {
+  'starter': '#2196F3',
+  'optional': '#FF9800',
+  'truck': '#4CAF50',
+  'cursed': '#F44336',
 };
 
 // Ghost Type Colors - Phasmophobia Themed

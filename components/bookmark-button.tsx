@@ -1,4 +1,4 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useEffect, useState } from 'react';
 import { Pressable } from 'react-native';
 import { BookmarkService } from '../lib/storage/storageService';
@@ -74,8 +74,8 @@ export const BookmarkButton: React.FC<BookmarkButtonProps> = ({
       accessibilityLabel={isBookmarked ? 'Remove bookmark' : 'Add bookmark'}
       accessibilityRole="button"
     >
-      <Ionicons
-        name={isBookmarked ? 'heart' : 'heart-outline'}
+      <MaterialIcons
+        name={isBookmarked ? 'favorite' : 'favorite-border'}
         size={size}
         color={isBookmarked ? color : '#999'}
       />

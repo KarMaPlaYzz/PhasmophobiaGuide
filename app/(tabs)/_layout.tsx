@@ -1,10 +1,11 @@
-import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs } from 'expo-router';
 import React from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -32,35 +33,35 @@ export default function TabLayout() {
       <Tabs.Screen
         name="ghosts"
         options={{
-          title: 'Ghosts',
+          title: '',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="skull" color={color} />,
         }}
       />
       <Tabs.Screen
         name="equipments"
         options={{
-          title: 'Equipment',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="flashlight" color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="flashlight-on" color={color} />,
         }}
       />
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Maps',
+          title: '',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
         }}
       />
       <Tabs.Screen
         name="evidence"
         options={{
-          title: 'Evidence',
-          tabBarIcon: ({ color }) => <Ionicons size={28} name="finger-print" color={color} />,
+          title: '',
+          tabBarIcon: ({ color }) => <MaterialIcons size={28} name="fingerprint" color={color} />,
         }}
       />
       <Tabs.Screen
         name="sanity-calculator"
         options={{
-          title: 'Sanity',
+          title: '',
           tabBarIcon: ({ color }) => <Ionicons size={28} name="pulse" color={color} />,
         }}
       />

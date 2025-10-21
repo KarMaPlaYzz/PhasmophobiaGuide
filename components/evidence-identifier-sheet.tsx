@@ -23,6 +23,7 @@ import {
   validateEvidence,
 } from '@/lib/utils/evidence-identifier';
 import { Ionicons } from '@expo/vector-icons';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
@@ -567,7 +568,7 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                         >
                           {result.ghostName}
                         </Text>
-                        <Ionicons name="chevron-forward" size={18} color="#22c55e" />
+                        <MaterialIcons name="chevron-right" size={18} color="#22c55e" />
                       </View>
                       <Text
                         style={{
@@ -646,7 +647,7 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                           >
                             {result.confidence}%
                           </Text>
-                          <Ionicons name="chevron-forward" size={16} color="#3b82f6" />
+                          <MaterialIcons name="chevron-right" size={16} color="#3b82f6" />
                         </View>
                       </View>
                       <Text
