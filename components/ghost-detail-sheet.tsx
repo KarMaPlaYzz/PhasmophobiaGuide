@@ -5,11 +5,13 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { BookmarkButton } from '@/components/bookmark-button';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { ALL_EQUIPMENT } from '@/lib/data/equipment';
+import { HistoryService } from '@/lib/storage/storageService';
 import { Ghost } from '@/lib/types';
 
 interface GhostDetailSheetProps {
@@ -48,6 +50,13 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
     });
     return unsubscribe;
   }, [onClose]);
+
+  // Track view when ghost is shown
+  useEffect(() => {
+    if (isVisible && ghost) {
+      HistoryService.trackView('ghost', ghost.id, ghost.name);
+    }
+  }, [isVisible, ghost]);
 
   // Reset sections when sheet becomes invisible
   useEffect(() => {
@@ -127,17 +136,28 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
           </View>
         ) : null}
 
-        {/* Header: Name + Difficulty */}
-        <ThemedText style={styles.bottomSheetTitle}>{ghost.name}</ThemedText>
-        <View
-          style={[
-            styles.difficultyBadgeLarge,
-            { backgroundColor: getDifficultyColor(ghost.difficulty) },
-          ]}
-        >
-          <ThemedText style={styles.difficultyTextLarge}>
-            {ghost.difficulty} Difficulty
-          </ThemedText>
+        {/* Header: Name + Difficulty + Bookmark */}
+        <View style={styles.headerRow}>
+          <View style={{ flex: 1 }}>
+            <ThemedText style={styles.bottomSheetTitle}>{ghost.name}</ThemedText>
+            <View
+              style={[
+                styles.difficultyBadgeLarge,
+                { backgroundColor: getDifficultyColor(ghost.difficulty) },
+              ]}
+            >
+              <ThemedText style={styles.difficultyTextLarge}>
+                {ghost.difficulty} Difficulty
+              </ThemedText>
+            </View>
+          </View>
+          <BookmarkButton
+            itemId={ghost.id}
+            itemType="ghost"
+            itemName={ghost.name}
+            size={28}
+            color={colors.spectral}
+          />
         </View>
 
         {/* Description - Always Visible */}
@@ -540,6 +560,13 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
     resizeMode: 'contain',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 10,
   },
   bottomSheetTitle: { fontSize: 26, fontWeight: '700', marginBottom: 10, color: '#00D9FF' },
   difficultyBadgeLarge: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 8, alignSelf: 'flex-start', marginBottom: 20 },

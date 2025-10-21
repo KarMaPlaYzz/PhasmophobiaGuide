@@ -6,7 +6,7 @@
  * Installation: npx expo install @react-native-async-storage/async-storage
  */
 
-import { EvidenceSelection, UserProgress } from '@/lib/types';
+import { Bookmark, EvidenceSelection, HistoryItem, UserLibrary, UserProgress } from '@/lib/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Storage keys
@@ -15,6 +15,7 @@ const STORAGE_KEYS = {
   EVIDENCE_SELECTION: '@phasmophobia_guide/evidence_selection',
   FAVORITES: '@phasmophobia_guide/favorites',
   LAST_UPDATE: '@phasmophobia_guide/last_update',
+  USER_LIBRARY: '@phasmophobia_guide/user_library',
 } as const;
 
 // ============================================================================
@@ -340,6 +341,245 @@ export const storageService = {
       return null;
     }
   },
+};
+
+// ============================================================================
+// USER LIBRARY (BOOKMARKS & HISTORY)
+// ============================================================================
+
+/**
+ * Get or initialize user library
+ */
+async function getLibrary(): Promise<UserLibrary> {
+  try {
+    const data = await AsyncStorage.getItem(STORAGE_KEYS.USER_LIBRARY);
+    if (data) {
+      return JSON.parse(data);
+    }
+    // Initialize default library
+    const defaultLibrary: UserLibrary = {
+      bookmarks: [],
+      history: [],
+      customCategories: [],
+      lastUpdated: Date.now(),
+    };
+    await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(defaultLibrary));
+    return defaultLibrary;
+  } catch (error) {
+    console.error('Error getting library:', error);
+    return {
+      bookmarks: [],
+      history: [],
+      customCategories: [],
+      lastUpdated: Date.now(),
+    };
+  }
+}
+
+/**
+ * Generate a unique ID
+ */
+function generateId(): string {
+  return `${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// ============================================================================
+// BOOKMARK SERVICE
+// ============================================================================
+
+export const BookmarkService = {
+  /**
+   * Add a bookmark
+   */
+  async addBookmark(bookmark: Bookmark): Promise<void> {
+    try {
+      const library = await getLibrary();
+      library.bookmarks.push(bookmark);
+      library.lastUpdated = Date.now();
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+    } catch (error) {
+      console.error('Error adding bookmark:', error);
+    }
+  },
+
+  /**
+   * Remove a bookmark by ID
+   */
+  async removeBookmark(bookmarkId: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      library.bookmarks = library.bookmarks.filter(b => b.id !== bookmarkId);
+      library.lastUpdated = Date.now();
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+    } catch (error) {
+      console.error('Error removing bookmark:', error);
+    }
+  },
+
+  /**
+   * Check if an item is bookmarked
+   */
+  async isBookmarked(itemId: string, type: string): Promise<boolean> {
+    try {
+      const library = await getLibrary();
+      return library.bookmarks.some(b => b.itemId === itemId && b.type === type);
+    } catch (error) {
+      console.error('Error checking bookmark:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Get bookmarks, optionally filtered by type
+   */
+  async getBookmarks(type?: string): Promise<Bookmark[]> {
+    try {
+      const library = await getLibrary();
+      if (type) {
+        return library.bookmarks.filter(b => b.type === type);
+      }
+      return library.bookmarks;
+    } catch (error) {
+      console.error('Error getting bookmarks:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Add a tag to a bookmark
+   */
+  async addTag(bookmarkId: string, tag: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      if (bookmark && !bookmark.tags.includes(tag)) {
+        bookmark.tags.push(tag);
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error adding tag:', error);
+    }
+  },
+
+  /**
+   * Remove a tag from a bookmark
+   */
+  async removeTag(bookmarkId: string, tag: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      if (bookmark) {
+        bookmark.tags = bookmark.tags.filter(t => t !== tag);
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error removing tag:', error);
+    }
+  },
+};
+
+// ============================================================================
+// HISTORY SERVICE
+// ============================================================================
+
+export const HistoryService = {
+  /**
+   * Track a view of an item
+   */
+  async trackView(type: 'ghost' | 'equipment' | 'map' | 'evidence', itemId: string, itemName: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      
+      // Remove duplicate if exists (recent move to top)
+      library.history = library.history.filter(h => !(h.itemId === itemId && h.type === type));
+      
+      // Add new entry at the beginning
+      library.history.unshift({
+        id: generateId(),
+        type,
+        itemId,
+        itemName,
+        viewedAt: Date.now(),
+        timeSpent: 0,
+      });
+      
+      // Keep only last 100 items
+      library.history = library.history.slice(0, 100);
+      library.lastUpdated = Date.now();
+      
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+    } catch (error) {
+      console.error('Error tracking view:', error);
+    }
+  },
+
+  /**
+   * Get history items, optionally filtered by type and limited
+   */
+  async getHistory(type?: 'ghost' | 'equipment' | 'map' | 'evidence', limit: number = 20): Promise<HistoryItem[]> {
+    try {
+      const library = await getLibrary();
+      let items = library.history;
+      
+      if (type) {
+        items = items.filter(h => h.type === type);
+      }
+      
+      return items.slice(0, limit);
+    } catch (error) {
+      console.error('Error getting history:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Clear all history
+   */
+  async clearHistory(): Promise<void> {
+    try {
+      const library = await getLibrary();
+      library.history = [];
+      library.lastUpdated = Date.now();
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+    } catch (error) {
+      console.error('Error clearing history:', error);
+    }
+  },
+
+  /**
+   * Update time spent on a history item
+   */
+  async updateTimeSpent(historyId: string, additionalTime: number): Promise<void> {
+    try {
+      const library = await getLibrary();
+      const item = library.history.find(h => h.id === historyId);
+      if (item) {
+        item.timeSpent += additionalTime;
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error updating time spent:', error);
+    }
+  },
+};
+
+export const libraryStorageService = {
+  getLibrary,
+};
+
+// Update default storageService object to include initialization of library
+const originalInitialize = storageService.initialize.bind(storageService);
+storageService.initialize = async function() {
+  await originalInitialize();
+  try {
+    // Ensure library exists
+    await getLibrary();
+  } catch (error) {
+    console.error('Error initializing library:', error);
+  }
 };
 
 export default storageService;

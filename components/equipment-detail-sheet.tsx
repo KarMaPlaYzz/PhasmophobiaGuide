@@ -4,11 +4,13 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { BookmarkButton } from '@/components/bookmark-button';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { SYNERGIES } from '@/lib/data/equipment';
+import { HistoryService } from '@/lib/storage/storageService';
 import { Equipment } from '@/lib/types';
 
 interface EquipmentDetailSheetProps {
@@ -42,6 +44,13 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
     });
     return unsubscribe;
   }, [onClose]);
+
+  // Track view when equipment is shown
+  useEffect(() => {
+    if (isVisible && equipment) {
+      HistoryService.trackView('equipment', equipment.id, equipment.name);
+    }
+  }, [isVisible, equipment]);
 
   // Reset sections when sheet becomes invisible
   useEffect(() => {
@@ -127,8 +136,17 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
           </View>
         ) : null}
 
-        {/* Header: Name + Badges */}
-        <ThemedText style={styles.bottomSheetTitle}>{equipment.name}</ThemedText>
+        {/* Header: Name + Badges + Bookmark */}
+        <View style={styles.headerRow}>
+          <ThemedText style={styles.bottomSheetTitle}>{equipment.name}</ThemedText>
+          <BookmarkButton
+            itemId={equipment.id}
+            itemType="equipment"
+            itemName={equipment.name}
+            size={28}
+            color={colors.spectral}
+          />
+        </View>
         <View style={styles.badgeContainer}>
           <View
             style={[
@@ -336,7 +354,14 @@ const styles = StyleSheet.create({
     height: '100%',
     resizeMode: 'contain',
   },
-  bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12, color: '#00D9FF' },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    gap: 12,
+    marginBottom: 12,
+  },
+  bottomSheetTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 12, color: '#00D9FF', flex: 1 },
   badgeContainer: { flexDirection: 'row', gap: 8, marginBottom: 18, flexWrap: 'wrap' },
   categoryBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6 },
   typeBadge: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 6, flexDirection: 'row', alignItems: 'center' },

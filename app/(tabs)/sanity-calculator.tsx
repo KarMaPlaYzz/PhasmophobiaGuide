@@ -11,8 +11,8 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import {
-    DIFFICULTY_SETTINGS,
-    getSanityStatus,
+  DIFFICULTY_SETTINGS,
+  getSanityStatus,
 } from '@/lib/data/sanity';
 
 type Difficulty = 'amateur' | 'intermediate' | 'professional' | 'nightmare' | 'insanity';
@@ -133,15 +133,6 @@ export default function SanityCulculatorScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <ThemedText
-          type="title"
-          style={[styles.headerTitle, { color: colors.spectral }]}
-        >
-          Sanity Calculator
-        </ThemedText>
-      </View>
-
       <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Difficulty Selection */}
         <View style={styles.section}>

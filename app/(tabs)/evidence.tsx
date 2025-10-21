@@ -6,9 +6,11 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ghostSelectionEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { ALL_EVIDENCE_TYPES, EVIDENCE_DATABASE } from '@/lib/data/evidence-identifier';
+import { GHOST_LIST } from '@/lib/data/ghosts';
 import { EvidenceType } from '@/lib/types';
 import {
   calculateProgress,
@@ -232,6 +234,14 @@ export default function EvidenceScreen() {
     });
   };
 
+  // Navigate to ghost detail
+  const navigateToGhost = (ghostName: string) => {
+    const ghost = GHOST_LIST.find(g => g.name === ghostName);
+    if (ghost) {
+      ghostSelectionEmitter.emit(ghost);
+    }
+  };
+
   // Get status display
   const getStatusInfo = (status: string) => {
     switch (status) {
@@ -248,11 +258,6 @@ export default function EvidenceScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      {/* Header */}
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        {/*<ThemedText style={styles.headerTitle}>Evidence</ThemedText>*/}
-      </View>
-
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.contentPadding}>
           {/* Ghost Matches - Always reserve space */}
@@ -262,16 +267,26 @@ export default function EvidenceScreen() {
                 <ThemedText style={styles.sectionLabel}>🎯 Ghost Matches</ThemedText>
                 <View style={[styles.matchesSection, { backgroundColor: colors.surfaceLight, borderColor: '#22c55e' }]}>
                   {[...filteredResults.definiteMatches, ...filteredResults.veryLikely].map((ghost, idx) => (
-                    <View
+                    <TouchableOpacity
                       key={idx}
-                      style={[
-                        styles.ghostItem,
-                        { borderBottomColor: idx === [...filteredResults.definiteMatches, ...filteredResults.veryLikely].length - 1 ? 'transparent' : colors.border },
-                      ]}
+                      onPress={() => navigateToGhost(ghost.ghostName)}
+                      activeOpacity={0.7}
                     >
-                      <ThemedText style={styles.ghostName}>{ghost.ghostName}</ThemedText>
-                      <ThemedText style={styles.ghostReason}>{ghost.reason}</ThemedText>
-                    </View>
+                      <View
+                        style={[
+                          styles.ghostItem,
+                          { borderBottomColor: idx === [...filteredResults.definiteMatches, ...filteredResults.veryLikely].length - 1 ? 'transparent' : colors.border },
+                        ]}
+                      >
+                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <View style={{ flex: 1 }}>
+                            <ThemedText style={styles.ghostName}>{ghost.ghostName}</ThemedText>
+                            <ThemedText style={styles.ghostReason}>{ghost.reason}</ThemedText>
+                          </View>
+                          <Ionicons name="chevron-forward" size={20} color={colors.text} opacity={0.5} />
+                        </View>
+                      </View>
+                    </TouchableOpacity>
                   ))}
                 </View>
               </>

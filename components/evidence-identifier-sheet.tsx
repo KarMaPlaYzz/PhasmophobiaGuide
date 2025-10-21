@@ -6,31 +6,33 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import {
-    ALL_EVIDENCE_TYPES,
-    EVIDENCE_DATABASE,
+  ALL_EVIDENCE_TYPES,
+  EVIDENCE_DATABASE,
 } from '@/lib/data/evidence-identifier';
+import { HistoryService } from '@/lib/storage/storageService';
 import { EvidenceType } from '@/lib/types';
 import {
-    calculateProgress,
-    EvidenceState,
-    filterGhostsByEvidence,
-    generateSmartHints,
-    getCollectedEquipment,
-    getIdentificationStatus,
-    getNextStepRecommendations,
-    getRequiredEquipment,
-    validateEvidence,
+  calculateProgress,
+  EvidenceState,
+  filterGhostsByEvidence,
+  generateSmartHints,
+  getCollectedEquipment,
+  getIdentificationStatus,
+  getNextStepRecommendations,
+  getRequiredEquipment,
+  validateEvidence,
 } from '@/lib/utils/evidence-identifier';
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import React, { useMemo, useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
-    LayoutAnimation,
-    Platform,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View,
+  LayoutAnimation,
+  Platform,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from 'react-native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -47,6 +49,14 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const snapPoints = useMemo(() => ['50%', '90%'], []);
+  const navigation = useNavigation<any>();
+
+  // Track view when opened
+  useEffect(() => {
+    if (isVisible) {
+      HistoryService.trackView('evidence', 'evidence-identifier', 'Evidence Identifier');
+    }
+  }, [isVisible]);
 
   // Evidence state management
   const [evidenceState, setEvidenceState] = useState<EvidenceState>({
@@ -95,6 +105,18 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
   );
 
   const validation = useMemo(() => validateEvidence(evidenceState), [evidenceState]);
+
+  // Navigate to ghost detail sheet
+  const navigateToGhost = (ghostName: string) => {
+    navigation.navigate('(tabs)', {
+      screen: 'ghosts',
+      params: {
+        selectedGhostName: ghostName,
+        scrollToGhost: true,
+      },
+    });
+    onClose();
+  };
 
   // Toggle evidence status cyclically: not-found -> investigating -> confirmed -> not-found
   const toggleEvidenceStatus = (evidence: EvidenceType) => {
@@ -513,36 +535,50 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                   ✓ CONFIRMED MATCH
                 </Text>
                 {filteredResults.definiteMatches.map((result, idx) => (
-                  <View
+                  <TouchableOpacity
                     key={idx}
-                    style={{
-                      backgroundColor: '#dcfce7',
-                      borderRadius: 10,
-                      padding: 12,
-                      marginBottom: 8,
-                      borderLeftWidth: 4,
-                      borderLeftColor: '#22c55e',
-                    }}
+                    onPress={() => navigateToGhost(result.ghostName)}
+                    activeOpacity={0.7}
                   >
-                    <Text
+                    <View
                       style={{
-                        fontSize: 15,
-                        fontWeight: '700',
-                        color: '#15803d',
-                        marginBottom: 4,
+                        backgroundColor: '#dcfce7',
+                        borderRadius: 10,
+                        padding: 12,
+                        marginBottom: 8,
+                        borderLeftWidth: 4,
+                        borderLeftColor: '#22c55e',
                       }}
                     >
-                      {result.ghostName}
-                    </Text>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: '#166534',
-                      }}
-                    >
-                      {result.reason}
-                    </Text>
-                  </View>
+                      <View
+                        style={{
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: 4,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 15,
+                            fontWeight: '700',
+                            color: '#15803d',
+                          }}
+                        >
+                          {result.ghostName}
+                        </Text>
+                        <Ionicons name="chevron-forward" size={18} color="#22c55e" />
+                      </View>
+                      <Text
+                        style={{
+                          fontSize: 12,
+                          color: '#166534',
+                        }}
+                      >
+                        {result.reason}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}
@@ -562,53 +598,67 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                   🔥 VERY LIKELY
                 </Text>
                 {filteredResults.veryLikely.slice(0, 3).map((result, idx) => (
-                  <View
+                  <TouchableOpacity
                     key={idx}
-                    style={{
-                      backgroundColor: '#dbeafe',
-                      borderRadius: 10,
-                      padding: 12,
-                      marginBottom: 8,
-                      borderLeftWidth: 4,
-                      borderLeftColor: '#3b82f6',
-                    }}
+                    onPress={() => navigateToGhost(result.ghostName)}
+                    activeOpacity={0.7}
                   >
                     <View
                       style={{
-                        flexDirection: 'row',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        marginBottom: 4,
+                        backgroundColor: '#dbeafe',
+                        borderRadius: 10,
+                        padding: 12,
+                        marginBottom: 8,
+                        borderLeftWidth: 4,
+                        borderLeftColor: '#3b82f6',
                       }}
                     >
-                      <Text
+                      <View
                         style={{
-                          fontSize: 14,
-                          fontWeight: '700',
-                          color: '#1e40af',
+                          flexDirection: 'row',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          marginBottom: 4,
                         }}
                       >
-                        {result.ghostName}
-                      </Text>
+                        <Text
+                          style={{
+                            fontSize: 14,
+                            fontWeight: '700',
+                            color: '#1e40af',
+                          }}
+                        >
+                          {result.ghostName}
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            gap: 4,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: 12,
+                              fontWeight: '700',
+                              color: '#3b82f6',
+                            }}
+                          >
+                            {result.confidence}%
+                          </Text>
+                          <Ionicons name="chevron-forward" size={16} color="#3b82f6" />
+                        </View>
+                      </View>
                       <Text
                         style={{
                           fontSize: 12,
-                          fontWeight: '700',
-                          color: '#3b82f6',
+                          color: '#1e3a8a',
                         }}
                       >
-                        {result.confidence}%
+                        {result.reason}
                       </Text>
                     </View>
-                    <Text
-                      style={{
-                        fontSize: 12,
-                        color: '#1e3a8a',
-                      }}
-                    >
-                      {result.reason}
-                    </Text>
-                  </View>
+                  </TouchableOpacity>
                 ))}
               </View>
             )}

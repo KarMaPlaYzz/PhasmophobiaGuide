@@ -3,14 +3,14 @@ import { useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import {
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    UIManager,
-    View
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -118,29 +118,6 @@ export default function MapsScreen() {
           nestedScrollEnabled={true}
           scrollEventThrottle={16}
         >
-          <View style={[styles.header, { /*backgroundColor: colors.surface,*/ paddingTop: insets.top }]}>
-            {/*<View style={styles.headerContent}>
-              <View>
-                <ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>
-                  Maps
-                </ThemedText>
-                <ThemedText style={styles.headerSubtitle}>
-                  {filteredMaps.length} of {MAP_LIST.length} locations
-                </ThemedText>
-              </View>
-              <TouchableOpacity
-                onPress={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
-                style={[styles.viewToggle, { backgroundColor: colors.spectral + '20' }]}
-              >
-                <Ionicons
-                  size={20}
-                  name={viewMode === 'grid' ? 'list' : 'grid'}
-                  color={colors.spectral}
-                />
-              </TouchableOpacity>
-            </View>*/}
-          </View>
-
           {/* Search Bar */}
           <View style={[styles.contentPadding ]}>
             <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>

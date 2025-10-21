@@ -4,11 +4,13 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { BookmarkButton } from '@/components/bookmark-button';
 import { FloorPlanViewer } from '@/components/floor-plan-viewer';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { HistoryService } from '@/lib/storage/storageService';
 import { Map } from '@/lib/types';
 
 interface MapDetailSheetProps {
@@ -44,6 +46,13 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
     });
     return unsubscribe;
   }, [onClose]);
+
+  // Track view when map is shown
+  useEffect(() => {
+    if (isVisible && map) {
+      HistoryService.trackView('map', map.id, map.name);
+    }
+  }, [isVisible, map]);
 
   // Reset sections when sheet becomes invisible
   useEffect(() => {
@@ -138,15 +147,24 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 {map.type.charAt(0).toUpperCase() + map.type.slice(1)}
               </ThemedText>
             </View>
-            <View
-              style={[
-                styles.difficultyBadgeSheet,
-                { backgroundColor: getDifficultyColor(map.difficulty) },
-              ]}
-            >
-              <ThemedText style={styles.difficultyBadgeText}>
-                {map.difficulty}
-              </ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View
+                style={[
+                  styles.difficultyBadgeSheet,
+                  { backgroundColor: getDifficultyColor(map.difficulty) },
+                ]}
+              >
+                <ThemedText style={styles.difficultyBadgeText}>
+                  {map.difficulty}
+                </ThemedText>
+              </View>
+              <BookmarkButton
+                itemId={map.id}
+                itemType="map"
+                itemName={map.name}
+                size={28}
+                color={colors.spectral}
+              />
             </View>
           </View>
         </View>

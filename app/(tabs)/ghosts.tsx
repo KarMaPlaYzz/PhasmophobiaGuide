@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useRoute } from '@react-navigation/native';
+import { useFocusEffect, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
@@ -105,15 +105,23 @@ export default function GhostsScreen() {
     setSelectedGhost(null);
   }, []);
 
+  // Handle incoming route params to open ghost detail sheet
+  useFocusEffect(
+    useCallback(() => {
+      const params = route.params as any;
+      if (params?.selectedGhostName) {
+        const ghost = GHOST_LIST.find(g => g.name === params.selectedGhostName);
+        if (ghost) {
+          console.log('📋 Opening ghost sheet from evidence:', ghost.name);
+          setSelectedGhost(ghost);
+        }
+      }
+    }, [route.params])
+  );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemedView style={styles.container}>
-        <View style={[styles.header, { paddingTop: insets.top }]}>
-          {/*<ThemedText type="title" style={[styles.headerTitle, { color: colors.spectral }]}>
-            Ghosts
-          </ThemedText>*/}
-        </View>
-
         <ScrollView 
           ref={handleScrollRef}
           style={styles.content} 
@@ -261,10 +269,6 @@ export default function GhostsScreen() {
                     <View style={styles.statItem}>
                       <ThemedText style={styles.statLabel}>Speed</ThemedText>
                       <ThemedText style={styles.statValue}>{ghost.movementSpeed}</ThemedText>
-                    </View>
-                    <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>Activity</ThemedText>
-                      <ThemedText style={styles.statValue}>{ghost.activityLevel}%</ThemedText>
                     </View>
                     <View style={styles.statItem}>
                       <ThemedText style={styles.statLabel}>Hunt</ThemedText>

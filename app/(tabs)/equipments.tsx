@@ -109,10 +109,6 @@ export default function EquipmentScreen() {
 
   return (
     <ThemedView style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        {/* Header kept for insets, but content removed */}
-      </View>
-
       <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
           <Ionicons size={20} name="search" color={colors.spectral} />

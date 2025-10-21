@@ -241,6 +241,42 @@ export interface EvidenceSelection {
 }
 
 // ============================================================================
+// BOOKMARKS & HISTORY TYPES
+// ============================================================================
+
+export interface Bookmark {
+  id: string;
+  type: 'ghost' | 'equipment' | 'map' | 'evidence';
+  itemId: string;
+  itemName: string;
+  createdAt: number;
+  tags: string[];
+}
+
+export interface HistoryItem {
+  id: string;
+  type: 'ghost' | 'equipment' | 'map' | 'evidence';
+  itemId: string;
+  itemName: string;
+  viewedAt: number;
+  timeSpent: number; // in milliseconds
+}
+
+export interface CustomCategory {
+  id: string;
+  name: string;
+  color: string;
+  bookmarkIds: string[];
+}
+
+export interface UserLibrary {
+  bookmarks: Bookmark[];
+  history: HistoryItem[];
+  customCategories: CustomCategory[];
+  lastUpdated: number;
+}
+
+// ============================================================================
 // APP STATE TYPES
 // ============================================================================
 

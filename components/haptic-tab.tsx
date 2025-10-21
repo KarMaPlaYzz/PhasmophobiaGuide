@@ -1,3 +1,4 @@
+import { Equipment, Ghost } from '@/lib/types';
 import { BottomTabBarButtonProps } from '@react-navigation/bottom-tabs';
 import { PlatformPressable } from '@react-navigation/elements';
 import { useNavigation } from '@react-navigation/native';
@@ -20,6 +21,54 @@ export const detailSheetEmitter = {
   
   emit: () => {
     detailSheetEmitter.listeners.forEach(callback => callback());
+  },
+};
+
+// Global event emitter for ghost selection
+export const ghostSelectionEmitter = {
+  listeners: new Set<(ghost: Ghost) => void>(),
+  
+  subscribe: (callback: (ghost: Ghost) => void) => {
+    ghostSelectionEmitter.listeners.add(callback);
+    return () => {
+      ghostSelectionEmitter.listeners.delete(callback);
+    };
+  },
+  
+  emit: (ghost: Ghost) => {
+    ghostSelectionEmitter.listeners.forEach(callback => callback(ghost));
+  },
+};
+
+// Global event emitter for equipment selection
+export const equipmentSelectionEmitter = {
+  listeners: new Set<(equipment: Equipment) => void>(),
+  
+  subscribe: (callback: (equipment: Equipment) => void) => {
+    equipmentSelectionEmitter.listeners.add(callback);
+    return () => {
+      equipmentSelectionEmitter.listeners.delete(callback);
+    };
+  },
+  
+  emit: (equipment: Equipment) => {
+    equipmentSelectionEmitter.listeners.forEach(callback => callback(equipment));
+  },
+};
+
+// Global event emitter for map selection
+export const mapSelectionEmitter = {
+  listeners: new Set<(map: any) => void>(),
+  
+  subscribe: (callback: (map: any) => void) => {
+    mapSelectionEmitter.listeners.add(callback);
+    return () => {
+      mapSelectionEmitter.listeners.delete(callback);
+    };
+  },
+  
+  emit: (map: any) => {
+    mapSelectionEmitter.listeners.forEach(callback => callback(map));
   },
 };
 
