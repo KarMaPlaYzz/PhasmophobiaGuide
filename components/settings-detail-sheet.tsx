@@ -8,6 +8,8 @@ import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
+import { LANGUAGE_LABELS, SupportedLanguage } from '@/lib/localization';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { BookmarkService, HistoryService } from '@/lib/storage/storageService';
 
@@ -23,10 +25,12 @@ export const SettingsDetailSheet = ({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const snapPoints = useMemo(() => ['60%', '100%'], []);
+  const { t, language, setLanguage } = useLocalization();
 
   const [blogNotificationsEnabled, setBlogNotificationsEnabled] = useState(true);
   const [hapticFeedbackEnabled, setHapticFeedbackEnabled] = useState(true);
   const [defaultTab, setDefaultTab] = useState<'ghosts' | 'equipments' | 'index' | 'evidence' | 'sanity-calculator'>('index');
+  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('en');
   const [appVersion, setAppVersion] = useState('1.0.0');
   const [gameVersionDate, setGameVersionDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -43,6 +47,7 @@ export const SettingsDetailSheet = ({
       setBlogNotificationsEnabled(prefs.blogNotificationsEnabled);
       setHapticFeedbackEnabled(prefs.hapticFeedbackEnabled);
       setDefaultTab(prefs.defaultTab);
+      setCurrentLanguage(prefs.language || 'en');
 
       // Get app version from package.json or set a constant
       setAppVersion('1.0.0'); // You can update this in app.json
@@ -97,28 +102,40 @@ export const SettingsDetailSheet = ({
     }
   };
 
+  const handleLanguageChange = async (newLanguage: SupportedLanguage) => {
+    try {
+      if (hapticFeedbackEnabled) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      setCurrentLanguage(newLanguage);
+      await setLanguage(newLanguage);
+    } catch (error) {
+      console.error('Error updating language:', error);
+    }
+  };
+
   const handleClearHistory = () => {
     Alert.alert(
-      'Clear History?',
-      'This will remove all viewed history. This action cannot be undone.',
+      t('settings.clearHistoryConfirm'),
+      t('settings.clearHistoryMessage'),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           onPress: () => {},
           style: 'cancel',
         },
         {
-          text: 'Clear',
+          text: t('common.clear'),
           onPress: async () => {
             try {
               if (hapticFeedbackEnabled) {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
               }
               await HistoryService.clearHistory();
-              Alert.alert('Success', 'History cleared');
+              Alert.alert(t('settings.clearSuccess'), t('settings.clearHistory'));
             } catch (error) {
               console.error('Error clearing history:', error);
-              Alert.alert('Error', 'Failed to clear history');
+              Alert.alert(t('settings.clearError'), t('settings.clearHistory'));
             }
           },
           style: 'destructive',
@@ -129,16 +146,16 @@ export const SettingsDetailSheet = ({
 
   const handleClearBookmarks = () => {
     Alert.alert(
-      'Clear All Bookmarks?',
-      'This will remove all your bookmarks. This action cannot be undone.',
+      t('settings.clearBookmarksConfirm'),
+      t('settings.clearBookmarksMessage'),
       [
         {
-          text: 'Cancel',
+          text: t('common.cancel'),
           onPress: () => {},
           style: 'cancel',
         },
         {
-          text: 'Clear',
+          text: t('common.clear'),
           onPress: async () => {
             try {
               if (hapticFeedbackEnabled) {
@@ -148,10 +165,10 @@ export const SettingsDetailSheet = ({
               for (const bookmark of bookmarks) {
                 await BookmarkService.removeBookmark(bookmark.id);
               }
-              Alert.alert('Success', 'All bookmarks cleared');
+              Alert.alert(t('settings.clearSuccess'), t('settings.clearBookmarks'));
             } catch (error) {
               console.error('Error clearing bookmarks:', error);
-              Alert.alert('Error', 'Failed to clear bookmarks');
+              Alert.alert(t('settings.clearError'), t('settings.clearBookmarks'));
             }
           },
           style: 'destructive',
@@ -177,7 +194,7 @@ export const SettingsDetailSheet = ({
         <BottomSheetScrollView style={{ flex: 1, paddingHorizontal: 16 }}>
           <View style={styles.loadingContainer}>
             <Ionicons name="refresh" size={40} color={colors.spectral} />
-            <ThemedText style={styles.loadingText}>Loading settings...</ThemedText>
+            <ThemedText style={styles.loadingText}>{t('common.loading')}</ThemedText>
           </View>
         </BottomSheetScrollView>
       </BottomSheet>
@@ -204,9 +221,9 @@ export const SettingsDetailSheet = ({
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <ThemedText style={styles.headerTitle}>Settings</ThemedText>
+            <ThemedText style={styles.headerTitle}>{t('settings.title')}</ThemedText>
             <ThemedText style={styles.headerSubtitle}>
-              Manage your preferences
+              {t('settings.managePreferences')}
             </ThemedText>
           </View>
           <Ionicons name="settings" size={28} color={colors.spectral} />
@@ -214,11 +231,11 @@ export const SettingsDetailSheet = ({
 
         {/* Notifications Section */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Notifications & Updates</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t('settings.notificationsUpdates')}</ThemedText>
           <SettingItem
             icon="newspaper"
-            label="Blog Notifications"
-            description="Get notified about new Phasmophobia blog posts"
+            label={t('settings.blogNotifications')}
+            description={t('settings.blogNotificationsDesc')}
             toggle={true}
             value={blogNotificationsEnabled}
             onToggle={handleBlogNotificationsChange}
@@ -228,19 +245,19 @@ export const SettingsDetailSheet = ({
 
         {/* Data & Storage Section */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Data & Storage</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t('settings.dataStorage')}</ThemedText>
           <SettingItem
             icon="trash"
-            label="Clear History"
-            description="Remove all viewed history"
+            label={t('settings.clearHistory')}
+            description={t('settings.clearHistoryDesc')}
             onPress={handleClearHistory}
             colors={colors}
             destructive
           />
           <SettingItem
             icon="bookmark-outline"
-            label="Clear Bookmarks"
-            description="Remove all bookmarks"
+            label={t('settings.clearBookmarks')}
+            description={t('settings.clearBookmarksDesc')}
             onPress={handleClearBookmarks}
             colors={colors}
             destructive
@@ -249,11 +266,11 @@ export const SettingsDetailSheet = ({
 
         {/* Behavior & Preferences Section */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>Behavior & Preferences</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t('settings.behaviorPreferences')}</ThemedText>
           <SettingItem
             icon="hand-right"
-            label="Haptic Feedback"
-            description="Enable vibration feedback"
+            label={t('settings.hapticFeedback')}
+            description={t('settings.hapticFeedbackDesc')}
             toggle={true}
             value={hapticFeedbackEnabled}
             onToggle={handleHapticFeedbackChange}
@@ -264,21 +281,26 @@ export const SettingsDetailSheet = ({
             onTabChange={handleDefaultTabChange}
             colors={colors}
           />
+          <LanguageSelector
+            selectedLanguage={currentLanguage}
+            onLanguageChange={handleLanguageChange}
+            colors={colors}
+          />
         </View>
 
         {/* About & Info Section */}
         <View style={styles.section}>
-          <ThemedText style={styles.sectionTitle}>About & Info</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t('settings.aboutInfo')}</ThemedText>
           <SettingItem
             icon="information-circle"
-            label="App Version"
+            label={t('settings.appVersion')}
             description={appVersion}
             colors={colors}
             disabled
           />
           <SettingItem
             icon="calendar"
-            label="Game Data Updated"
+            label={t('settings.gameDataUpdated')}
             description={gameVersionDate}
             colors={colors}
             disabled
@@ -364,20 +386,20 @@ interface DefaultTabSelectorProps {
   colors: typeof Colors.light;
 }
 
-
-
 const DefaultTabSelector: React.FC<DefaultTabSelectorProps> = ({
   selectedTab,
   onTabChange,
   colors,
 }) => {
-    const TAB_OPTIONS = [
-        { id: 'ghosts', label: 'Ghosts', icon: <Ionicons name="skull" size={24} color={colors.spectral} /> },
-        { id: 'equipments', label: 'Equipment', icon: <Ionicons name="flashlight" size={24} color={colors.spectral} /> },
-        { id: 'index', label: 'Maps', icon: <Ionicons name="home" size={24} color={colors.spectral} /> },
-        { id: 'evidence', label: 'Evidence', icon: <MaterialIcons name="fingerprint" size={24} color={colors.spectral} /> },
-        { id: 'sanity-calculator', label: 'Sanity', icon: <Ionicons name="pulse" size={24} color={colors.spectral} /> },
-    ] as const;
+  const { t } = useLocalization();
+  
+  const TAB_OPTIONS = [
+    { id: 'ghosts', label: t('tabs.ghosts'), icon: <Ionicons name="skull" size={24} color={colors.spectral} /> },
+    { id: 'equipments', label: t('tabs.equipment'), icon: <Ionicons name="flashlight" size={24} color={colors.spectral} /> },
+    { id: 'index', label: t('tabs.maps'), icon: <Ionicons name="home" size={24} color={colors.spectral} /> },
+    { id: 'evidence', label: t('tabs.evidence'), icon: <MaterialIcons name="fingerprint" size={24} color={colors.spectral} /> },
+    { id: 'sanity-calculator', label: t('tabs.sanity'), icon: <Ionicons name="pulse" size={24} color={colors.spectral} /> },
+  ] as const;
 
   const currentTabIndex = TAB_OPTIONS.findIndex((tab) => tab.id === selectedTab);
   const safeIndex = currentTabIndex >= 0 ? currentTabIndex : 0;
@@ -402,16 +424,67 @@ const DefaultTabSelector: React.FC<DefaultTabSelectorProps> = ({
     >
       <View style={styles.settingItemLeft}>
         {currentTab.icon}
-        {/**/}
         <View style={styles.settingItemText}>
-          <ThemedText style={styles.settingLabel}>Default Tab</ThemedText>
+          <ThemedText style={styles.settingLabel}>{t('settings.defaultTab')}</ThemedText>
           <ThemedText style={styles.settingDescription}>
-            Opens on app startup
+            {t('settings.defaultTabDesc')}
           </ThemedText>
         </View>
       </View>
       <View style={styles.tabBadge}>
         <ThemedText style={styles.tabBadgeText}>{currentTab.label}</ThemedText>
+      </View>
+    </Pressable>
+  );
+};
+
+interface LanguageSelectorProps {
+  selectedLanguage: SupportedLanguage;
+  onLanguageChange: (language: SupportedLanguage) => void;
+  colors: typeof Colors.light;
+}
+
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({
+  selectedLanguage,
+  onLanguageChange,
+  colors,
+}) => {
+  const { t } = useLocalization();
+  
+  const LANGUAGE_OPTIONS: SupportedLanguage[] = ['en', 'de', 'nl', 'fr', 'es', 'it', 'pt', 'sv'];
+
+  const currentLanguageIndex = LANGUAGE_OPTIONS.findIndex((lang) => lang === selectedLanguage);
+  const safeIndex = currentLanguageIndex >= 0 ? currentLanguageIndex : 0;
+  const currentLanguage = LANGUAGE_OPTIONS[safeIndex];
+
+  const handleCycleLanguage = () => {
+    const nextIndex = (safeIndex + 1) % LANGUAGE_OPTIONS.length;
+    onLanguageChange(LANGUAGE_OPTIONS[nextIndex]);
+  };
+
+  return (
+    <Pressable
+      onPress={handleCycleLanguage}
+      style={[
+        styles.settingItem,
+        {
+          backgroundColor: colors.surface,
+          borderColor: colors.border,
+          marginBottom: 10,
+        },
+      ]}
+    >
+      <View style={styles.settingItemLeft}>
+        <Ionicons name="language" size={24} color={colors.spectral} />
+        <View style={styles.settingItemText}>
+          <ThemedText style={styles.settingLabel}>{t('settings.language')}</ThemedText>
+          <ThemedText style={styles.settingDescription}>
+            {t('settings.languageDesc')}
+          </ThemedText>
+        </View>
+      </View>
+      <View style={styles.tabBadge}>
+        <ThemedText style={styles.tabBadgeText}>{LANGUAGE_LABELS[currentLanguage]}</ThemedText>
       </View>
     </Pressable>
   );

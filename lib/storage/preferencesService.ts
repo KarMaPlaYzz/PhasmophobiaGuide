@@ -3,12 +3,14 @@
  * Handles user preferences and settings
  */
 
+import { SupportedLanguage } from '@/lib/localization';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export interface UserPreferences {
   blogNotificationsEnabled: boolean;
   hapticFeedbackEnabled: boolean;
   defaultTab: 'ghosts' | 'equipments' | 'index' | 'evidence' | 'sanity-calculator';
+  language: SupportedLanguage;
   lastUpdated: number;
 }
 
@@ -18,6 +20,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   blogNotificationsEnabled: true,
   hapticFeedbackEnabled: true,
   defaultTab: 'index',
+  language: 'en',
   lastUpdated: Date.now(),
 };
 
@@ -149,6 +152,30 @@ export const PreferencesService = {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PREFERENCES));
     } catch (error) {
       console.error('Error resetting preferences:', error);
+    }
+  },
+
+  /**
+   * Get language setting
+   */
+  async getLanguage(): Promise<SupportedLanguage> {
+    try {
+      const prefs = await this.getPreferences();
+      return prefs.language || 'en';
+    } catch (error) {
+      console.error('Error getting language setting:', error);
+      return 'en';
+    }
+  },
+
+  /**
+   * Set language
+   */
+  async setLanguage(language: SupportedLanguage): Promise<void> {
+    try {
+      await this.updatePreferences({ language });
+    } catch (error) {
+      console.error('Error setting language:', error);
     }
   },
 };

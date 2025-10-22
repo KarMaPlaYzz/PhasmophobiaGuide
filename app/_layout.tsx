@@ -17,6 +17,7 @@ import { SettingsDetailSheet } from '@/components/settings-detail-sheet';
 import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { LocalizationProvider } from '@/hooks/use-localization';
 import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Equipment, Ghost } from '@/lib/types';
@@ -71,66 +72,68 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-        <BottomSheetModalProvider>
-          <Stack
-            screenOptions={{
-              contentStyle: { backgroundColor: colors.background },
-            }}
-          >
-            <Stack.Screen
-              name="(tabs)"
-              options={{
-                headerShown: true,
-                header: () => (
-                  <LibraryHeader 
-                    variant="compact"
-                    onBookmarksPress={() => setIsBookmarksVisible(true)}
-                    onHistoryPress={() => setIsHistoryVisible(true)}
-                    onWhatsNewPress={() => setIsWhatsNewVisible(true)}
-                    onSettingsPress={() => setIsSettingsVisible(true)}
-                  />
-                ),
+      <LocalizationProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+          <BottomSheetModalProvider>
+            <Stack
+              screenOptions={{
+                contentStyle: { backgroundColor: colors.background },
               }}
-            />
-          </Stack>
+            >
+              <Stack.Screen
+                name="(tabs)"
+                options={{
+                  headerShown: true,
+                  header: () => (
+                    <LibraryHeader 
+                      variant="compact"
+                      onBookmarksPress={() => setIsBookmarksVisible(true)}
+                      onHistoryPress={() => setIsHistoryVisible(true)}
+                      onWhatsNewPress={() => setIsWhatsNewVisible(true)}
+                      onSettingsPress={() => setIsSettingsVisible(true)}
+                    />
+                  ),
+                }}
+              />
+            </Stack>
 
-          <BookmarksDetailSheet
-            isVisible={isBookmarksVisible}
-            onClose={() => setIsBookmarksVisible(false)}
-          />
-          <HistoryDetailSheet
-            isVisible={isHistoryVisible}
-            onClose={() => setIsHistoryVisible(false)}
-          />
-          <WhatsNewDetailSheet
-            isVisible={isWhatsNewVisible}
-            onClose={() => setIsWhatsNewVisible(false)}
-            releases={FEATURE_RELEASES}
-            upcomingFeatures={UPCOMING_FEATURES}
-          />
-          <SettingsDetailSheet
-            isVisible={isSettingsVisible}
-            onClose={() => setIsSettingsVisible(false)}
-          />
-          <GhostDetailSheet
-            ghost={selectedGhost}
-            isVisible={selectedGhost !== null}
-            onClose={() => setSelectedGhost(null)}
-          />
-          <EquipmentDetailSheet
-            equipment={selectedEquipment}
-            isVisible={selectedEquipment !== null}
-            onClose={() => setSelectedEquipment(null)}
-          />
-          <MapDetailSheet
-            map={selectedMap}
-            isVisible={selectedMap !== null}
-            onClose={() => setSelectedMap(null)}
-          />
-        </BottomSheetModalProvider>
-        <StatusBar style="auto" />
-      </ThemeProvider>
+            <BookmarksDetailSheet
+              isVisible={isBookmarksVisible}
+              onClose={() => setIsBookmarksVisible(false)}
+            />
+            <HistoryDetailSheet
+              isVisible={isHistoryVisible}
+              onClose={() => setIsHistoryVisible(false)}
+            />
+            <WhatsNewDetailSheet
+              isVisible={isWhatsNewVisible}
+              onClose={() => setIsWhatsNewVisible(false)}
+              releases={FEATURE_RELEASES}
+              upcomingFeatures={UPCOMING_FEATURES}
+            />
+            <SettingsDetailSheet
+              isVisible={isSettingsVisible}
+              onClose={() => setIsSettingsVisible(false)}
+            />
+            <GhostDetailSheet
+              ghost={selectedGhost}
+              isVisible={selectedGhost !== null}
+              onClose={() => setSelectedGhost(null)}
+            />
+            <EquipmentDetailSheet
+              equipment={selectedEquipment}
+              isVisible={selectedEquipment !== null}
+              onClose={() => setSelectedEquipment(null)}
+            />
+            <MapDetailSheet
+              map={selectedMap}
+              isVisible={selectedMap !== null}
+              onClose={() => setSelectedMap(null)}
+            />
+          </BottomSheetModalProvider>
+          <StatusBar style="auto" />
+        </ThemeProvider>
+      </LocalizationProvider>
     </GestureHandlerRootView>
   );
 }
