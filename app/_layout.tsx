@@ -13,9 +13,12 @@ import { equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter }
 import { HistoryDetailSheet } from '@/components/history-detail-sheet';
 import { LibraryHeader } from '@/components/library-header';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
+import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
 import { Equipment, Ghost } from '@/lib/types';
+import { cleanupBlogNotifications, initializeBlogNotifications } from '@/lib/utils/blog-notifications';
 
 export const unstable_settings = {
   anchor: '(tabs)',
@@ -27,6 +30,7 @@ export default function RootLayout() {
 
   const [isBookmarksVisible, setIsBookmarksVisible] = useState(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
+  const [isWhatsNewVisible, setIsWhatsNewVisible] = useState(false);
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [selectedMap, setSelectedMap] = useState<any>(null);
@@ -52,6 +56,15 @@ export default function RootLayout() {
     return unsubscribe;
   }, []);
 
+  // Initialize blog notifications
+  useEffect(() => {
+    initializeBlogNotifications();
+    
+    return () => {
+      cleanupBlogNotifications();
+    };
+  }, []);
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
@@ -70,6 +83,7 @@ export default function RootLayout() {
                     variant="compact"
                     onBookmarksPress={() => setIsBookmarksVisible(true)}
                     onHistoryPress={() => setIsHistoryVisible(true)}
+                    onWhatsNewPress={() => setIsWhatsNewVisible(true)}
                   />
                 ),
               }}
@@ -83,6 +97,12 @@ export default function RootLayout() {
           <HistoryDetailSheet
             isVisible={isHistoryVisible}
             onClose={() => setIsHistoryVisible(false)}
+          />
+          <WhatsNewDetailSheet
+            isVisible={isWhatsNewVisible}
+            onClose={() => setIsWhatsNewVisible(false)}
+            releases={FEATURE_RELEASES}
+            upcomingFeatures={UPCOMING_FEATURES}
           />
           <GhostDetailSheet
             ghost={selectedGhost}

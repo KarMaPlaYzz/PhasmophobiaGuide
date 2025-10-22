@@ -12,6 +12,7 @@ interface LibraryHeaderProps {
   variant?: 'compact' | 'full';
   onBookmarksPress?: () => void;
   onHistoryPress?: () => void;
+  onWhatsNewPress?: () => void;
 }
 
 /**
@@ -22,7 +23,8 @@ interface LibraryHeaderProps {
 export const LibraryHeader: React.FC<LibraryHeaderProps> = ({ 
   variant = 'compact',
   onBookmarksPress,
-  onHistoryPress 
+  onHistoryPress,
+  onWhatsNewPress,
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -66,9 +68,23 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
     onHistoryPress?.();
   };
 
+  const handleWhatsNewPress = () => {
+    onWhatsNewPress?.();
+  };
+
   if (variant === 'compact') {
     return (
       <View style={[styles.compactContainer, { backgroundColor: 'transparent', borderBottomColor: colors.border, paddingTop: insets.top, borderBottomWidth: 0 }]}>
+        <Pressable
+          onPress={handleWhatsNewPress}
+          style={styles.button}
+          accessible
+          accessibilityLabel="What's new - upcoming features"
+          accessibilityRole="button"
+        >
+          <MaterialIcons name="new-releases" size={28} color={colors.spectral} />
+        </Pressable>
+
         <Pressable
           onPress={handleBookmarksPress}
           style={styles.button}
@@ -94,13 +110,14 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
           accessibilityRole="button"
         >
           <MaterialIcons name="history" size={28} color={colors.spectral} />
-          {totalHistory > 0 && (
+          {/* History badge commented out to prevent UI clutter as history can stack up quickly */}
+          {/* {totalHistory > 0 && (
             <View style={[styles.badge, { backgroundColor: colors.haunted }]}>
               <ThemedText style={styles.badgeText}>
                 {totalHistory > 99 ? '99+' : totalHistory}
               </ThemedText>
             </View>
-          )}
+          )} */}
         </Pressable>
       </View>
     );

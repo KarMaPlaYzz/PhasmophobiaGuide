@@ -1,14 +1,15 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Pressable,
-    StyleSheet,
-    View,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
@@ -164,7 +165,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
             { backgroundColor: getCategoryColor(item.type) + '20' },
           ]}
         >
-          <MaterialIcons
+          <Ionicons
             name={getCategoryIcon(item.type)}
             size={16}
             color={getCategoryColor(item.type)}

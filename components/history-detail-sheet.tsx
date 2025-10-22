@@ -1,15 +1,15 @@
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Pressable,
-    StyleSheet,
-    View,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
@@ -172,7 +172,7 @@ export const HistoryDetailSheet = ({
             { backgroundColor: getCategoryColor(item.type) + '20' },
           ]}
         >
-          <MaterialIcons
+          <Ionicons
             name={getCategoryIcon(item.type)}
             size={16}
             color={getCategoryColor(item.type)}
