@@ -16,6 +16,36 @@ let blogCache: BlogPost[] | null = null;
 let cacheTimestamp: number = 0;
 const CACHE_DURATION = 60 * 60 * 1000; // 1 hour
 
+// HTML entity decoder
+const decodeHtmlEntities = (text: string): string => {
+  const entities: Record<string, string> = {
+    '&amp;': '&',
+    '&lt;': '<',
+    '&gt;': '>',
+    '&quot;': '"',
+    '&#39;': "'",
+    '&apos;': "'",
+    '&nbsp;': ' ',
+  };
+  
+  let result = text;
+  for (const [entity, char] of Object.entries(entities)) {
+    result = result.replace(new RegExp(entity, 'g'), char);
+  }
+  
+  // Handle numeric entities like &#123;
+  result = result.replace(/&#(\d+);/g, (match, dec) => {
+    return String.fromCharCode(parseInt(dec, 10));
+  });
+  
+  // Handle hex entities like &#x1F;
+  result = result.replace(/&#x([0-9a-f]+);/gi, (match, hex) => {
+    return String.fromCharCode(parseInt(hex, 16));
+  });
+  
+  return result;
+};
+
 const parseDate = (dateStr: string): number => {
   // Convert "DD/MM/YYYY" format to timestamp
   const [day, month, year] = dateStr.split('/').map(Number);
@@ -55,7 +85,7 @@ const extractBlogPostsFromHtml = (html: string): BlogPost[] => {
   
   while ((match = headingBlogPattern.exec(html)) !== null) {
     links.push({
-      title: match[1].trim(),
+      title: decodeHtmlEntities(match[1].trim()),
       url: 'https://www.kineticgames.co.uk' + match[2],
       id: match[3],
       index: match.index,
@@ -84,7 +114,7 @@ const extractBlogPostsFromHtml = (html: string): BlogPost[] => {
       
       if (title && !title.includes('<')) {
         links.push({
-          title,
+          title: decodeHtmlEntities(title),
           url: 'https://www.kineticgames.co.uk' + url,
           id,
           index: match.index,
