@@ -1,5 +1,6 @@
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import React, { useEffect, useState } from 'react';
@@ -64,6 +65,20 @@ export default function RootLayout() {
   useEffect(() => {
     initializeBlogNotifications();
     PreferencesService.initialize();
+    
+    // Request notification permissions
+    const requestNotificationPermissions = async () => {
+      try {
+        const { status } = await Notifications.requestPermissionsAsync();
+        if (status !== 'granted') {
+          console.log('Notification permission not granted');
+        }
+      } catch (error) {
+        console.error('Failed to request notification permissions:', error);
+      }
+    };
+    
+    requestNotificationPermissions();
     
     return () => {
       cleanupBlogNotifications();

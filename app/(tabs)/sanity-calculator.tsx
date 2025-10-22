@@ -12,8 +12,8 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import {
-    DIFFICULTY_SETTINGS,
-    getSanityStatus,
+  DIFFICULTY_SETTINGS,
+  getSanityStatus,
 } from '@/lib/data/sanity';
 
 type Difficulty = 'amateur' | 'intermediate' | 'professional' | 'nightmare' | 'insanity';
@@ -110,12 +110,17 @@ export default function SanityCulculatorScreen() {
       case 'professional':
         return '#FF4444';
       case 'nightmare':
-        return '#6B4AAC';
+        return '#8B5CF6';
       case 'insanity':
         return '#FF0000';
       default:
         return colors.text;
     }
+  };
+
+  const getDifficultyBgColor = (difficulty: string) => {
+    const baseColor = getDifficultyColor(difficulty);
+    return colorScheme === 'dark' ? baseColor + '25' : baseColor + '15';
   };
 
   const formatTime = (seconds: number) => {
@@ -155,6 +160,8 @@ export default function SanityCulculatorScreen() {
                     backgroundColor:
                       selectedDifficulty === diff.key
                         ? getDifficultyColor(diff.key)
+                        : colorScheme === 'dark'
+                        ? colors.surface
                         : colors.surface,
                     borderColor:
                       selectedDifficulty === diff.key
@@ -199,8 +206,10 @@ export default function SanityCulculatorScreen() {
                     backgroundColor:
                       selectedMapSize === size.key
                         ? colors.spectral
+                        : colorScheme === 'dark'
+                        ? colors.surface
                         : colors.surface,
-                    borderColor: colors.border,
+                    borderColor: colorScheme === 'dark' ? colors.border + '40' : colors.border,
                   },
                 ]}
               >
@@ -242,7 +251,7 @@ export default function SanityCulculatorScreen() {
             <View
               style={[
                 styles.sliderTrack,
-                { backgroundColor: colors.spectral + '30' },
+                { backgroundColor: colorScheme === 'dark' ? colors.spectral + '25' : colors.spectral + '20' },
               ]}
             >
               <View
@@ -264,7 +273,7 @@ export default function SanityCulculatorScreen() {
               }}
               style={[
                 styles.sliderButton,
-                { backgroundColor: colors.spectral + '20' },
+                { backgroundColor: colorScheme === 'dark' ? colors.spectral + '25' : colors.spectral + '15' },
               ]}
             >
               <Ionicons
@@ -282,7 +291,7 @@ export default function SanityCulculatorScreen() {
               }}
               style={[
                 styles.sliderButton,
-                { backgroundColor: colors.spectral + '20' },
+                { backgroundColor: colorScheme === 'dark' ? colors.spectral + '25' : colors.spectral + '15' },
               ]}
             >
               <Ionicons
@@ -297,7 +306,7 @@ export default function SanityCulculatorScreen() {
               onPress={() => setCurrentSanity(100)}
               style={[
                 styles.sliderButton,
-                { backgroundColor: colors.spectral + '20' },
+                { backgroundColor: colorScheme === 'dark' ? colors.spectral + '25' : colors.spectral + '15' },
               ]}
             >
               <Ionicons
@@ -315,8 +324,8 @@ export default function SanityCulculatorScreen() {
           style={[
             styles.statusCard,
             {
-              backgroundColor: colors.spectral + '15',
-              borderColor: colors.spectral,
+              backgroundColor: colorScheme === 'dark' ? colors.spectral + '20' : colors.spectral + '10',
+              borderColor: colors.spectral + '60',
             },
           ]}
         >
@@ -357,7 +366,7 @@ export default function SanityCulculatorScreen() {
           <View
             style={[
               styles.infoCard,
-              { backgroundColor: colors.surfaceLight, borderColor: colors.border },
+              { backgroundColor: colorScheme === 'dark' ? colors.surface + '60' : colors.surfaceLight, borderColor: colors.border },
             ]}
           >
             <View style={styles.infoRow}>
