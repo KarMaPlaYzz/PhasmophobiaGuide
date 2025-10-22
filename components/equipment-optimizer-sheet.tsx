@@ -7,6 +7,7 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { PLAYSTYLE_PROFILES } from '@/lib/data/equipment-optimizer';
 import { GHOSTS } from '@/lib/data/ghosts';
 import { Playstyle } from '@/lib/types';
@@ -28,6 +29,7 @@ const formatEquipmentName = (name: string): string => {
 export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimizerSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { t } = useLocalization();
   const snapPoints = useMemo(() => ['80%', '100%'], []);
 
   // Filter state
@@ -70,7 +72,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
         <View style={styles.primaryFiltersContainer}>
           {/* Budget Selector */}
           <View style={styles.primaryFilter}>
-            <ThemedText style={styles.filterLabel}>Budget</ThemedText>
+            <ThemedText style={styles.filterLabel}>{t('componentLabels.budget')}</ThemedText>
             <View style={[styles.budgetDisplay, { backgroundColor: colors.spectral + '20' }]}>
               <ThemedText style={styles.budgetValue}>${budget}</ThemedText>
             </View>
@@ -268,12 +270,12 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
               </View>
               <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
               <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Cost</ThemedText>
+                <ThemedText style={styles.statLabel}>{t('componentLabels.cost')}</ThemedText>
                 <ThemedText style={styles.statValue}>${recommendation.totalCost}</ThemedText>
               </View>
               <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
               <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Budget Left</ThemedText>
+                <ThemedText style={styles.statLabel}>{t('componentLabels.budgetLeft')}</ThemedText>
                 <ThemedText style={styles.statValue}>${budget - recommendation.totalCost}</ThemedText>
               </View>
             </View>

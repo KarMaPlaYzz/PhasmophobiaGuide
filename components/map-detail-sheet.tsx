@@ -12,6 +12,8 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
+import { getDifficultyLabel } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
 import { Map } from '@/lib/types';
 
@@ -24,6 +26,7 @@ interface MapDetailSheetProps {
 export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { width: screenWidth } = Dimensions.get('window');
   const [imageLoading, setImageLoading] = useState(true);
@@ -173,7 +176,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
               >
                 <Ionicons size={14} name={getDifficultyIcon(map.difficulty)} color={getDifficultyColor(map.difficulty)} />
                 <ThemedText style={[styles.difficultyBadgeText, { color: getDifficultyColor(map.difficulty) }]}>
-                  {map.difficulty}
+                  {getDifficultyLabel(map.difficulty, language)}
                 </ThemedText>
               </View>
               <BookmarkButton
@@ -192,12 +195,12 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
           <View style={styles.statCard}>
             <Ionicons size={20} name="home-outline" color={colors.spectral} />
             <ThemedText style={styles.statValue}>{map.maxRooms}</ThemedText>
-            <ThemedText style={styles.statLabel}>Rooms</ThemedText>
+            <ThemedText style={styles.statLabel}>{t('componentLabels.rooms')}</ThemedText>
           </View>
           <View style={styles.statCard}>
             <Ionicons size={20} name="people-outline" color={colors.spectral} />
             <ThemedText style={styles.statValue}>{map.maxPlayers}</ThemedText>
-            <ThemedText style={styles.statLabel}>Players</ThemedText>
+            <ThemedText style={styles.statLabel}>{t('componentLabels.players')}</ThemedText>
           </View>
           <View style={styles.statCard}>
             <Ionicons
@@ -206,9 +209,9 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
               color={map.characteristics.fuse ? '#FFB84D' : colors.tabIconDefault}
             />
             <ThemedText style={styles.statValue}>
-              {map.characteristics.fuse ? 'Yes' : 'No'}
+              {map.characteristics.fuse ? t('componentLabels.yes') : t('componentLabels.no')}
             </ThemedText>
-            <ThemedText style={styles.statLabel}>Fuse</ThemedText>
+            <ThemedText style={styles.statLabel}>{t('componentLabels.fuse')}</ThemedText>
           </View>
         </View>
 
@@ -216,7 +219,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
         {map.description && (
           <>
             <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
-              About
+              {t('componentLabels.about')}
             </ThemedText>
             <ThemedText style={styles.description}>{map.description}</ThemedText>
           </>
@@ -228,7 +231,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
           {map.characteristics.ghostSpawns && (
             <>
               <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
-                Ghost Spawns
+                {t('componentLabels.ghostSpawns')}
               </ThemedText>
               <ThemedText style={styles.description}>{map.characteristics.ghostSpawns}</ThemedText>
             </>
@@ -238,7 +241,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
           {map.characteristics.lighting && (
             <>
               <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
-                Lighting
+                {t('componentLabels.lighting')}
               </ThemedText>
               <View style={[styles.infoTag, { backgroundColor: colors.spectral + '20' }]}>
                 <Ionicons size={16} name="bulb" color={colors.spectral} />
@@ -251,7 +254,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
           {map.floorPlanUrl && (
             <>
               <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
-                Floor Plan
+                {t('componentLabels.floorPlan')}
               </ThemedText>
               <View style={{ marginHorizontal: -16, marginVertical: 12, paddingHorizontal: 16 }}>
                 <FloorPlanViewer imageUrl={map.floorPlanUrl} mapName={map.name} />
@@ -276,7 +279,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Zones ({map.zones.length})
+                {t('componentLabels.zones')} ({map.zones.length})
               </ThemedText>
             </Pressable>
             {expandedSections.zones && (
@@ -325,7 +328,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Hazards ({map.characteristics.hazards.length})
+                {t('componentLabels.hazards')} ({map.characteristics.hazards.length})
               </ThemedText>
             </Pressable>
             {expandedSections.hazards && (
@@ -357,7 +360,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Special Features ({map.characteristics.specialFeatures.length})
+                {t('componentLabels.specialFeatures')} ({map.characteristics.specialFeatures.length})
               </ThemedText>
             </Pressable>
             {expandedSections.features && (
@@ -389,7 +392,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Strategies & Tips
+                {t('componentLabels.strategies')} & {t('componentLabels.tips')}
               </ThemedText>
             </Pressable>
             {expandedSections.strategies && (
@@ -398,7 +401,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 {map.strategies && map.strategies.length > 0 && (
                   <>
                     <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                      Strategies
+                      {t('componentLabels.strategies')}
                     </ThemedText>
                     <View style={styles.listContainer}>
                       {map.strategies.map((strategy, idx) => (
@@ -415,7 +418,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 {map.tips && map.tips.length > 0 && (
                   <>
                     <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                      Tips
+                      {t('componentLabels.tips')}
                     </ThemedText>
                     <View style={styles.listContainer}>
                       {map.tips.map((tip, idx) => (
@@ -432,7 +435,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 {map.soloTips && map.soloTips.length > 0 && (
                   <>
                     <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                      Solo Tips
+                      {t('componentLabels.soloTips')}
                     </ThemedText>
                     <View style={styles.listContainer}>
                       {map.soloTips.map((tip, idx) => (
@@ -449,7 +452,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
                 {map.huntStrategy && (
                   <>
                     <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                      Hunt Strategy
+                      {t('componentLabels.huntStrategy')}
                     </ThemedText>
                     <View style={[styles.strategyBox, { backgroundColor: colors.spectral + '15' }]}>
                       <MaterialIcons name="verified" size={20} color={colors.spectral} />

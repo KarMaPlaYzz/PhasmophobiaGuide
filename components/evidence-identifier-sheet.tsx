@@ -5,22 +5,24 @@
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import {
-  ALL_EVIDENCE_TYPES,
-  EVIDENCE_DATABASE,
+    ALL_EVIDENCE_TYPES,
+    EVIDENCE_DATABASE,
 } from '@/lib/data/evidence-identifier';
+import { getEvidenceTip } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
 import { EvidenceType } from '@/lib/types';
 import {
-  calculateProgress,
-  EvidenceState,
-  filterGhostsByEvidence,
-  generateSmartHints,
-  getCollectedEquipment,
-  getIdentificationStatus,
-  getNextStepRecommendations,
-  getRequiredEquipment,
-  validateEvidence,
+    calculateProgress,
+    EvidenceState,
+    filterGhostsByEvidence,
+    generateSmartHints,
+    getCollectedEquipment,
+    getIdentificationStatus,
+    getNextStepRecommendations,
+    getRequiredEquipment,
+    validateEvidence,
 } from '@/lib/utils/evidence-identifier';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
@@ -28,12 +30,12 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  LayoutAnimation,
-  Platform,
-  Text,
-  TouchableOpacity,
-  UIManager,
-  View,
+    LayoutAnimation,
+    Platform,
+    Text,
+    TouchableOpacity,
+    UIManager,
+    View,
 } from 'react-native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -49,6 +51,7 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
+  const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['50%', '90%'], []);
   const navigation = useNavigation<any>();
 
@@ -143,19 +146,19 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
         return {
           icon: 'checkmark-circle',
           color: '#22c55e', // green
-          label: '✓ Confirmed',
+          label: `✓ ${t('evidence.confirmed')}`,
         };
       case 'investigating':
         return {
           icon: 'help-circle',
           color: '#f59e0b', // amber
-          label: '◐ Investigating',
+          label: `◐ ${t('evidence.investigating')}`,
         };
       default:
         return {
           icon: 'ellipse-outline',
           color: '#6b7280', // gray
-          label: '□ Not Found',
+          label: `□ ${t('evidence.notFound')}`,
         };
     }
   };
@@ -388,9 +391,9 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                     }}
                   >
                     {[
-                      { label: '□ Not Found', value: 'not-found' },
-                      { label: '◐ Investigating', value: 'investigating' },
-                      { label: '✓ Confirmed', value: 'confirmed' },
+                      { label: `□ ${t('evidence.notFound')}`, value: 'not-found' },
+                      { label: `◐ ${t('evidence.investigating')}`, value: 'investigating' },
+                      { label: `✓ ${t('evidence.confirmed')}`, value: 'confirmed' },
                     ].map((btn, i) => (
                       <TouchableOpacity
                         key={i}
@@ -474,19 +477,22 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                       >
                         💡 Tips:
                       </Text>
-                      {info.tips.slice(0, 3).map((tip, i) => (
-                        <Text
-                          key={i}
-                          style={{
-                            fontSize: 12,
-                            color: isDark ? '#d1d5db' : '#4b5563',
-                            marginBottom: 4,
-                            marginLeft: 12,
-                          }}
-                        >
-                          • {tip}
-                        </Text>
-                      ))}
+                      {[0, 1, 2].map((tipIndex) => {
+                        const tip = getEvidenceTip(evidenceType as any, tipIndex, language);
+                        return tip ? (
+                          <Text
+                            key={tipIndex}
+                            style={{
+                              fontSize: 12,
+                              color: isDark ? '#d1d5db' : '#4b5563',
+                              marginBottom: 4,
+                              marginLeft: 12,
+                            }}
+                          >
+                            • {tip}
+                          </Text>
+                        ) : null;
+                      })}
 
                       <Text
                         style={{

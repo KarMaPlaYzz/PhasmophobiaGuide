@@ -14,7 +14,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
+import { getEquipmentDescription, getEquipmentName } from '@/lib/localization';
 import { Equipment } from '@/lib/types';
 import { getCategoryColor } from '@/lib/utils/colors';
 
@@ -24,6 +26,7 @@ export default function EquipmentScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation<any>();
+  const { language, t } = useLocalization();
   
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -105,7 +108,7 @@ export default function EquipmentScreen() {
           <Ionicons size={20} name="search" color={colors.spectral} />
           <TextInput
             style={[styles.searchInput, { color: colors.text }]}
-            placeholder="Search equipment..."
+            placeholder={t('tabs.equipment_searchPlaceholder')}
             placeholderTextColor={colors.tabIconDefault}
             value={searchText}
             onChangeText={setSearchText}
@@ -188,7 +191,7 @@ export default function EquipmentScreen() {
         </ScrollView>
 
         <ThemedText style={styles.resultCounter}>
-          {filteredEquipment.length} item{filteredEquipment.length !== 1 ? 's' : ''}
+          {filteredEquipment.length} {filteredEquipment.length === 1 ? t('tabs.equipment_resultSingular') : t('tabs.equipment_resultPlural')}
         </ThemedText>
 
         {filteredEquipment.length > 0 ? (
@@ -211,7 +214,7 @@ export default function EquipmentScreen() {
               <View style={styles.equipmentHeader}>
                 <View style={{ flex: 1 }}>
                   <ThemedText type="defaultSemiBold" style={styles.equipmentName}>
-                    {item.name}
+                    {getEquipmentName(item.id, language)}
                   </ThemedText>
                 </View>
                 <View
@@ -235,19 +238,19 @@ export default function EquipmentScreen() {
               </View>
 
               {item.description ? (
-                <ThemedText style={styles.equipmentDescription}>{item.description}</ThemedText>
+                <ThemedText style={styles.equipmentDescription}>{getEquipmentDescription(item.id, language)}</ThemedText>
               ) : null}
 
               <View style={styles.equipmentStats}>
                 {item.cost && item.cost > 0 ? (
                   <View style={styles.statItem}>
-                    <ThemedText style={styles.statLabel}>Cost:</ThemedText>
+                    <ThemedText style={styles.statLabel}>{t('tabs.equipment_costLabel')}</ThemedText>
                     <ThemedText style={styles.statValue}>${item.cost}</ThemedText>
                   </View>
                 ) : null}
                 {item.capacity ? (
                   <View style={styles.statItem}>
-                    <ThemedText style={styles.statLabel}>Cap:</ThemedText>
+                    <ThemedText style={styles.statLabel}>{t('tabs.equipment_capacityLabel')}</ThemedText>
                     <ThemedText style={styles.statValue}>{item.capacity}</ThemedText>
                   </View>
                 ) : null}
@@ -259,7 +262,7 @@ export default function EquipmentScreen() {
             </TouchableOpacity>
           ))
         ) : (
-          <ThemedText style={styles.noResults}>No equipment matches your search</ThemedText>
+          <ThemedText style={styles.noResults}>{t('tabs.equipment_noResults')}</ThemedText>
         )}
       </ScrollView>
 

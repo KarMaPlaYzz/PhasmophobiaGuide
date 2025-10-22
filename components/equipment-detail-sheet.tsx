@@ -10,7 +10,9 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, EquipmentCategoryColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { SYNERGIES } from '@/lib/data/equipment';
+import { getEquipmentDescription, getEquipmentUsage } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
 import { Equipment } from '@/lib/types';
 
@@ -23,6 +25,7 @@ interface EquipmentDetailSheetProps {
 export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: EquipmentDetailSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     tiers: false,
@@ -192,22 +195,22 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         <View style={styles.quickStatsGrid}>
           {equipment.cost !== undefined && (
             <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
-              <ThemedText style={styles.quickStatLabel}>Cost</ThemedText>
+              <ThemedText style={styles.quickStatLabel}>{t('componentLabels.cost')}</ThemedText>
               <ThemedText style={styles.quickStatValue}>
-                {equipment.cost > 0 ? `$${equipment.cost}` : 'Free'}
+                {equipment.cost > 0 ? `$${equipment.cost}` : t('componentLabels.free')}
               </ThemedText>
             </View>
           )}
           {equipment.capacity !== undefined && (
             <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
-              <ThemedText style={styles.quickStatLabel}>Capacity</ThemedText>
+              <ThemedText style={styles.quickStatLabel}>{t('componentLabels.capacity')}</ThemedText>
               <ThemedText style={styles.quickStatValue}>{equipment.capacity}</ThemedText>
             </View>
           )}
           {equipment.unlocksAtLevel !== undefined && (
             <View style={[styles.quickStatBox, { backgroundColor: colors.spectral + '12' }]}>
-              <ThemedText style={styles.quickStatLabel}>Unlocks</ThemedText>
-              <ThemedText style={styles.quickStatValue}>Level {equipment.unlocksAtLevel}</ThemedText>
+              <ThemedText style={styles.quickStatLabel}>{t('componentLabels.unlocks')}</ThemedText>
+              <ThemedText style={styles.quickStatValue}>{t('componentLabels.level')} {equipment.unlocksAtLevel}</ThemedText>
             </View>
           )}
         </View>
@@ -230,23 +233,23 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
               color={equipment.consumable ? '#FFB84D' : colors.spectral}
             />
             <ThemedText style={[styles.badgeText, { color: equipment.consumable ? '#FFB84D' : colors.spectral }]}>
-              {equipment.consumable ? 'Consumable' : 'Reusable'}
+              {equipment.consumable ? t('componentLabels.consumable') : t('componentLabels.reusable')}
             </ThemedText>
           </View>
         )}
 
         {/* Description - Key Info Only */}
-        <ThemedText style={styles.sectionTitle}>About</ThemedText>
-        <ThemedText style={styles.description}>{equipment.description}</ThemedText>
+        <ThemedText style={styles.sectionTitle}>{t('componentLabels.about')}</ThemedText>
+        <ThemedText style={styles.description}>{getEquipmentDescription(equipment.id, language)}</ThemedText>
 
         {/* Usage - Key Info Only */}
-        <ThemedText style={styles.sectionTitle}>How to Use</ThemedText>
-        <ThemedText style={styles.description}>{equipment.usage}</ThemedText>
+        <ThemedText style={styles.sectionTitle}>{t('componentLabels.howToUse')}</ThemedText>
+        <ThemedText style={styles.description}>{getEquipmentUsage(equipment.id, language)}</ThemedText>
 
         {/* Evidence Detection - Always Show (if applicable) */}
         {equipment.detects && equipment.detects.length > 0 && (
           <>
-            <ThemedText style={styles.sectionTitle}>Detects Evidence</ThemedText>
+            <ThemedText style={styles.sectionTitle}>{t('componentLabels.detectsEvidence')}</ThemedText>
             <View style={styles.evidenceBadges}>
               {equipment.detects.map((evidence) => (
                 <View key={evidence} style={[styles.evidenceBadge, { backgroundColor: colors.spectral + '20' }]}>
@@ -273,7 +276,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Upgrade Tiers
+                {t('componentLabels.upgradeTiers')}
               </ThemedText>
             </Pressable>
             {expandedSections.tiers && (
@@ -283,11 +286,11 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
                     <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
                     <View style={styles.tierDetails}>
                       <View style={styles.tierDetail}>
-                        <ThemedText style={styles.tierDetailLabel}>Level:</ThemedText>
+                        <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.level')}:</ThemedText>
                         <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
                       </View>
                       <View style={styles.tierDetail}>
-                        <ThemedText style={styles.tierDetailLabel}>Cost:</ThemedText>
+                        <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.cost')}:</ThemedText>
                         <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
                       </View>
                     </View>
@@ -314,7 +317,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Synergies ({equipmentSynergies.length})
+                {t('componentLabels.synergies')} ({equipmentSynergies.length})
               </ThemedText>
             </Pressable>
             {expandedSections.synergies && (
@@ -348,7 +351,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Best For ({equipment.recommendedFor.length})
+                {t('componentLabels.bestFor')} ({equipment.recommendedFor.length})
               </ThemedText>
             </Pressable>
             {expandedSections.recommended && (

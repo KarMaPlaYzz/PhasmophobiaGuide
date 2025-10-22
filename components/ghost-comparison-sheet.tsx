@@ -7,7 +7,9 @@ import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-nativ
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { GHOST_LIST } from '@/lib/data/ghosts';
+import { getGhostName } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
 import BlurView from 'expo-blur/build/BlurView';
 
@@ -31,6 +33,7 @@ export const GhostComparisonSheet = ({
 }: GhostComparisonSheetProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const { language } = useLocalization();
   const snapPoints = useMemo(() => ['65%', '100%'], []);
   const screenWidth = Dimensions.get('window').width;
 
@@ -116,7 +119,7 @@ export const GhostComparisonSheet = ({
     return (
       <View style={[styles.ghostColumn, { width: columnWidth }]}>
         <ThemedText style={[styles.ghostName, { color: getDifficultyColor(ghost.difficulty) }]}>
-          {ghost.name}
+          {getGhostName(ghost.id, language)}
         </ThemedText>
         <View
           style={[
@@ -145,7 +148,7 @@ export const GhostComparisonSheet = ({
       >
         {comparisonData?.ghosts.map((ghost, idx) => (
           <View key={ghost.id} style={[styles.statsColumn, { width: screenWidth * 0.4 }]}>
-            <ThemedText style={styles.statsSectionTitle}>{ghost.name}</ThemedText>
+            <ThemedText style={styles.statsSectionTitle}>{getGhostName(ghost.id, language)}</ThemedText>
 
             <View style={styles.statRow}>
               <ThemedText style={styles.statLabel}>Difficulty</ThemedText>
@@ -183,7 +186,7 @@ export const GhostComparisonSheet = ({
       >
         {comparisonData?.ghosts.map((ghost, idx) => (
           <View key={ghost.id} style={[styles.statsColumn, { width: screenWidth * 0.4 }]}>
-            <ThemedText style={styles.statsSectionTitle}>{ghost.name}</ThemedText>
+            <ThemedText style={styles.statsSectionTitle}>{getGhostName(ghost.id, language)}</ThemedText>
 
             {ghost.evidence.map((ev) => {
               const isCommon = comparisonData?.commonEvidence.includes(ev);
@@ -227,7 +230,7 @@ export const GhostComparisonSheet = ({
       >
         {comparisonData?.ghosts.map((ghost, idx) => (
           <View key={ghost.id} style={[styles.statsColumn, { width: screenWidth * 0.4 }]}>
-            <ThemedText style={styles.statsSectionTitle}>{ghost.name}</ThemedText>
+            <ThemedText style={styles.statsSectionTitle}>{getGhostName(ghost.id, language)}</ThemedText>
 
             {ghost.abilities.map((ability) => (
               <View key={ability.name} style={styles.abilityItem}>
@@ -255,7 +258,7 @@ export const GhostComparisonSheet = ({
       >
         {comparisonData?.ghosts.map((ghost, idx) => (
           <View key={ghost.id} style={[styles.statsColumn, { width: screenWidth * 0.4 }]}>
-            <ThemedText style={styles.statsSectionTitle}>{ghost.name}</ThemedText>
+            <ThemedText style={styles.statsSectionTitle}>{getGhostName(ghost.id, language)}</ThemedText>
 
             {ghost.recommendedEquipment?.essential && (
               <>
@@ -298,7 +301,7 @@ export const GhostComparisonSheet = ({
       >
         {comparisonData?.ghosts.map((ghost, idx) => (
           <View key={ghost.id} style={[styles.statsColumn, { width: screenWidth * 0.4 }]}>
-            <ThemedText style={styles.statsSectionTitle}>{ghost.name}</ThemedText>
+            <ThemedText style={styles.statsSectionTitle}>{getGhostName(ghost.id, language)}</ThemedText>
 
             {ghost.counterStrategies?.map((strategy) => (
               <View key={strategy.strategy} style={styles.strategyItem}>
@@ -384,7 +387,7 @@ export const GhostComparisonSheet = ({
                 ]}
               >
                 <ThemedText style={[styles.selectedChipText, { color: getDifficultyColor(ghost.difficulty) }]}>
-                  {ghost.name}
+                  {getGhostName(ghost.id, language)}
                 </ThemedText>
                 <MaterialIcons name="close" size={16} color={getDifficultyColor(ghost.difficulty)} />
               </Pressable>
@@ -433,7 +436,10 @@ export const GhostComparisonSheet = ({
                     ]}
                     numberOfLines={1}
                   >
-                    {ghost.name.length > 12 ? ghost.name.substring(0, 10) + '...' : ghost.name}
+                    {(() => {
+                      const name = getGhostName(ghost.id, language);
+                      return name.length > 12 ? name.substring(0, 10) + '...' : name;
+                    })()}
                   </ThemedText>
                 </Pressable>
               );

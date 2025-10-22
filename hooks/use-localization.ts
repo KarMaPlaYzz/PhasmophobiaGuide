@@ -1,5 +1,4 @@
 import { i18n, SupportedLanguage } from '@/lib/localization';
-import { PreferencesService } from '@/lib/storage/preferencesService';
 import React, { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react';
 
 interface LocalizationContextType {
@@ -19,35 +18,24 @@ export const LocalizationProvider: FC<LocalizationProviderProps> = ({ children }
   const [language, setLanguageState] = useState<SupportedLanguage>('en');
   const [isLoading, setIsLoading] = useState(true);
 
-  // Load language preference on mount
+  // Initialize with English - no dynamic language loading
   useEffect(() => {
-    const loadLanguage = async () => {
-      try {
-        setIsLoading(true);
-        const prefs = await PreferencesService.getPreferences();
-        const savedLanguage = (prefs as any).language || 'en';
-        setLanguageState(savedLanguage);
-        i18n.setLanguage(savedLanguage);
-      } catch (error) {
-        console.error('Error loading language preference:', error);
-        i18n.setLanguage('en');
-        setLanguageState('en');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadLanguage();
+    try {
+      setIsLoading(true);
+      i18n.setLanguage('en');
+      setLanguageState('en');
+    } catch (error) {
+      console.error('Error initializing language:', error);
+      i18n.setLanguage('en');
+      setLanguageState('en');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleSetLanguage = async (newLanguage: SupportedLanguage) => {
-    try {
-      i18n.setLanguage(newLanguage);
-      setLanguageState(newLanguage);
-      await PreferencesService.updatePreferences({ language: newLanguage } as any);
-    } catch (error) {
-      console.error('Error setting language:', error);
-    }
+    // Language is locked to English, ignore any attempts to change it
+    console.warn('Language selection is disabled. Language is locked to English.');
   };
 
   const value: LocalizationContextType = {

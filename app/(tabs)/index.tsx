@@ -3,14 +3,14 @@ import { useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import {
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    UIManager,
-    View
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,6 +20,7 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { MAP_LIST } from '@/lib/data/maps';
 import { Map } from '@/lib/types';
 
@@ -35,6 +36,7 @@ export default function MapsScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
+  const { t } = useLocalization();
   const { width } = Dimensions.get('window');
   
   const [searchText, setSearchText] = useState('');
@@ -91,7 +93,11 @@ export default function MapsScreen() {
   };
 
   const getSizeLabel = (size: string) => {
-    const labels = { small: 'Small', medium: 'Medium', large: 'Large' };
+    const labels: Record<string, string> = { 
+      small: t('tabs.maps_sizeSmall'), 
+      medium: t('tabs.maps_sizeMedium'), 
+      large: t('tabs.maps_sizeLarge')
+    };
     return labels[size as keyof typeof labels] || size;
   };
 
@@ -124,7 +130,7 @@ export default function MapsScreen() {
               <Ionicons size={20} name="search" color={colors.spectral} />
               <TextInput
                 style={[styles.searchInput, { color: colors.text }]}
-                placeholder="Search maps..."
+                placeholder={t('tabs.maps_searchPlaceholder')}
                 placeholderTextColor={colors.tabIconDefault}
                 value={searchText}
                 onChangeText={setSearchText}

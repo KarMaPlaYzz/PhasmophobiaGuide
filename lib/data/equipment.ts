@@ -117,7 +117,7 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
 
   'uv-light': {
     id: 'uv-light',
-    name: 'UV Light',
+    name: 'UV Flashlight',
     category: 'starter',
     type: 'detector',
     cost: 35,

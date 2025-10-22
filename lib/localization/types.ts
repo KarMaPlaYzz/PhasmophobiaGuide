@@ -30,6 +30,42 @@ export interface Translations {
     maps: string;
     evidence: string;
     sanity: string;
+    // Tab Screen UI Strings
+    ghosts_searchPlaceholder: string;
+    ghosts_speed: string;
+    ghosts_hunt: string;
+    ghosts_sanityDrain: string;
+    ghosts_evidence: string;
+    ghosts_tapToViewDetails: string;
+    ghosts_noResults: string;
+    ghosts_resultSingular: string;
+    ghosts_resultPlural: string;
+    // Evidence names (for display in ghost cards/detail)
+    evidence_emfLevel5: string;
+    evidence_dots: string;
+    evidence_ultraviolet: string;
+    evidence_ghostOrb: string;
+    evidence_ghostWriting: string;
+    evidence_spiritBox: string;
+    evidence_freezingTemperatures: string;
+    equipment_searchPlaceholder: string;
+    equipment_resultSingular: string;
+    equipment_resultPlural: string;
+    equipment_costLabel: string;
+    equipment_capacityLabel: string;
+    equipment_noResults: string;
+    maps_searchPlaceholder: string;
+    maps_sizeSmall: string;
+    maps_sizeMedium: string;
+    maps_sizeLarge: string;
+    sanity_diffAmateur: string;
+    sanity_diffIntermediate: string;
+    sanity_diffProfessional: string;
+    sanity_diffNightmare: string;
+    sanity_diffInsanity: string;
+    sanity_sizeSmall: string;
+    sanity_sizeMedium: string;
+    sanity_sizeLarge: string;
   };
 
   // Common
@@ -176,5 +212,82 @@ export interface Translations {
     failed: string;
     retry: string;
     noData: string;
+  };
+
+  // Component Labels (UI titles, section headers)
+  componentLabels: {
+    description: string;
+    evidenceRequired: string;
+    huntSanityThreshold: string;
+    ghostHuntsWhenSanity: string;
+    safe: string;
+    danger: string;
+    specialAbilities: string;
+    strengths: string;
+    weaknesses: string;
+    counterStrategies: string;
+    recommendedEquipment: string;
+    mustBring: string;
+    recommended: string;
+    optional: string;
+    avoid: string;
+    high: string;
+    medium: string;
+    low: string;
+    tiers: string;
+    evidence: string;
+    synergies: string;
+    filterAll: string;
+    about: string;
+    howToUse: string;
+    detectsEvidence: string;
+    upgradeTiers: string;
+    bestFor: string;
+    identificationTips: string;
+    zones: string;
+    strategies: string;
+    hazards: string;
+    specialFeatures: string;
+    ghostSpawns: string;
+    lighting: string;
+    floorPlan: string;
+    tips: string;
+    soloTips: string;
+    huntStrategy: string;
+    consumable: string;
+    reusable: string;
+    fuse: string;
+    cost: string;
+    capacity: string;
+    unlocks: string;
+    rooms: string;
+    players: string;
+    free: string;
+    yes: string;
+    no: string;
+    level: string;
+    budget: string;
+    budgetLeft: string;
+    totalCost: string;
+    tier: string;
+    playstyle: string;
+    loadoutBuilder: string;
+    loadoutBuilderDesc: string;
+    targetGhost: string;
+    all: string;
+    mapSize: string;
+    difficulty: string;
+    efficiency: string;
+    essential: string;
+  };
+
+  // Ghost Data - Descriptions (24 ghosts)
+  ghostData?: {
+    descriptions?: Record<string, string>;
+    abilities?: Record<string, string>;
+    strengths?: Record<string, string>;
+    weaknesses?: Record<string, string>;
+    tips?: Record<string, string>;
+    strategies?: Record<string, string>;
   };
 }

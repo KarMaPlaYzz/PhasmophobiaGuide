@@ -12,7 +12,9 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { ALL_EQUIPMENT } from '@/lib/data/equipment';
+import { getDifficultyLabel, getGhostDescription, getGhostName } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
 import { Ghost } from '@/lib/types';
 import { getSanityColor } from '@/lib/utils/colors';
@@ -27,6 +29,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const navigation = useNavigation<any>();
+  const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['75%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     evidence: true,
@@ -160,7 +163,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         {/* Header: Name + Difficulty + Bookmark */}
         <View style={styles.headerRow}>
           <View style={{ flex: 1 }}>
-            <ThemedText style={styles.bottomSheetTitle}>{ghost.name}</ThemedText>
+            <ThemedText style={styles.bottomSheetTitle}>{getGhostName(ghost.id, language)}</ThemedText>
             <View
               style={[
                 styles.difficultyBadgeLarge,
@@ -177,25 +180,25 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                 color={getDifficultyColor(ghost.difficulty)}
               />
               <ThemedText style={[styles.difficultyTextLarge, { color: getDifficultyColor(ghost.difficulty) }]}>
-                {ghost.difficulty}
+                {getDifficultyLabel(ghost.difficulty, language)}
               </ThemedText>
             </View>
           </View>
           <BookmarkButton
             itemId={ghost.id}
             itemType="ghost"
-            itemName={ghost.name}
+            itemName={getGhostName(ghost.id, language)}
             size={28}
             color={colors.spectral}
           />
         </View>
 
         {/* Description - Always Visible */}
-        <ThemedText style={styles.sectionTitle}>Description</ThemedText>
-        <ThemedText style={styles.description}>{ghost.description}</ThemedText>
+        <ThemedText style={styles.sectionTitle}>{t('componentLabels.description')}</ThemedText>
+        <ThemedText style={styles.description}>{getGhostDescription(ghost.id, language)}</ThemedText>
 
         {/* Evidence - Always Visible */}
-        <ThemedText style={styles.sectionTitle}>Evidence Required</ThemedText>
+        <ThemedText style={styles.sectionTitle}>{t('componentLabels.evidenceRequired')}</ThemedText>
         <View style={styles.evidenceBadgesLarge}>
           {ghost.evidence.map((ev) => (
             <View key={ev} style={[styles.evidenceBadgeLarge, { backgroundColor: colors.spectral + '25' }]}>
@@ -206,11 +209,11 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
 
         {/* Hunt Sanity Threshold Visualization */}
         <View style={[styles.thresholdContainer, { marginTop: 16, backgroundColor: colors.surface, borderRadius: 12, padding: 12, borderWidth: 1, borderColor: colors.border }]}>
-          <ThemedText style={styles.sectionTitle}>Hunt Sanity Threshold</ThemedText>
+          <ThemedText style={styles.sectionTitle}>{t('componentLabels.huntSanityThreshold')}</ThemedText>
           <View style={styles.thresholdLabelRow}>
             <ThemedText style={styles.thresholdValue}>{ghost.huntSanityThreshold}%</ThemedText>
             <ThemedText style={styles.thresholdDescription}>
-              Ghost hunts when sanity drops below {ghost.huntSanityThreshold}%
+              {t('componentLabels.ghostHuntsWhenSanity').replace('{value}', String(ghost.huntSanityThreshold))}
             </ThemedText>
           </View>
           
@@ -230,8 +233,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
           
           {/* Threshold Labels */}
           <View style={styles.thresholdLabelsRow}>
-            <ThemedText style={styles.thresholdLabelText}>Safe</ThemedText>
-            <ThemedText style={styles.thresholdLabelText}>Danger</ThemedText>
+            <ThemedText style={styles.thresholdLabelText}>{t('componentLabels.safe')}</ThemedText>
+            <ThemedText style={styles.thresholdLabelText}>{t('componentLabels.danger')}</ThemedText>
           </View>
         </View>
 
@@ -249,7 +252,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
             color={colors.spectral}
           />
           <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-            Special Abilities
+            {t('componentLabels.specialAbilities')}
           </ThemedText>
         </Pressable>
         {expandedSections.abilities && (
@@ -287,13 +290,13 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
             color={colors.paranormal}
           />
           <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1, color: colors.paranormal }]}>
-            Strengths & Weaknesses
+            {t('componentLabels.strengths')} & {t('componentLabels.weaknesses')}
           </ThemedText>
         </Pressable>
         {expandedSections.strengths && (
           <>
             <ThemedText style={[styles.sectionSubtitle, { color: colors.paranormal, marginTop: 12 }]}>
-              Strengths
+              {t('componentLabels.strengths')}
             </ThemedText>
             {ghost.strengths.map((strength, idx) => (
               <View key={`strength-${idx}`} style={[styles.strengthItem, { borderColor: colors.paranormal }]}>
@@ -306,7 +309,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
             ))}
 
             <ThemedText style={[styles.sectionSubtitle, { color: '#FF4444', marginTop: 12 }]}>
-              Weaknesses
+              {t('componentLabels.weaknesses')}
             </ThemedText>
             {ghost.weaknesses.map((weakness, idx) => (
               <View key={`weakness-${idx}`} style={[styles.weaknessItem, { borderColor: '#FF4444' }]}>
@@ -336,7 +339,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                 color="#4CAF50"
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1, color: '#4CAF50' }]}>
-                Counter Strategies
+                {t('componentLabels.counterStrategies')}
               </ThemedText>
             </Pressable>
             {expandedSections.tactics && (
@@ -355,6 +358,13 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                         ? '~'
                         : '✗';
                   
+                  const effectivenessLabel =
+                    strategy.effectiveness === 'High'
+                      ? t('componentLabels.high')
+                      : strategy.effectiveness === 'Medium'
+                        ? t('componentLabels.medium')
+                        : t('componentLabels.low');
+                  
                   return (
                     <View
                       key={idx}
@@ -372,7 +382,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                           ]}
                         >
                           <ThemedText style={styles.effectivenessText}>
-                            {emoji} {strategy.effectiveness}
+                            {emoji} {effectivenessLabel}
                           </ThemedText>
                         </View>
                       </View>
@@ -408,7 +418,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                 color="#FF1744"
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1, color: '#FF1744' }]}>
-                Recommended Equipment
+                {t('componentLabels.recommendedEquipment')}
               </ThemedText>
             </Pressable>
             {expandedSections.equipment && (
@@ -423,7 +433,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                     >
                       <MaterialIcons name="star" size={18} color="#FF1744" style={{ fontWeight: 'bold' }} />
                       <ThemedText style={[styles.equipmentCategoryTitle, { fontWeight: '700', fontSize: 14 }]}>
-                        ⚠️ MUST BRING
+                        {t('componentLabels.mustBring')}
                       </ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
@@ -466,7 +476,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                       ]}
                     >
                       <MaterialIcons name="star-half" size={16} color="#FFC107" />
-                      <ThemedText style={styles.equipmentCategoryTitle}>Recommended</ThemedText>
+                      <ThemedText style={styles.equipmentCategoryTitle}>{t('componentLabels.recommended')}</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.recommended.map((item, idx) => (
@@ -501,7 +511,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                       ]}
                     >
                       <MaterialIcons name="help" size={16} color="#2196F3" />
-                      <ThemedText style={styles.equipmentCategoryTitle}>Optional</ThemedText>
+                      <ThemedText style={styles.equipmentCategoryTitle}>{t('componentLabels.optional')}</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.optional.map((item, idx) => (
@@ -536,7 +546,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                       ]}
                     >
                       <MaterialIcons name="cancel" size={16} color="#999" />
-                      <ThemedText style={styles.equipmentCategoryTitle}>Avoid</ThemedText>
+                      <ThemedText style={styles.equipmentCategoryTitle}>{t('componentLabels.avoid')}</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.avoid.map((item, idx) => (
@@ -584,7 +594,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                 color={colors.spectral}
               />
               <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                Identification Tips
+                {t('componentLabels.identificationTips')}
               </ThemedText>
             </Pressable>
             {expandedSections.identification && (

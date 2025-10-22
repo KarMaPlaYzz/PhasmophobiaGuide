@@ -10,33 +10,35 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import {
-  DIFFICULTY_SETTINGS,
-  getSanityStatus,
+    DIFFICULTY_SETTINGS,
+    getSanityStatus,
 } from '@/lib/data/sanity';
 
 type Difficulty = 'amateur' | 'intermediate' | 'professional' | 'nightmare' | 'insanity';
 type MapSize = 'small' | 'medium' | 'large';
-
-const DIFFICULTIES: { key: Difficulty; label: string }[] = [
-  { key: 'amateur', label: 'Amateur' },
-  { key: 'intermediate', label: 'Intermediate' },
-  { key: 'professional', label: 'Professional' },
-  { key: 'nightmare', label: 'Nightmare' },
-  { key: 'insanity', label: 'Insanity' },
-];
-
-const MAP_SIZES: { key: MapSize; label: string; multiplier: number }[] = [
-  { key: 'small', label: 'Small', multiplier: 1.0 },
-  { key: 'medium', label: 'Medium', multiplier: 1.2 },
-  { key: 'large', label: 'Large', multiplier: 1.5 },
-];
 
 export default function SanityCulculatorScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
+  const { t } = useLocalization();
+
+  const DIFFICULTIES: { key: Difficulty; label: string }[] = [
+    { key: 'amateur', label: t('tabs.sanity_diffAmateur') },
+    { key: 'intermediate', label: t('tabs.sanity_diffIntermediate') },
+    { key: 'professional', label: t('tabs.sanity_diffProfessional') },
+    { key: 'nightmare', label: t('tabs.sanity_diffNightmare') },
+    { key: 'insanity', label: t('tabs.sanity_diffInsanity') },
+  ];
+
+  const MAP_SIZES: { key: MapSize; label: string; multiplier: number }[] = [
+    { key: 'small', label: t('tabs.sanity_sizeSmall'), multiplier: 1.0 },
+    { key: 'medium', label: t('tabs.sanity_sizeMedium'), multiplier: 1.2 },
+    { key: 'large', label: t('tabs.sanity_sizeLarge'), multiplier: 1.5 },
+  ];
 
   const [selectedDifficulty, setSelectedDifficulty] = useState<Difficulty>('professional');
   const [selectedMapSize, setSelectedMapSize] = useState<MapSize>('medium');

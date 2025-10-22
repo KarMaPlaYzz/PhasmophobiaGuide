@@ -9,7 +9,6 @@ import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
-import { LANGUAGE_LABELS, SupportedLanguage } from '@/lib/localization';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { BookmarkService, HistoryService } from '@/lib/storage/storageService';
 
@@ -25,12 +24,11 @@ export const SettingsDetailSheet = ({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const snapPoints = useMemo(() => ['60%', '100%'], []);
-  const { t, language, setLanguage } = useLocalization();
+  const { t } = useLocalization();
 
   const [blogNotificationsEnabled, setBlogNotificationsEnabled] = useState(true);
   const [hapticFeedbackEnabled, setHapticFeedbackEnabled] = useState(true);
   const [defaultTab, setDefaultTab] = useState<'ghosts' | 'equipments' | 'index' | 'evidence' | 'sanity-calculator'>('index');
-  const [currentLanguage, setCurrentLanguage] = useState<SupportedLanguage>('en');
   const [appVersion, setAppVersion] = useState('1.0.0');
   const [gameVersionDate, setGameVersionDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -47,7 +45,6 @@ export const SettingsDetailSheet = ({
       setBlogNotificationsEnabled(prefs.blogNotificationsEnabled);
       setHapticFeedbackEnabled(prefs.hapticFeedbackEnabled);
       setDefaultTab(prefs.defaultTab);
-      setCurrentLanguage(prefs.language || 'en');
 
       // Get app version from package.json or set a constant
       setAppVersion('1.0.0'); // You can update this in app.json
@@ -99,18 +96,6 @@ export const SettingsDetailSheet = ({
       await PreferencesService.setDefaultTab(tab);
     } catch (error) {
       console.error('Error updating default tab:', error);
-    }
-  };
-
-  const handleLanguageChange = async (newLanguage: SupportedLanguage) => {
-    try {
-      if (hapticFeedbackEnabled) {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-      }
-      setCurrentLanguage(newLanguage);
-      await setLanguage(newLanguage);
-    } catch (error) {
-      console.error('Error updating language:', error);
     }
   };
 
@@ -281,11 +266,6 @@ export const SettingsDetailSheet = ({
             onTabChange={handleDefaultTabChange}
             colors={colors}
           />
-          <LanguageSelector
-            selectedLanguage={currentLanguage}
-            onLanguageChange={handleLanguageChange}
-            colors={colors}
-          />
         </View>
 
         {/* About & Info Section */}
@@ -433,58 +413,6 @@ const DefaultTabSelector: React.FC<DefaultTabSelectorProps> = ({
       </View>
       <View style={styles.tabBadge}>
         <ThemedText style={styles.tabBadgeText}>{currentTab.label}</ThemedText>
-      </View>
-    </Pressable>
-  );
-};
-
-interface LanguageSelectorProps {
-  selectedLanguage: SupportedLanguage;
-  onLanguageChange: (language: SupportedLanguage) => void;
-  colors: typeof Colors.light;
-}
-
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({
-  selectedLanguage,
-  onLanguageChange,
-  colors,
-}) => {
-  const { t } = useLocalization();
-  
-  const LANGUAGE_OPTIONS: SupportedLanguage[] = ['en', 'de', 'nl', 'fr', 'es', 'it', 'pt', 'sv'];
-
-  const currentLanguageIndex = LANGUAGE_OPTIONS.findIndex((lang) => lang === selectedLanguage);
-  const safeIndex = currentLanguageIndex >= 0 ? currentLanguageIndex : 0;
-  const currentLanguage = LANGUAGE_OPTIONS[safeIndex];
-
-  const handleCycleLanguage = () => {
-    const nextIndex = (safeIndex + 1) % LANGUAGE_OPTIONS.length;
-    onLanguageChange(LANGUAGE_OPTIONS[nextIndex]);
-  };
-
-  return (
-    <Pressable
-      onPress={handleCycleLanguage}
-      style={[
-        styles.settingItem,
-        {
-          backgroundColor: colors.surface,
-          borderColor: colors.border,
-          marginBottom: 10,
-        },
-      ]}
-    >
-      <View style={styles.settingItemLeft}>
-        <Ionicons name="language" size={24} color={colors.spectral} />
-        <View style={styles.settingItemText}>
-          <ThemedText style={styles.settingLabel}>{t('settings.language')}</ThemedText>
-          <ThemedText style={styles.settingDescription}>
-            {t('settings.languageDesc')}
-          </ThemedText>
-        </View>
-      </View>
-      <View style={styles.tabBadge}>
-        <ThemedText style={styles.tabBadgeText}>{LANGUAGE_LABELS[currentLanguage]}</ThemedText>
       </View>
     </Pressable>
   );

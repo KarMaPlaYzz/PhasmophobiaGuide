@@ -15,7 +15,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useLocalization } from '@/hooks/use-localization';
 import { GHOST_LIST } from '@/lib/data/ghosts';
+import { getActivityLabel, getDifficultyLabel, getGhostDescription, getGhostName, getSpeedLabel } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
 import { getActivityIndicator, getMovementIndicator } from '@/lib/utils/colors';
 
@@ -24,6 +26,7 @@ export default function GhostsScreen() {
   const colors = Colors[colorScheme ?? 'light'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
+  const { language, t } = useLocalization();
   
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
@@ -37,26 +40,26 @@ export default function GhostsScreen() {
     }
   };
 
-  const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Expert'];
+  const difficulties = ['All', 'beginner', 'intermediate', 'advanced', 'expert'];
 
   const filteredGhosts = useMemo(() => {
     const difficultyOrder: Record<string, number> = { 
-      'Beginner': 0, 
-      'Intermediate': 1, 
-      'Advanced': 2, 
-      'Expert': 3 
+      'beginner': 0, 
+      'intermediate': 1, 
+      'advanced': 2, 
+      'expert': 3 
     };
 
     let filtered = GHOST_LIST.filter((ghost) => {
       const matchesSearch = ghost.name.toLowerCase().includes(searchText.toLowerCase());
-      const matchesDifficulty = selectedDifficulty === 'All' || ghost.difficulty === selectedDifficulty;
+      const matchesDifficulty = selectedDifficulty === 'All' || ghost.difficulty.toLowerCase() === selectedDifficulty;
       return matchesSearch && matchesDifficulty;
     });
 
     // Sort by difficulty
     filtered.sort((a, b) => {
-      const orderA = difficultyOrder[a.difficulty] ?? 999;
-      const orderB = difficultyOrder[b.difficulty] ?? 999;
+      const orderA = difficultyOrder[a.difficulty.toLowerCase()] ?? 999;
+      const orderB = difficultyOrder[b.difficulty.toLowerCase()] ?? 999;
       return orderA - orderB;
     });
 
@@ -65,22 +68,38 @@ export default function GhostsScreen() {
 
   const getDifficultyColor = (difficulty: string) => {
     if (difficulty === 'All') return colors.spectral;
-    return DifficultyColors[difficulty as keyof typeof DifficultyColors] || colors.text;
+    // Convert to title case for DifficultyColors lookup
+    const titleCase = difficulty.charAt(0).toUpperCase() + difficulty.slice(1).toLowerCase();
+    return DifficultyColors[titleCase as keyof typeof DifficultyColors] || colors.text;
   };
 
   const getDifficultyIcon = (difficulty: string): string => {
-    switch (difficulty) {
-      case 'Beginner':
+    switch (difficulty.toLowerCase()) {
+      case 'beginner':
         return 'star';
-      case 'Intermediate':
+      case 'intermediate':
         return 'star-half';
-      case 'Advanced':
+      case 'advanced':
         return 'flame';
-      case 'Expert':
+      case 'expert':
         return 'flash';
       default:
         return 'grid';
     }
+  };
+
+  // Map evidence names to translation keys
+  const getEvidenceDisplayName = (evidenceName: string): string => {
+    const evidenceKeyMap: Record<string, string> = {
+      'EMF Level 5': t('tabs.evidence_emfLevel5'),
+      'D.O.T.S. Projector': t('tabs.evidence_dots'),
+      'Ultraviolet': t('tabs.evidence_ultraviolet'),
+      'Ghost Orb': t('tabs.evidence_ghostOrb'),
+      'Ghost Writing': t('tabs.evidence_ghostWriting'),
+      'Spirit Box': t('tabs.evidence_spiritBox'),
+      'Freezing Temperatures': t('tabs.evidence_freezingTemperatures'),
+    };
+    return evidenceKeyMap[evidenceName] || evidenceName;
   };
 
   const getSanityDrainLevel = (activityLevel: string): { label: string; icon: string; color: string } => {
@@ -126,7 +145,7 @@ export default function GhostsScreen() {
             <MaterialIcons size={20} name="search" color={colors.spectral} />
             <TextInput
               style={[styles.searchInput, { color: colors.text }]}
-              placeholder="Search ghosts..."
+              placeholder={t('tabs.ghosts_searchPlaceholder')}
               placeholderTextColor={colors.tabIconDefault}
               value={searchText}
               onChangeText={setSearchText}
@@ -149,9 +168,9 @@ export default function GhostsScreen() {
           >
             {difficulties.map((diff) => {
               const count =
-                diff === 'all'
+                diff === 'All'
                   ? GHOST_LIST.length
-                  : GHOST_LIST.filter((g) => g.difficulty === diff).length;
+                  : GHOST_LIST.filter((g) => g.difficulty.toLowerCase() === diff).length;
               const diffColor = getDifficultyColor(diff);
               return (
                 <TouchableOpacity
@@ -185,7 +204,7 @@ export default function GhostsScreen() {
                       marginLeft: 4,
                     }}
                   >
-                    {diff === 'all' ? 'All' : diff}
+                    {diff === 'All' ? t('componentLabels.filterAll') : getDifficultyLabel(diff, language)}
                   </ThemedText>
                   <View
                     style={[
@@ -211,7 +230,7 @@ export default function GhostsScreen() {
           </ScrollView>
 
           <ThemedText style={styles.resultCounter}>
-            {filteredGhosts.length} ghost{filteredGhosts.length !== 1 ? 's' : ''}
+            {filteredGhosts.length} {filteredGhosts.length === 1 ? t('tabs.ghosts_resultSingular') : t('tabs.ghosts_resultPlural')}
           </ThemedText>
 
           {filteredGhosts.length > 0 ? (
@@ -243,7 +262,7 @@ export default function GhostsScreen() {
                   <View style={styles.ghostHeader}>
                     <View style={{ flex: 1 }}>
                       <ThemedText type="defaultSemiBold" style={styles.ghostName}>
-                        {ghost.name}
+                        {getGhostName(ghost.id, language)}
                       </ThemedText>
                     </View>
                     <View
@@ -262,18 +281,18 @@ export default function GhostsScreen() {
                         color={getDifficultyColor(ghost.difficulty)}
                       />
                       <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(ghost.difficulty) }]}>
-                        {ghost.difficulty}
+                        {getDifficultyLabel(ghost.difficulty, language)}
                       </ThemedText>
                     </View>
                   </View>
 
                   {ghost.description && (
-                    <ThemedText style={styles.ghostDescription}>{ghost.description}</ThemedText>
+                    <ThemedText style={styles.ghostDescription}>{getGhostDescription(ghost.id, language)}</ThemedText>
                   )}
 
                   <View style={styles.ghostStats}>
                     <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>Speed</ThemedText>
+                      <ThemedText style={styles.statLabel}>{t('tabs.ghosts_speed')}</ThemedText>
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                         <Ionicons 
                           name={getMovementIndicator(ghost.movementSpeed).icon as any} 
@@ -281,12 +300,12 @@ export default function GhostsScreen() {
                           color={getMovementIndicator(ghost.movementSpeed).color} 
                         />
                         <ThemedText style={[styles.statValue, { color: getMovementIndicator(ghost.movementSpeed).color }]}>
-                          {ghost.movementSpeed}
+                          {getSpeedLabel(ghost.movementSpeed, language)}
                         </ThemedText>
                       </View>
                     </View>
                     <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>Hunt</ThemedText>
+                      <ThemedText style={styles.statLabel}>{t('tabs.ghosts_hunt')}</ThemedText>
                       <ThemedText style={styles.statValue}>{ghost.huntSanityThreshold}%</ThemedText>
                     </View>
                   </View>
@@ -296,31 +315,31 @@ export default function GhostsScreen() {
                     <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
                       <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
                       <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                        Sanity drain: {getSanityDrainLevel(ghost.activityLevel).label}
+                        {t('tabs.ghosts_sanityDrain')} {getActivityLabel(ghost.activityLevel, language)}
                       </ThemedText>
                     </View>
                   )}
 
                   {ghost.evidence && ghost.evidence.length > 0 && (
                     <View style={styles.evidenceContainer}>
-                      <ThemedText style={styles.evidenceLabel}>Evidence:</ThemedText>
+                      <ThemedText style={styles.evidenceLabel}>{t('tabs.ghosts_evidence')}</ThemedText>
                       <View style={styles.evidenceBadges}>
                         {ghost.evidence.map((ev) => (
                           <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '25' }]}>
-                            <ThemedText style={styles.evidenceText}>{ev}</ThemedText>
+                            <ThemedText style={styles.evidenceText}>{getEvidenceDisplayName(ev)}</ThemedText>
                           </View>
                         ))}
                       </View>
                     </View>
                   )}
 
-                  <ThemedText style={styles.tapTip}>Tap to view details →</ThemedText>
+                  <ThemedText style={styles.tapTip}>{t('tabs.ghosts_tapToViewDetails')}</ThemedText>
                 </View>
               </TouchableOpacity>
             </TapGestureHandler>
             ))
           ) : (
-            <ThemedText style={styles.noResults}>No ghosts match your search</ThemedText>
+            <ThemedText style={styles.noResults}>{t('tabs.ghosts_noResults')}</ThemedText>
           )}
         </ScrollView>
       </ThemedView>
