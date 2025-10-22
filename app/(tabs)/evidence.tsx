@@ -1,6 +1,7 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { BlurView } from 'expo-blur';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
@@ -156,11 +157,14 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3,
-    elevation: 5,
+    overflow: 'hidden',
+  },
+  fabBlur: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 56,
+    height: 56,
   },
 });
 
@@ -450,10 +454,12 @@ export default function EvidenceScreen() {
       {confirmedCount > 0 && (
         <TouchableOpacity
           onPress={resetAll}
-          activeOpacity={0.8}
-          style={[styles.fab, { backgroundColor: colors.spectral }]}
+          activeOpacity={0.7}
+          style={[styles.fab, { backgroundColor: colors.spectral + '30' }]}
         >
-          <MaterialIcons name="refresh" size={24} color="white" />
+          <BlurView intensity={90} style={styles.fabBlur}>
+            <MaterialIcons name="refresh" size={24} color={colors.spectral} />
+          </BlurView>
         </TouchableOpacity>
       )}
     </ThemedView>

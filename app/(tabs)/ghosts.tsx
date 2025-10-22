@@ -294,7 +294,7 @@ export default function GhostsScreen() {
                   {/* Sanity Drain Indicator */}
                   {ghost.activityLevel && (
                     <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                      <MaterialIcons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
+                      <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
                       <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
                         Sanity drain: {getSanityDrainLevel(ghost.activityLevel).label}
                       </ThemedText>

@@ -172,14 +172,14 @@ const extractBlogPostsFromHtml = (html: string): BlogPost[] => {
           // Prioritize high-res images: 1200w > 750w > others
           if (src.includes('1200w') || src.includes('1000w') || src.includes('w=1200') || src.includes('w=1000')) {
             matchHighRes = src;
-            console.log(`✓ Found high-res image (1200w/1000w): ${src}`);
+            //console.log(`✓ Found high-res image (1200w/1000w): ${src}`);
           } else if (src.includes('750w') || src.includes('w=750')) {
             if (!matchHighRes) {
               matchHighRes = src;
             }
-            console.log(`✓ Found 750w image: ${src}`);
+            //console.log(`✓ Found 750w image: ${src}`);
           } else {
-            console.log(`✓ Found image: ${src}`);
+            //console.log(`✓ Found image: ${src}`);
           }
         }
       }
@@ -189,16 +189,16 @@ const extractBlogPostsFromHtml = (html: string): BlogPost[] => {
     // Priority: high-res (1200w/1000w) > 750w > last > first
     if (matchHighRes) {
       imageMatch = matchHighRes;
-      console.log(`✓ Using high-res image: ${imageMatch}`);
+      //console.log(`✓ Using high-res image: ${imageMatch}`);
     } else if (lastMatch) {
       imageMatch = lastMatch;
-      console.log(`✓ Using last image: ${imageMatch}`);
+      //console.log(`✓ Using last image: ${imageMatch}`);
     }
 
     if (!imageMatch) {
-      console.log(`✗ No image found`);
+      //console.log(`✗ No image found`);
     } else {
-      console.log(`   Final image URL: ${imageMatch}`);
+      //console.log(`   Final image URL: ${imageMatch}`);
       
       // Check if the image URL contains multiple sizes (comma-separated)
       if (imageMatch.includes(',')) {
@@ -218,7 +218,7 @@ const extractBlogPostsFromHtml = (html: string): BlogPost[] => {
         }
         
         imageMatch = selectedImage;
-        console.log(`   Selected from multiple: ${imageMatch}`);
+        //console.log(`   Selected from multiple: ${imageMatch}`);
       }
     }
 
@@ -291,7 +291,7 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
     const sampleStart = html.indexOf('blog/');
     if (sampleStart > 0) {
       const sampleEnd = sampleStart + 300;
-      console.log('HTML sample around first blog link:', html.substring(sampleStart - 50, sampleEnd));
+      //console.log('HTML sample around first blog link:', html.substring(sampleStart - 50, sampleEnd));
     }
 
     // Extract blog posts from HTML
@@ -306,7 +306,7 @@ export const fetchBlogPosts = async (): Promise<BlogPost[]> => {
 
     console.log(`Successfully fetched and cached ${posts.length} blog posts`);
     if (posts.length > 0) {
-      console.log('First post:', posts[0]);
+      //console.log('First post:', posts[0]);
     }
     return posts;
   } catch (error) {

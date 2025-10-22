@@ -13,10 +13,12 @@ import { equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter }
 import { HistoryDetailSheet } from '@/components/history-detail-sheet';
 import { LibraryHeader } from '@/components/library-header';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
+import { SettingsDetailSheet } from '@/components/settings-detail-sheet';
 import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
+import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Equipment, Ghost } from '@/lib/types';
 import { cleanupBlogNotifications, initializeBlogNotifications } from '@/lib/utils/blog-notifications';
 
@@ -31,6 +33,7 @@ export default function RootLayout() {
   const [isBookmarksVisible, setIsBookmarksVisible] = useState(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isWhatsNewVisible, setIsWhatsNewVisible] = useState(false);
+  const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [selectedMap, setSelectedMap] = useState<any>(null);
@@ -59,6 +62,7 @@ export default function RootLayout() {
   // Initialize blog notifications
   useEffect(() => {
     initializeBlogNotifications();
+    PreferencesService.initialize();
     
     return () => {
       cleanupBlogNotifications();
@@ -84,6 +88,7 @@ export default function RootLayout() {
                     onBookmarksPress={() => setIsBookmarksVisible(true)}
                     onHistoryPress={() => setIsHistoryVisible(true)}
                     onWhatsNewPress={() => setIsWhatsNewVisible(true)}
+                    onSettingsPress={() => setIsSettingsVisible(true)}
                   />
                 ),
               }}
@@ -103,6 +108,10 @@ export default function RootLayout() {
             onClose={() => setIsWhatsNewVisible(false)}
             releases={FEATURE_RELEASES}
             upcomingFeatures={UPCOMING_FEATURES}
+          />
+          <SettingsDetailSheet
+            isVisible={isSettingsVisible}
+            onClose={() => setIsSettingsVisible(false)}
           />
           <GhostDetailSheet
             ghost={selectedGhost}

@@ -1,15 +1,43 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Tabs } from 'expo-router';
-import React from 'react';
+import { Tabs, useRouter } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+  const router = useRouter();
+  const hasNavigated = useRef(false);
+
+  // Load default tab preference on first mount
+  useEffect(() => {
+    const loadAndNavigate = async () => {
+      if (hasNavigated.current) return; // Prevent multiple navigations
+      
+      try {
+        const defaultTab = await PreferencesService.getDefaultTab();
+        console.log('Default tab from preferences:', defaultTab);
+        
+        // Only navigate if it's not the default index tab
+        if (defaultTab !== 'index') {
+          hasNavigated.current = true;
+          // Use router.replace to navigate within the tab stack
+          router.replace(`/(tabs)/${defaultTab}`);
+        }
+      } catch (error) {
+        console.error('Error loading default tab:', error);
+      }
+    };
+
+    // Small delay to ensure navigation is ready
+    const timer = setTimeout(loadAndNavigate, 100);
+    return () => clearTimeout(timer);
+  }, [router]);
 
   return (
     <Tabs

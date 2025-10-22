@@ -13,6 +13,7 @@ interface LibraryHeaderProps {
   onBookmarksPress?: () => void;
   onHistoryPress?: () => void;
   onWhatsNewPress?: () => void;
+  onSettingsPress?: () => void;
 }
 
 /**
@@ -25,6 +26,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
   onBookmarksPress,
   onHistoryPress,
   onWhatsNewPress,
+  onSettingsPress,
 }) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
@@ -70,6 +72,10 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
 
   const handleWhatsNewPress = () => {
     onWhatsNewPress?.();
+  };
+
+  const handleSettingsPress = () => {
+    onSettingsPress?.();
   };
 
   if (variant === 'compact') {
@@ -118,6 +124,16 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
               </ThemedText>
             </View>
           )} */}
+        </Pressable>
+
+        <Pressable
+          onPress={handleSettingsPress}
+          style={styles.button}
+          accessible
+          accessibilityLabel="Settings"
+          accessibilityRole="button"
+        >
+          <MaterialIcons name="settings" size={28} color={colors.spectral} />
         </Pressable>
       </View>
     );
