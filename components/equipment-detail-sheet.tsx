@@ -12,7 +12,7 @@ import { Colors, EquipmentCategoryColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { SYNERGIES } from '@/lib/data/equipment';
-import { getEquipmentDescription, getEquipmentUsage } from '@/lib/localization';
+import { getEquipmentDescription, getEquipmentName, getEquipmentUsage } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
 import { Equipment } from '@/lib/types';
 
@@ -137,15 +137,17 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         showsVerticalScrollIndicator={false}
       >
         {/* Equipment Image - Compact */}
-        {equipment.imageUrl ? (
-          <View style={[styles.imageContainer, { backgroundColor: colors.haunted + '30' }]}>
+        <View style={[styles.imageContainer, { backgroundColor: colors.haunted + '30' }]}>
+          {equipment.imageUrl ? (
             <Image
               source={{ uri: equipment.imageUrl }}
               style={styles.equipmentImage}
               onError={(error) => console.log('Image load error:', error)}
             />
-          </View>
-        ) : null}
+          ) : (
+            <ThemedText style={{ color: colors.text + '80', fontSize: 16 }}>No image available</ThemedText>
+          )}
+        </View>
 
         {/* Header: Name + Badges + Bookmark */}
         <View style={styles.headerRow}>
@@ -326,7 +328,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
                   <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
                     <Ionicons size={14} name="link" color={colors.spectral} />
                     <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
-                      {synergyId.replace('-', ' ')}
+                      {getEquipmentName(synergyId, language)}
                     </ThemedText>
                   </View>
                 ))}

@@ -60,7 +60,7 @@ export const STARTER_EQUIPMENT: Record<string, Equipment> = {
       'Ghost identification',
       'Evidence collection',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/ca/SpiritBox090_T1.png/revision/latest?cb=20230822153517',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/a/ae/SpiritBox090_T1.png/revision/latest?cb=20230822153548',
   },
 
   'thermometer': {
@@ -247,7 +247,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Beginner safety',
       'Difficult ghosts',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/e/e0/CrucifixModel.png/revision/latest',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/11/Crucifix090_T1.png/revision/latest?cb=20230822153036',
   },
 
   salt: {
@@ -273,7 +273,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Ghost path identification',
       'Wraith detection (no footprints)',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/6/69/SaltModel.png/revision/latest',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/6/60/Salt090_T1.png/revision/latest?cb=20230822153506',
   },
 
   'sanity-medication': {
@@ -299,7 +299,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Hunt prevention',
       'Extended contracts',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/c1/SanityMedicationModel.png/revision/latest',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/1e/Med090_T1.png/revision/latest?cb=20230822153336',
   },
 
   incense: {
@@ -325,7 +325,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Hunt evasion',
       'Emergency defense',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/8/8a/IncenseModel.png/revision/latest',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/a/ae/Incense090_T1.png/revision/latest?cb=20230822153317',
   },
 
   igniter: {
@@ -350,7 +350,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Firelight usage',
       'General utility',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/22/IgniterModel.png/revision/latest',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/0/00/Igniter090_T1.png/revision/latest?cb=20230822153300',
   },
 
   firelight: {
@@ -376,7 +376,7 @@ export const OPTIONAL_EQUIPMENT: Record<string, Equipment> = {
       'Comfort/light source',
       'Onryo prevention',
     ],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/3/31/FirelightModel.png/revision/latest',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/3/37/FireLight090_T1.png/revision/latest?cb=20230822153139',
   },
 
   'photo-camera': {
@@ -683,6 +683,7 @@ export const TRUCK_EQUIPMENT: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Task tracking', 'Challenges'],
+    imageUrl: '',
   },
 
   'setup-timer': {
@@ -760,7 +761,7 @@ export const CURSED_POSSESSIONS: Record<string, Equipment> = {
     consumable: false,
     tiers: [],
     recommendedFor: ['Sanity drain', 'Haunting', 'Forced hunts'],
-    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/f/fb/Music_Box.png/revision/latest?cb=20231226012106',
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/5/5f/Music_box_display.jpg/revision/latest?cb=20230131144318',
   },
 
   'haunted-mirror': {
