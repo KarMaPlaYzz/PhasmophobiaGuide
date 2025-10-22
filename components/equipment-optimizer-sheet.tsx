@@ -1,5 +1,6 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -54,7 +55,10 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
-      backgroundStyle={{ backgroundColor: colors.surface }}
+      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+      backgroundComponent={() => (
+        <BlurView intensity={90} style={StyleSheet.absoluteFillObject} />
+      )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >
       <BottomSheetScrollView
