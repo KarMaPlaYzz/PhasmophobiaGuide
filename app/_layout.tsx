@@ -14,12 +14,15 @@ import { equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter }
 import { HistoryDetailSheet } from '@/components/history-detail-sheet';
 import { LibraryHeader } from '@/components/library-header';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
+import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { SettingsDetailSheet } from '@/components/settings-detail-sheet';
 import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LocalizationProvider } from '@/hooks/use-localization';
 import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
+import { initializeAdMob } from '@/lib/services/admobService';
+import { endPremiumConnection, initializePremium } from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Equipment, Ghost } from '@/lib/types';
 import { cleanupBlogNotifications, initializeBlogNotifications } from '@/lib/utils/blog-notifications';
@@ -36,6 +39,7 @@ export default function RootLayout() {
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
   const [isWhatsNewVisible, setIsWhatsNewVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
+  const [isPremiumPaywallVisible, setIsPremiumPaywallVisible] = useState(false);
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [selectedMap, setSelectedMap] = useState<any>(null);
@@ -66,6 +70,12 @@ export default function RootLayout() {
     initializeBlogNotifications();
     PreferencesService.initialize();
     
+    // Initialize AdMob
+    initializeAdMob();
+    
+    // Initialize Premium/IAP
+    initializePremium();
+    
     // Request notification permissions
     const requestNotificationPermissions = async () => {
       try {
@@ -82,6 +92,7 @@ export default function RootLayout() {
     
     return () => {
       cleanupBlogNotifications();
+      endPremiumConnection();
     };
   }, []);
 
@@ -144,6 +155,10 @@ export default function RootLayout() {
               map={selectedMap}
               isVisible={selectedMap !== null}
               onClose={() => setSelectedMap(null)}
+            />
+            <PremiumPaywallSheet
+              isVisible={isPremiumPaywallVisible}
+              onClose={() => setIsPremiumPaywallVisible(false)}
             />
           </BottomSheetModalProvider>
           <StatusBar style="auto" />

@@ -14,10 +14,7 @@
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "YOUR_APP_ID"
-      },
-      "android": {
-        "googlePlayServiceAccountKeyPath": "./google-play-key.json"
+        "ascAppId": "com.Playzzon.PhasmophobiaGuide"
       }
     }
   }

@@ -10,8 +10,11 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.ktopo.phasmophobiaguide",
-      "buildNumber": "1"
+      "bundleIdentifier": "com.Playzzon.PhasmophobiaGuide",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -20,7 +23,7 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "package": "com.ktopo.phasmophobiaguide",
+      "package": "com.Playzzon.PhasmophobiaGuide",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -37,11 +40,24 @@
             "backgroundColor": "#000000"
           }
         }
+      ],
+      [
+        "react-native-google-mobile-ads",
+        {
+          "iosClientId": "ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy",
+          "androidClientId": "ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy"
+        }
       ]
     ],
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "99b310be-d55f-4586-9589-e36bf843ee93"
+      }
     }
   }
 }
