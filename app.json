@@ -44,8 +44,8 @@
       [
         "react-native-google-mobile-ads",
         {
-          "iosClientId": "ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy",
-          "androidClientId": "ca-app-pub-xxxxxxxxxxxxxxxx~yyyyyyyyyy"
+          "iosClientId": "YOUR_IOS_APP_ID_HERE",
+          "androidClientId": "YOUR_ANDROID_APP_ID_HERE"
         }
       ]
     ],
