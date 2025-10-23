@@ -5,6 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '@/components/ad-banner';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -12,8 +13,8 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import {
-  DIFFICULTY_SETTINGS,
-  getSanityStatus,
+    DIFFICULTY_SETTINGS,
+    getSanityStatus,
 } from '@/lib/data/sanity';
 
 type Difficulty = 'amateur' | 'intermediate' | 'professional' | 'nightmare' | 'insanity';
@@ -466,6 +467,11 @@ export default function SanityCulculatorScreen() {
             </ThemedText>
           </View>
         </View>
+
+        {/* Ad at the bottom */}
+        <View style={styles.adContainer}>
+          <AdBanner />
+        </View>
       </ScrollView>
     </ThemedView>
   );
@@ -627,4 +633,5 @@ const styles = StyleSheet.create({
   // Tips
   tipsContainer: { gap: 10 },
   tipText: { fontSize: 14, opacity: 0.75, lineHeight: 20 },
+  adContainer: { marginVertical: 12, marginHorizontal: -16 },
 });

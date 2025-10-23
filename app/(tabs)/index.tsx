@@ -3,17 +3,18 @@ import { useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import {
-  Dimensions,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  TextInput,
-  TouchableOpacity,
-  UIManager,
-  View
+    Dimensions,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    TouchableOpacity,
+    UIManager,
+    View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '@/components/ad-banner';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
 import { ThemedText } from '@/components/themed-text';
@@ -383,6 +384,13 @@ export default function MapsScreen() {
           </View>
         )}
 
+        {/* Ad at the bottom of the list */}
+        {filteredMaps.length > 0 && (
+          <View style={styles.adContainer}>
+            <AdBanner />
+          </View>
+        )}
+
             <View style={{ height: 32 }} />
         </ScrollView>
       </ThemedView>
@@ -592,4 +600,5 @@ const styles = StyleSheet.create({
   },
   noResults: { textAlign: 'center', marginTop: 16, fontSize: 17, fontWeight: '700' },
   noResultsHint: { textAlign: 'center', marginTop: 8, fontSize: 13, opacity: 0.5 },
+  adContainer: { marginVertical: 12, marginHorizontal: -16 },
 });

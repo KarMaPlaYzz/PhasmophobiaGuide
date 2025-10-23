@@ -8,6 +8,7 @@ import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react
 import { GestureHandlerRootView, TapGestureHandler } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '@/components/ad-banner';
 import { GhostComparisonSheet } from '@/components/ghost-comparison-sheet';
 import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
@@ -234,112 +235,126 @@ export default function GhostsScreen() {
           </ThemedText>
 
           {filteredGhosts.length > 0 ? (
-            filteredGhosts.map((ghost) => (
-              <TapGestureHandler
-                key={ghost.id}
-                onActivated={() => handleGhostPress(ghost)}
-                maxDurationMs={500}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                    handleGhostPress(ghost);
-                  }}
-                  activeOpacity={0.6}
-                  delayPressIn={0}
+            filteredGhosts.map((ghost, index) => (
+              <React.Fragment key={ghost.id}>
+                {/* Show ad in the middle of the list */}
+                {index === Math.floor(filteredGhosts.length / 2) && (
+                  <View style={styles.adContainer}>
+                    <AdBanner />
+                  </View>
+                )}
+                <TapGestureHandler
+                  onActivated={() => handleGhostPress(ghost)}
+                  maxDurationMs={500}
                 >
-                  <View
-                    style={[
-                      styles.ghostCard,
-                      { 
-                        borderLeftWidth: 4,
-                        borderLeftColor: getDifficultyColor(ghost.difficulty),
-                        backgroundColor: getDifficultyColor(ghost.difficulty) + '10',
-                        borderColor: getDifficultyColor(ghost.difficulty) + '30',
-                      },
-                    ]}
+                  <TouchableOpacity
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                      handleGhostPress(ghost);
+                    }}
+                    activeOpacity={0.6}
+                    delayPressIn={0}
                   >
-                  <View style={styles.ghostHeader}>
-                    <View style={{ flex: 1 }}>
-                      <ThemedText type="defaultSemiBold" style={styles.ghostName}>
-                        {getGhostName(ghost.id, language)}
-                      </ThemedText>
-                    </View>
                     <View
                       style={[
-                        styles.difficultyBadge,
-                        {
-                          backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
-                          borderColor: getDifficultyColor(ghost.difficulty),
-                          borderWidth: 1,
+                        styles.ghostCard,
+                        { 
+                          borderLeftWidth: 4,
+                          borderLeftColor: getDifficultyColor(ghost.difficulty),
+                          backgroundColor: getDifficultyColor(ghost.difficulty) + '10',
+                          borderColor: getDifficultyColor(ghost.difficulty) + '30',
                         },
                       ]}
                     >
-                      <Ionicons
-                        size={12}
-                        name={getDifficultyIcon(ghost.difficulty) as any}
-                        color={getDifficultyColor(ghost.difficulty)}
-                      />
-                      <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(ghost.difficulty) }]}>
-                        {getDifficultyLabel(ghost.difficulty, language)}
-                      </ThemedText>
-                    </View>
-                  </View>
-
-                  {ghost.description && (
-                    <ThemedText style={styles.ghostDescription}>{getGhostDescription(ghost.id, language)}</ThemedText>
-                  )}
-
-                  <View style={styles.ghostStats}>
-                    <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>{t('tabs.ghosts_speed')}</ThemedText>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Ionicons 
-                          name={getMovementIndicator(ghost.movementSpeed).icon as any} 
-                          size={14} 
-                          color={getMovementIndicator(ghost.movementSpeed).color} 
+                    <View style={styles.ghostHeader}>
+                      <View style={{ flex: 1 }}>
+                        <ThemedText type="defaultSemiBold" style={styles.ghostName}>
+                          {getGhostName(ghost.id, language)}
+                        </ThemedText>
+                      </View>
+                      <View
+                        style={[
+                          styles.difficultyBadge,
+                          {
+                            backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
+                            borderColor: getDifficultyColor(ghost.difficulty),
+                            borderWidth: 1,
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          size={12}
+                          name={getDifficultyIcon(ghost.difficulty) as any}
+                          color={getDifficultyColor(ghost.difficulty)}
                         />
-                        <ThemedText style={[styles.statValue, { color: getMovementIndicator(ghost.movementSpeed).color }]}>
-                          {getSpeedLabel(ghost.movementSpeed, language)}
+                        <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(ghost.difficulty) }]}>
+                          {getDifficultyLabel(ghost.difficulty, language)}
                         </ThemedText>
                       </View>
                     </View>
-                    <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>{t('tabs.ghosts_hunt')}</ThemedText>
-                      <ThemedText style={styles.statValue}>{ghost.huntSanityThreshold}%</ThemedText>
-                    </View>
-                  </View>
 
-                  {/* Sanity Drain Indicator */}
-                  {ghost.activityLevel && (
-                    <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                      <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
-                      <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                        {t('tabs.ghosts_sanityDrain')} {getActivityLabel(ghost.activityLevel, language)}
-                      </ThemedText>
-                    </View>
-                  )}
+                    {ghost.description && (
+                      <ThemedText style={styles.ghostDescription}>{getGhostDescription(ghost.id, language)}</ThemedText>
+                    )}
 
-                  {ghost.evidence && ghost.evidence.length > 0 && (
-                    <View style={styles.evidenceContainer}>
-                      <ThemedText style={styles.evidenceLabel}>{t('tabs.ghosts_evidence')}</ThemedText>
-                      <View style={styles.evidenceBadges}>
-                        {ghost.evidence.map((ev) => (
-                          <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '25' }]}>
-                            <ThemedText style={styles.evidenceText}>{getEvidenceDisplayName(ev)}</ThemedText>
-                          </View>
-                        ))}
+                    <View style={styles.ghostStats}>
+                      <View style={styles.statItem}>
+                        <ThemedText style={styles.statLabel}>{t('tabs.ghosts_speed')}</ThemedText>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+                          <Ionicons 
+                            name={getMovementIndicator(ghost.movementSpeed).icon as any} 
+                            size={14} 
+                            color={getMovementIndicator(ghost.movementSpeed).color} 
+                          />
+                          <ThemedText style={[styles.statValue, { color: getMovementIndicator(ghost.movementSpeed).color }]}>
+                            {getSpeedLabel(ghost.movementSpeed, language)}
+                          </ThemedText>
+                        </View>
+                      </View>
+                      <View style={styles.statItem}>
+                        <ThemedText style={styles.statLabel}>{t('tabs.ghosts_hunt')}</ThemedText>
+                        <ThemedText style={styles.statValue}>{ghost.huntSanityThreshold}%</ThemedText>
                       </View>
                     </View>
-                  )}
 
-                  <ThemedText style={styles.tapTip}>{t('tabs.ghosts_tapToViewDetails')}</ThemedText>
-                </View>
-              </TouchableOpacity>
-            </TapGestureHandler>
+                    {/* Sanity Drain Indicator */}
+                    {ghost.activityLevel && (
+                      <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
+                        <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
+                        <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
+                          {t('tabs.ghosts_sanityDrain')} {getActivityLabel(ghost.activityLevel, language)}
+                        </ThemedText>
+                      </View>
+                    )}
+
+                    {ghost.evidence && ghost.evidence.length > 0 && (
+                      <View style={styles.evidenceContainer}>
+                        <ThemedText style={styles.evidenceLabel}>{t('tabs.ghosts_evidence')}</ThemedText>
+                        <View style={styles.evidenceBadges}>
+                          {ghost.evidence.map((ev) => (
+                            <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '25' }]}>
+                              <ThemedText style={styles.evidenceText}>{getEvidenceDisplayName(ev)}</ThemedText>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
+                    <ThemedText style={styles.tapTip}>{t('tabs.ghosts_tapToViewDetails')}</ThemedText>
+                  </View>
+                </TouchableOpacity>
+              </TapGestureHandler>
+              </React.Fragment>
             ))
           ) : (
             <ThemedText style={styles.noResults}>{t('tabs.ghosts_noResults')}</ThemedText>
+          )}
+
+          {/* Ad at the bottom of the list */}
+          {filteredGhosts.length > 0 && (
+            <View style={styles.adContainer}>
+              <AdBanner />
+            </View>
           )}
         </ScrollView>
       </ThemedView>
@@ -388,6 +403,7 @@ const styles = StyleSheet.create({
   header: { paddingVertical: 16, paddingHorizontal: 16 },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
   content: { flex: 1, paddingHorizontal: 16, paddingTop: 16 },
+  adContainer: { marginVertical: 12, marginHorizontal: -16 },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',

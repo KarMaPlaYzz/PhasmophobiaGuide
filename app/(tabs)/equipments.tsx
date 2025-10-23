@@ -7,6 +7,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '@/components/ad-banner';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { EquipmentOptimizerSheet } from '@/components/equipment-optimizer-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
@@ -195,74 +196,88 @@ export default function EquipmentScreen() {
         </ThemedText>
 
         {filteredEquipment.length > 0 ? (
-          filteredEquipment.map((item) => (
-            <TouchableOpacity
-              key={item.id}
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                handleEquipmentPress(item);
-              }}
-              style={[
-                styles.equipmentCard,
-                {
-                  borderLeftWidth: 4,
-                  borderLeftColor: getCategoryColor(item.category),
-                  backgroundColor: getCategoryColor(item.category) + '10',
-                  borderColor: getCategoryColor(item.category) + '30',
-                },
-              ]}>
-              <View style={styles.equipmentHeader}>
-                <View style={{ flex: 1 }}>
-                  <ThemedText type="defaultSemiBold" style={styles.equipmentName}>
-                    {getEquipmentName(item.id, language)}
-                  </ThemedText>
+          filteredEquipment.map((item, index) => (
+            <React.Fragment key={item.id}>
+              {/* Show ad in the middle of the list */}
+              {index === Math.floor(filteredEquipment.length / 2) && (
+                <View style={styles.adContainer}>
+                  <AdBanner />
                 </View>
-                <View
-                  style={[
-                    styles.categoryBadge,
-                    {
-                      backgroundColor: getCategoryColor(item.category) + '20',
-                      borderColor: getCategoryColor(item.category),
-                      borderWidth: 1,
-                    },
-                  ]}>
-                  <Ionicons
-                    size={12}
-                    name={getCategoryIcon(item.category) as any}
-                    color={getCategoryColor(item.category)}
-                  />
-                  <ThemedText style={[styles.categoryText, { color: getCategoryColor(item.category) }]}>
-                    {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-                  </ThemedText>
-                </View>
-              </View>
-
-              {item.description ? (
-                <ThemedText style={styles.equipmentDescription}>{getEquipmentDescription(item.id, language)}</ThemedText>
-              ) : null}
-
-              <View style={styles.equipmentStats}>
-                {item.cost && item.cost > 0 ? (
-                  <View style={styles.statItem}>
-                    <ThemedText style={styles.statLabel}>{t('tabs.equipment_costLabel')}</ThemedText>
-                    <ThemedText style={styles.statValue}>${item.cost}</ThemedText>
+              )}
+              <TouchableOpacity
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  handleEquipmentPress(item);
+                }}
+                style={[
+                  styles.equipmentCard,
+                  {
+                    borderLeftWidth: 4,
+                    borderLeftColor: getCategoryColor(item.category),
+                    backgroundColor: getCategoryColor(item.category) + '10',
+                    borderColor: getCategoryColor(item.category) + '30',
+                  },
+                ]}>
+                <View style={styles.equipmentHeader}>
+                  <View style={{ flex: 1 }}>
+                    <ThemedText type="defaultSemiBold" style={styles.equipmentName}>
+                      {getEquipmentName(item.id, language)}
+                    </ThemedText>
                   </View>
-                ) : null}
-                {item.capacity ? (
-                  <View style={styles.statItem}>
-                    <ThemedText style={styles.statLabel}>{t('tabs.equipment_capacityLabel')}</ThemedText>
-                    <ThemedText style={styles.statValue}>{item.capacity}</ThemedText>
+                  <View
+                    style={[
+                      styles.categoryBadge,
+                      {
+                        backgroundColor: getCategoryColor(item.category) + '20',
+                        borderColor: getCategoryColor(item.category),
+                        borderWidth: 1,
+                      },
+                    ]}>
+                    <Ionicons
+                      size={12}
+                      name={getCategoryIcon(item.category) as any}
+                      color={getCategoryColor(item.category)}
+                    />
+                    <ThemedText style={[styles.categoryText, { color: getCategoryColor(item.category) }]}>
+                      {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+                    </ThemedText>
                   </View>
-                ) : null}
-                <View style={[styles.tapIndicator, { opacity: 0.5, marginLeft: 'auto' }]}>
-                  <Ionicons size={16} name="information-circle-outline" color={colors.tabIconDefault} />
-                  <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
                 </View>
-              </View>
-            </TouchableOpacity>
+
+                {item.description ? (
+                  <ThemedText style={styles.equipmentDescription}>{getEquipmentDescription(item.id, language)}</ThemedText>
+                ) : null}
+
+                <View style={styles.equipmentStats}>
+                  {item.cost && item.cost > 0 ? (
+                    <View style={styles.statItem}>
+                      <ThemedText style={styles.statLabel}>{t('tabs.equipment_costLabel')}</ThemedText>
+                      <ThemedText style={styles.statValue}>${item.cost}</ThemedText>
+                    </View>
+                  ) : null}
+                  {item.capacity ? (
+                    <View style={styles.statItem}>
+                      <ThemedText style={styles.statLabel}>{t('tabs.equipment_capacityLabel')}</ThemedText>
+                      <ThemedText style={styles.statValue}>{item.capacity}</ThemedText>
+                    </View>
+                  ) : null}
+                  <View style={[styles.tapIndicator, { opacity: 0.5, marginLeft: 'auto' }]}>
+                    <Ionicons size={16} name="information-circle-outline" color={colors.tabIconDefault} />
+                    <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
+                  </View>
+                </View>
+              </TouchableOpacity>
+            </React.Fragment>
           ))
         ) : (
           <ThemedText style={styles.noResults}>{t('tabs.equipment_noResults')}</ThemedText>
+        )}
+
+        {/* Ad at the bottom of the list */}
+        {filteredEquipment.length > 0 && (
+          <View style={styles.adContainer}>
+            <AdBanner />
+          </View>
         )}
       </ScrollView>
 
@@ -309,6 +324,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: { paddingVertical: 12, paddingHorizontal: 16, flexDirection: 'row', justifyContent: 'flex-end' },
   headerTitle: { fontSize: 28, fontWeight: 'bold' },
+  adContainer: { marginVertical: 12, marginHorizontal: -16 },
   fab: { 
     position: 'absolute', 
     width: 64, 

@@ -1108,7 +1108,7 @@ export const GHOSTS: Record<string, Ghost> = {
   },
 
   theTwins: {
-    id: 'the-twins',
+    id: 'theTwins',
     name: 'The Twins',
     description:
       'A pair of ghosts that may manifest separately or together. One is fast and one is slow, making them unpredictable and deadly.',
@@ -1321,7 +1321,7 @@ export const GHOSTS: Record<string, Ghost> = {
   },
 
   theMinic: {
-    id: 'the-mimic',
+    id: 'theMinic',
     name: 'The Mimic',
     description:
       'A Mimic is a rare ghost that is unknown to many. It can mimic the abilities of other ghosts, making it nearly impossible to identify.',

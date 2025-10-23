@@ -7,6 +7,7 @@ import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-nati
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AdBanner } from '@/components/ad-banner';
 import { ghostSelectionEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -14,10 +15,10 @@ import { ALL_EVIDENCE_TYPES, EVIDENCE_DATABASE } from '@/lib/data/evidence-ident
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { EvidenceType } from '@/lib/types';
 import {
-  calculateProgress,
-  EvidenceState,
-  filterGhostsByEvidence,
-  generateSmartHints,
+    calculateProgress,
+    EvidenceState,
+    filterGhostsByEvidence,
+    generateSmartHints,
 } from '@/lib/utils/evidence-identifier';
 import * as Haptics from 'expo-haptics';
 
@@ -166,6 +167,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
   },
+  adContainer: { marginVertical: 12, marginHorizontal: -16 },
 });
 
 export default function EvidenceScreen() {
@@ -447,6 +449,11 @@ export default function EvidenceScreen() {
               </View>
             </>
           )}
+        </View>
+
+        {/* Ad at the bottom */}
+        <View style={styles.adContainer}>
+          <AdBanner />
         </View>
       </ScrollView>
 

@@ -19,21 +19,43 @@ let purchaseErrorSubscription: RNIap.EventSubscription | null = null;
  */
 export const initializePremium = async () => {
   try {
-    if (isInitialized) return;
+    if (isInitialized) {
+      console.log('[Premium] Already initialized');
+      return;
+    }
 
+    console.log('[Premium] Starting initialization');
+    
     // Setup connection to App Store/Google Play
-    await RNIap.initConnection();
+    try {
+      await RNIap.initConnection();
+      console.log('[Premium] Connection established');
+    } catch (error) {
+      console.warn('[Premium] Connection failed, proceeding with cached data:', error);
+    }
+    
     isInitialized = true;
 
     // Check for existing purchases on app start
-    await checkExistingPurchases();
+    try {
+      await checkExistingPurchases();
+      console.log('[Premium] Checked for existing purchases');
+    } catch (error) {
+      console.warn('[Premium] Error checking existing purchases:', error);
+    }
 
     // Set up purchase listeners
-    setupPurchaseListeners();
+    try {
+      setupPurchaseListeners();
+      console.log('[Premium] Purchase listeners set up');
+    } catch (error) {
+      console.warn('[Premium] Error setting up listeners:', error);
+    }
 
-    console.log('Premium service initialized');
+    console.log('[Premium] Initialization complete');
   } catch (error) {
-    console.error('Failed to initialize premium service:', error);
+    console.error('[Premium] Failed to initialize:', error);
+    throw error;
   }
 };
 

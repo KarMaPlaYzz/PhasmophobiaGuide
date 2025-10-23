@@ -14,7 +14,6 @@ import { equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter }
 import { HistoryDetailSheet } from '@/components/history-detail-sheet';
 import { LibraryHeader } from '@/components/library-header';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
-import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { SettingsDetailSheet } from '@/components/settings-detail-sheet';
 import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
@@ -22,7 +21,6 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LocalizationProvider } from '@/hooks/use-localization';
 import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
 import { initializeAdMob } from '@/lib/services/admobService';
-import { endPremiumConnection, initializePremium } from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Equipment, Ghost } from '@/lib/types';
 import { cleanupBlogNotifications, initializeBlogNotifications } from '@/lib/utils/blog-notifications';
@@ -67,32 +65,64 @@ export default function RootLayout() {
 
   // Initialize blog notifications
   useEffect(() => {
-    initializeBlogNotifications();
-    PreferencesService.initialize();
-    
-    // Initialize AdMob
-    initializeAdMob();
-    
-    // Initialize Premium/IAP
-    initializePremium();
-    
-    // Request notification permissions
-    const requestNotificationPermissions = async () => {
+    const initializeServices = async () => {
       try {
-        const { status } = await Notifications.requestPermissionsAsync();
-        if (status !== 'granted') {
-          console.log('Notification permission not granted');
+        console.log('[App] Starting app initialization');
+        
+        try {
+          console.log('[App] Initializing blog notifications');
+          initializeBlogNotifications();
+          console.log('[App] Blog notifications initialized');
+        } catch (error) {
+          console.warn('[App] Blog notifications failed:', error);
         }
+        
+        try {
+          console.log('[App] Initializing preferences');
+          PreferencesService.initialize();
+          console.log('[App] Preferences initialized');
+        } catch (error) {
+          console.warn('[App] Preferences initialization failed:', error);
+        }
+        
+        // Initialize AdMob with error handling
+        try {
+          console.log('[App] Initializing AdMob');
+          await initializeAdMob();
+          console.log('[App] AdMob initialized successfully');
+        } catch (error) {
+          console.warn('[App] AdMob initialization failed (non-critical):', error);
+        }
+        
+        // Request notification permissions
+        try {
+          console.log('[App] Requesting notification permissions');
+          const { status } = await Notifications.requestPermissionsAsync();
+          if (status !== 'granted') {
+            console.log('[App] Notification permission not granted');
+          } else {
+            console.log('[App] Notification permissions granted');
+          }
+        } catch (error) {
+          console.error('[App] Failed to request notification permissions:', error);
+        }
+        
+        console.log('[App] App initialization completed successfully');
       } catch (error) {
-        console.error('Failed to request notification permissions:', error);
+        console.error('[App] Error during app initialization:', error);
       }
     };
     
-    requestNotificationPermissions();
+    initializeServices();
     
     return () => {
-      cleanupBlogNotifications();
-      endPremiumConnection();
+      try {
+        console.log('[App] Cleaning up app services');
+        cleanupBlogNotifications();
+        // endPremiumConnection removed - requires native modules not available in dev builds
+      } catch (error) {
+        console.warn('[App] Error during cleanup:', error);
+      }
     };
   }, []);
 
@@ -156,10 +186,7 @@ export default function RootLayout() {
               isVisible={selectedMap !== null}
               onClose={() => setSelectedMap(null)}
             />
-            <PremiumPaywallSheet
-              isVisible={isPremiumPaywallVisible}
-              onClose={() => setIsPremiumPaywallVisible(false)}
-            />
+            {/* PremiumPaywallSheet removed - requires native modules not available in dev builds */}
           </BottomSheetModalProvider>
           <StatusBar style="auto" />
         </ThemeProvider>
