@@ -3,7 +3,7 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
-import React, { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Alert,
   FlatList,
@@ -13,9 +13,11 @@ import {
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
+import { PremiumBookmarksFeaturesSheet } from '@/components/premium-bookmarks-features';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePremium } from '@/hooks/use-premium';
 import { EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { MAP_LIST } from '@/lib/data/maps';
@@ -33,11 +35,14 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const navigation = useNavigation<any>();
+  const { isPremium } = usePremium();
   const snapPoints = useMemo(() => ['50%', '90%'], []);
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('all');
   const [loading, setLoading] = useState(true);
+  const [premiumSheetVisible, setPremiumSheetVisible] = useState(false);
+  const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | undefined>();
 
   useEffect(() => {
     const unsubscribe = detailSheetEmitter.subscribe(() => {
@@ -56,7 +61,20 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
     setLoading(true);
     try {
       const categoryFilter = selectedCategory === 'all' ? undefined : selectedCategory;
-      const items = await BookmarkService.getBookmarks(categoryFilter);
+      let items = await BookmarkService.getBookmarks(categoryFilter);
+      
+      // Premium: Sort pinned bookmarks to top, then by date
+      if (isPremium) {
+        items = items.sort((a, b) => {
+          if (a.isPinned && !b.isPinned) return -1;
+          if (!a.isPinned && b.isPinned) return 1;
+          return b.createdAt - a.createdAt;
+        });
+      } else {
+        // Free: Just sort by date
+        items = items.sort((a, b) => b.createdAt - a.createdAt);
+      }
+      
       setBookmarks(items);
     } catch (error) {
       console.error('Error loading bookmarks:', error);
@@ -153,9 +171,20 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   const renderBookmarkItem = ({ item }: { item: Bookmark }) => (
     <Pressable
       onPress={() => handleNavigateToItem(item)}
+      onLongPress={() => {
+        if (isPremium) {
+          setSelectedBookmark(item);
+          setPremiumSheetVisible(true);
+        }
+      }}
       style={({ pressed }) => [
         styles.bookmarkItem,
-        { borderLeftColor: colors.spectral, opacity: pressed ? 0.7 : 1 },
+        {
+          borderLeftColor: item.color || colors.spectral,
+          borderLeftWidth: 4,
+          opacity: pressed ? 0.7 : 1,
+          backgroundColor: item.color ? item.color + '15' : 'rgba(0, 217, 255, 0.05)',
+        },
       ]}
     >
       <View style={styles.bookmarkContent}>
@@ -172,10 +201,22 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
           />
         </View>
         <View style={styles.bookmarkText}>
-          <ThemedText style={styles.bookmarkName}>{item.itemName}</ThemedText>
+          <View style={styles.nameRow}>
+            <ThemedText style={styles.bookmarkName} numberOfLines={1}>
+              {item.itemName}
+            </ThemedText>
+            {isPremium && item.isPinned && (
+              <MaterialIcons name="pin" size={14} color={colors.warning} style={{ marginLeft: 6 }} />
+            )}
+          </View>
           <ThemedText style={styles.bookmarkType}>
             {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
           </ThemedText>
+          {isPremium && item.note && (
+            <ThemedText style={styles.bookmarkNote} numberOfLines={1}>
+              {item.note}
+            </ThemedText>
+          )}
         </View>
         <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
       </View>
@@ -231,32 +272,33 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   if (!isVisible) return null;
 
   return (
-    <BottomSheet
-      snapPoints={snapPoints}
-      enablePanDownToClose={true}
-      onClose={onClose}
-      index={isVisible ? 0 : -1}
-      animateOnMount={true}
-      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
-      backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
-      )}
-      handleIndicatorStyle={{ backgroundColor: colors.spectral }}
-    >
-      <BottomSheetScrollView
-        style={{ flex: 1, paddingHorizontal: 16 }}
-        showsVerticalScrollIndicator={false}
+    <>
+      <BottomSheet
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        onClose={onClose}
+        index={isVisible ? 0 : -1}
+        animateOnMount={true}
+        style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+        backgroundComponent={() => (
+          <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        )}
+        handleIndicatorStyle={{ backgroundColor: colors.spectral }}
       >
-        <View style={styles.header}>
-          <View style={{ flex: 1, paddingRight: 12 }}>
-            <ThemedText style={styles.title} numberOfLines={1}>Bookmarks</ThemedText>
-            <ThemedText style={styles.subtitle} numberOfLines={1}>
-              {bookmarks.length} saved item{bookmarks.length !== 1 ? 's' : ''}
-            </ThemedText>
-          </View>
-          <Pressable
-            onPress={handleClearAllBookmarks}
-            disabled={bookmarks.length === 0}
+        <BottomSheetScrollView
+          style={{ flex: 1, paddingHorizontal: 16 }}
+          showsVerticalScrollIndicator={false}
+        >
+          <View style={styles.header}>
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <ThemedText style={styles.title} numberOfLines={1}>Bookmarks</ThemedText>
+              <ThemedText style={styles.subtitle} numberOfLines={1}>
+                {bookmarks.length} saved item{bookmarks.length !== 1 ? 's' : ''}
+              </ThemedText>
+            </View>
+            <Pressable
+              onPress={handleClearAllBookmarks}
+              disabled={bookmarks.length === 0}
             style={({ pressed }) => [
               styles.clearIconButton,
               { opacity: bookmarks.length === 0 ? 0.4 : pressed ? 0.6 : 1 },
@@ -287,6 +329,18 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
         <View style={{ height: 20 }} />
       </BottomSheetScrollView>
     </BottomSheet>
+
+    {/* Premium Features Sheet */}
+    <PremiumBookmarksFeaturesSheet
+      isVisible={premiumSheetVisible}
+      onClose={() => {
+        setPremiumSheetVisible(false);
+        setSelectedBookmark(undefined);
+        loadBookmarks(); // Reload to reflect changes
+      }}
+      bookmark={selectedBookmark}
+    />
+    </>
   );
 };
 
@@ -354,6 +408,16 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     marginBottom: 2,
+  },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  bookmarkNote: {
+    fontSize: 11,
+    opacity: 0.6,
+    fontStyle: 'italic',
+    marginTop: 4,
   },
   bookmarkType: {
     fontSize: 12,

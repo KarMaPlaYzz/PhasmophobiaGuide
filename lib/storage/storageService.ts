@@ -478,7 +478,232 @@ export const BookmarkService = {
       console.error('Error removing tag:', error);
     }
   },
+
+  // ========================================================================
+  // PREMIUM FEATURES
+  // ========================================================================
+
+  /**
+   * Add a personal note to a bookmark (Premium)
+   */
+  async addNoteToBookmark(bookmarkId: string, note: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      if (bookmark) {
+        bookmark.note = note;
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error adding note to bookmark:', error);
+    }
+  },
+
+  /**
+   * Pin/unpin a bookmark (Premium)
+   */
+  async togglePinBookmark(bookmarkId: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      if (bookmark) {
+        bookmark.isPinned = !bookmark.isPinned;
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error pinning bookmark:', error);
+    }
+  },
+
+  /**
+   * Set custom color for a bookmark (Premium)
+   */
+  async setBookmarkColor(bookmarkId: string, color: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      if (bookmark) {
+        bookmark.color = color;
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error setting bookmark color:', error);
+    }
+  },
+
+  /**
+   * Create a collection (Premium)
+   */
+  async createCollection(name: string, description?: string, color?: string): Promise<string> {
+    try {
+      const library = await getLibrary();
+      if (!library.bookmarkCollections) {
+        library.bookmarkCollections = [];
+      }
+
+      const collectionId = `collection_${Date.now()}`;
+      library.bookmarkCollections.push({
+        id: collectionId,
+        name,
+        description,
+        color: color || '#FF6B9D',
+        bookmarkIds: [],
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+      });
+
+      library.lastUpdated = Date.now();
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      return collectionId;
+    } catch (error) {
+      console.error('Error creating collection:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Add bookmark to collection (Premium)
+   */
+  async addBookmarkToCollection(bookmarkId: string, collectionId: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      if (!library.bookmarkCollections) {
+        library.bookmarkCollections = [];
+      }
+
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      const collection = library.bookmarkCollections.find(c => c.id === collectionId);
+
+      if (bookmark && collection) {
+        bookmark.collectionId = collectionId;
+        if (!collection.bookmarkIds.includes(bookmarkId)) {
+          collection.bookmarkIds.push(bookmarkId);
+        }
+        collection.updatedAt = Date.now();
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error adding bookmark to collection:', error);
+    }
+  },
+
+  /**
+   * Remove bookmark from collection (Premium)
+   */
+  async removeBookmarkFromCollection(bookmarkId: string, collectionId: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      if (!library.bookmarkCollections) {
+        return;
+      }
+
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      const collection = library.bookmarkCollections.find(c => c.id === collectionId);
+
+      if (bookmark && collection) {
+        bookmark.collectionId = undefined;
+        collection.bookmarkIds = collection.bookmarkIds.filter(id => id !== bookmarkId);
+        collection.updatedAt = Date.now();
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error removing bookmark from collection:', error);
+    }
+  },
+
+  /**
+   * Get all collections (Premium)
+   */
+  async getCollections(): Promise<any[]> {
+    try {
+      const library = await getLibrary();
+      return library.bookmarkCollections || [];
+    } catch (error) {
+      console.error('Error getting collections:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Get bookmarks in collection (Premium)
+   */
+  async getCollectionBookmarks(collectionId: string): Promise<Bookmark[]> {
+    try {
+      const library = await getLibrary();
+      return library.bookmarks.filter(b => b.collectionId === collectionId);
+    } catch (error) {
+      console.error('Error getting collection bookmarks:', error);
+      return [];
+    }
+  },
+
+  /**
+   * Update collection (Premium)
+   */
+  async updateCollection(collectionId: string, updates: { name?: string; description?: string; color?: string }): Promise<void> {
+    try {
+      const library = await getLibrary();
+      if (!library.bookmarkCollections) {
+        return;
+      }
+
+      const collection = library.bookmarkCollections.find(c => c.id === collectionId);
+      if (collection) {
+        if (updates.name) collection.name = updates.name;
+        if (updates.description) collection.description = updates.description;
+        if (updates.color) collection.color = updates.color;
+        collection.updatedAt = Date.now();
+        library.lastUpdated = Date.now();
+        await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+      }
+    } catch (error) {
+      console.error('Error updating collection:', error);
+    }
+  },
+
+  /**
+   * Delete collection (Premium)
+   */
+  async deleteCollection(collectionId: string): Promise<void> {
+    try {
+      const library = await getLibrary();
+      if (!library.bookmarkCollections) {
+        return;
+      }
+
+      library.bookmarkCollections = library.bookmarkCollections.filter(c => c.id !== collectionId);
+      // Remove collection reference from bookmarks
+      library.bookmarks.forEach(b => {
+        if (b.collectionId === collectionId) {
+          b.collectionId = undefined;
+        }
+      });
+      library.lastUpdated = Date.now();
+      await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
+    } catch (error) {
+      console.error('Error deleting collection:', error);
+    }
+  },
+
+  /**
+   * Get pinned bookmarks (Premium)
+   */
+  async getPinnedBookmarks(): Promise<Bookmark[]> {
+    try {
+      const library = await getLibrary();
+      return library.bookmarks.filter(b => b.isPinned === true);
+    } catch (error) {
+      console.error('Error getting pinned bookmarks:', error);
+      return [];
+    }
+  },
 };
+
 
 // ============================================================================
 // HISTORY SERVICE

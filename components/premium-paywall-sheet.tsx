@@ -2,10 +2,10 @@ import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import {
-    useSharedValue
+  useSharedValue
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
@@ -41,14 +41,14 @@ const PREMIUM_FEATURES = [
     description: 'Identify ghosts by evidence',
   },
   {
+    icon: 'bookmark' as const,
+    title: 'Smart Bookmarks',
+    description: 'Organize with notes, colors & collections',
+  },
+  {
     icon: 'settings' as const,
     title: 'Advanced Filters',
     description: 'Filter by activity, difficulty, speed',
-  },
-  {
-    icon: 'document' as const,
-    title: 'Export Guides',
-    description: 'Save strategy guides as PDF',
   },
 ];
 

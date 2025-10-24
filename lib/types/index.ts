@@ -251,6 +251,22 @@ export interface Bookmark {
   itemName: string;
   createdAt: number;
   tags: string[];
+  // Premium features
+  note?: string; // User's personal note
+  collectionId?: string; // Collection it belongs to
+  color?: string; // Custom color tag
+  isPinned?: boolean; // Pin to top
+}
+
+export interface BookmarkCollection {
+  id: string;
+  name: string;
+  description?: string;
+  color: string;
+  icon?: string;
+  bookmarkIds: string[];
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface HistoryItem {
@@ -273,6 +289,8 @@ export interface UserLibrary {
   bookmarks: Bookmark[];
   history: HistoryItem[];
   customCategories: CustomCategory[];
+  // Premium features
+  bookmarkCollections?: BookmarkCollection[];
   lastUpdated: number;
 }
 

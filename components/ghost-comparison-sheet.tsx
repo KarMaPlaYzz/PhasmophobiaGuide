@@ -1,13 +1,15 @@
+import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
-import React, { useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { getGhostName } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
@@ -34,6 +36,7 @@ export const GhostComparisonSheet = ({
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { language } = useLocalization();
+  const { isPremium, handlePurchase, isPurchasing } = usePremium();
   const snapPoints = useMemo(() => ['65%', '100%'], []);
   const screenWidth = Dimensions.get('window').width;
 
@@ -359,44 +362,65 @@ export const GhostComparisonSheet = ({
         style={{ flex: 1, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flex: 1 }}>
-            <ThemedText style={styles.title} numberOfLines={1}>Compare Ghosts</ThemedText>
-            {selectedGhostIds.length > 0 && (
-              <ThemedText style={styles.subtitle}>
-                {selectedGhostIds.length} selected
+        {/* Premium Paywall */}
+        {!isPremium ? (
+          <View style={styles.premiumPaywall}>
+            <MaterialIcons name="lock" size={48} color={colors.spectral} />
+            <ThemedText style={styles.premiumTitle}>Feature Locked</ThemedText>
+            <ThemedText style={[styles.premiumDescription, { color: colors.text + '80' }]}>
+              Compare ghosts side-by-side is a premium feature.
+            </ThemedText>
+            <Pressable
+              onPress={handlePurchase}
+              disabled={isPurchasing}
+              style={[styles.premiumButton, { backgroundColor: colors.spectral, opacity: isPurchasing ? 0.6 : 1 }]}
+            >
+              <Ionicons name="diamond" size={20} color="white" />
+              <ThemedText style={styles.premiumButtonText}>
+                {isPurchasing ? 'Processing...' : 'Unlock Premium - $2.99'}
               </ThemedText>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            {/* Header */}
+            <View style={styles.header}>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={styles.title} numberOfLines={1}>Compare Ghosts</ThemedText>
+                {selectedGhostIds.length > 0 && (
+                  <ThemedText style={styles.subtitle}>
+                    {selectedGhostIds.length} selected
+                  </ThemedText>
+                )}
+              </View>
+            </View>
+
+            {/* Selected Ghosts */}
+            {selectedGhostIds.length > 0 && (
+              <View style={styles.selectedContainer}>
+                {GHOST_LIST.filter((g) => selectedGhostIds.includes(g.id)).map((ghost) => (
+                  <Pressable
+                    key={ghost.id}
+                    onPress={() => toggleGhostSelection(ghost.id)}
+                    style={[
+                      styles.selectedChip,
+                      {
+                        backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
+                        borderColor: getDifficultyColor(ghost.difficulty),
+                      },
+                    ]}
+                  >
+                    <ThemedText style={[styles.selectedChipText, { color: getDifficultyColor(ghost.difficulty) }]}>
+                      {getGhostName(ghost.id, language)}
+                    </ThemedText>
+                    <MaterialIcons name="close" size={16} color={getDifficultyColor(ghost.difficulty)} />
+                  </Pressable>
+                ))}
+              </View>
             )}
-          </View>
-        </View>
 
-        {/* Selected Ghosts */}
-        {selectedGhostIds.length > 0 && (
-          <View style={styles.selectedContainer}>
-            {GHOST_LIST.filter((g) => selectedGhostIds.includes(g.id)).map((ghost) => (
-              <Pressable
-                key={ghost.id}
-                onPress={() => toggleGhostSelection(ghost.id)}
-                style={[
-                  styles.selectedChip,
-                  {
-                    backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
-                    borderColor: getDifficultyColor(ghost.difficulty),
-                  },
-                ]}
-              >
-                <ThemedText style={[styles.selectedChipText, { color: getDifficultyColor(ghost.difficulty) }]}>
-                  {getGhostName(ghost.id, language)}
-                </ThemedText>
-                <MaterialIcons name="close" size={16} color={getDifficultyColor(ghost.difficulty)} />
-              </Pressable>
-            ))}
-          </View>
-        )}
-
-        {/* Search Bar */}
-        <View style={[styles.searchContainer, { backgroundColor: colors.tabIconDefault + '10' }]}>
+            {/* Search Bar */}
+            <View style={[styles.searchContainer, { backgroundColor: colors.tabIconDefault + '10' }]}>
           <ScrollView
             style={[styles.ghostListContainer]}
             horizontal
@@ -489,11 +513,13 @@ export const GhostComparisonSheet = ({
           </>
         )}
 
-        {selectedGhostIds.length < 2 && (
+        {selectedGhostIds.length < 2 && isPremium && (
           <View style={styles.emptyState}>
             <MaterialIcons size={48} name="compare-arrows" color={colors.tabIconDefault} />
             <ThemedText style={styles.emptyStateText}>Select 2-3 ghosts to compare</ThemedText>
           </View>
+        )}
+        </>
         )}
 
         <View style={{ height: 40 }} />
@@ -766,5 +792,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     opacity: 0.6,
     textAlign: 'center',
+  },
+  premiumPaywall: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+    gap: 16,
+  },
+  premiumTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  premiumDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginHorizontal: 20,
+    lineHeight: 20,
+  },
+  premiumButton: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  premiumButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
   },
 });

@@ -1,14 +1,16 @@
+import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { PLAYSTYLE_PROFILES } from '@/lib/data/equipment-optimizer';
 import { GHOSTS } from '@/lib/data/ghosts';
 import { Playstyle } from '@/lib/types';
@@ -31,6 +33,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { t } = useLocalization();
+  const { isPremium, handlePurchase, isPurchasing } = usePremium();
   const snapPoints = useMemo(() => ['80%', '100%'], []);
 
   // Filter state
@@ -66,22 +69,42 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingTop: 16, paddingBottom: 32 }}
       >
-        {/* Header */}
-        <View style={styles.headerSection}>
-          <ThemedText style={styles.mainTitle} numberOfLines={1}>Loadout Builder</ThemedText>
-          <ThemedText style={styles.subtitle}>Get optimal equipment recommendations</ThemedText>
-        </View>
-
-        {/* Primary Filters - Horizontal */}
-        <View style={styles.primaryFiltersContainer}>
-          {/* Budget Selector */}
-          <View style={styles.primaryFilter}>
-            <ThemedText style={styles.filterLabel}>{t('componentLabels.budget')}</ThemedText>
-            <View style={[styles.budgetDisplay, { backgroundColor: colors.spectral + '20' }]}>
-              <ThemedText style={styles.budgetValue}>${budget}</ThemedText>
+        {!isPremium ? (
+          <View style={styles.premiumPaywall}>
+            <MaterialIcons name="lock" size={48} color={colors.spectral} />
+            <ThemedText style={styles.premiumTitle}>Feature Locked</ThemedText>
+            <ThemedText style={[styles.premiumDescription, { color: colors.text + '80' }]}>
+              Equipment optimizer is a premium feature.
+            </ThemedText>
+            <Pressable
+              onPress={handlePurchase}
+              disabled={isPurchasing}
+              style={[styles.premiumButton, { backgroundColor: colors.spectral, opacity: isPurchasing ? 0.6 : 1 }]}
+            >
+              <Ionicons name="diamond" size={20} color="white" />
+              <ThemedText style={styles.premiumButtonText}>
+                {isPurchasing ? 'Processing...' : 'Unlock Premium - $2.99'}
+              </ThemedText>
+            </Pressable>
+          </View>
+        ) : (
+          <>
+            {/* Header */}
+            <View style={styles.headerSection}>
+              <ThemedText style={styles.mainTitle} numberOfLines={1}>Loadout Builder</ThemedText>
+              <ThemedText style={styles.subtitle}>Get optimal equipment recommendations</ThemedText>
             </View>
-            <ScrollView
-              horizontal
+
+            {/* Primary Filters - Horizontal */}
+            <View style={styles.primaryFiltersContainer}>
+              {/* Budget Selector */}
+              <View style={styles.primaryFilter}>
+                <ThemedText style={styles.filterLabel}>{t('componentLabels.budget')}</ThemedText>
+                <View style={[styles.budgetDisplay, { backgroundColor: colors.spectral + '20' }]}>
+                  <ThemedText style={styles.budgetValue}>${budget}</ThemedText>
+                </View>
+                <ScrollView
+                  horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.budgetButtonsContainer}
             >
@@ -344,7 +367,6 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
                 ))}
               </View>
             )}
-
             {/* Effectiveness */}
             {recommendation.ghostMatchup.length > 0 && (
               <View style={[styles.effectivenessBox, { backgroundColor: colors.spectral + '12' }]}>
@@ -367,6 +389,8 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
               </View>
             )}
           </View>
+            )}
+            </>
         )}
       </BottomSheetScrollView>
     </BottomSheet>
@@ -449,4 +473,35 @@ const styles = StyleSheet.create({
   progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
   progressFill: { height: '100%' },
   effectivenessReason: { fontSize: 11, opacity: 0.7 },
+  premiumPaywall: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+    gap: 16,
+  },
+  premiumTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    textAlign: 'center',
+  },
+  premiumDescription: {
+    fontSize: 14,
+    textAlign: 'center',
+    marginHorizontal: 20,
+    lineHeight: 20,
+  },
+  premiumButton: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  premiumButtonText: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: 'white',
+  },
 });
