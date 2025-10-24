@@ -1,44 +1,23 @@
-import { isPremiumUser, purchasePremium, restorePurchases } from '@/lib/services/premiumService';
-import { useEffect, useState } from 'react';
+import { usePremiumContext } from '@/lib/context/PremiumContext';
+import { purchasePremium, restorePurchases } from '@/lib/services/premiumService';
+import { useState } from 'react';
 
 /**
- * Hook for managing premium status and purchases
+ * Hook for managing premium purchases
+ * Uses PremiumContext for centralized state
  */
 export const usePremium = () => {
-  const [isPremium, setIsPremium] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const context = usePremiumContext();
   const [isPurchasing, setIsPurchasing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Check premium status on mount
-  useEffect(() => {
-    checkPremiumStatus();
-  }, []);
-
-  const checkPremiumStatus = async () => {
-    try {
-      setIsLoading(true);
-      const premium = await isPremiumUser();
-      setIsPremium(premium);
-    } catch (err) {
-      console.error('Error checking premium status:', err);
-      setError(err instanceof Error ? err.message : 'Unknown error');
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handlePurchase = async () => {
     try {
       setIsPurchasing(true);
-      setError(null);
       await purchasePremium();
-      // Premium status will be updated via the purchase listener
-      // Check again to be sure
-      setTimeout(() => checkPremiumStatus(), 1000);
+      // Premium status will be updated via event listener
     } catch (err) {
       console.error('Error purchasing premium:', err);
-      setError(err instanceof Error ? err.message : 'Purchase failed');
+      throw err;
     } finally {
       setIsPurchasing(false);
     }
@@ -47,26 +26,24 @@ export const usePremium = () => {
   const handleRestore = async () => {
     try {
       setIsPurchasing(true);
-      setError(null);
-      const restored = await restorePurchases();
-      if (restored) {
-        setIsPremium(true);
-      }
+      await restorePurchases();
+      // Premium status will be updated via event listener
     } catch (err) {
       console.error('Error restoring purchases:', err);
-      setError(err instanceof Error ? err.message : 'Restore failed');
+      throw err;
     } finally {
       setIsPurchasing(false);
     }
   };
 
   return {
-    isPremium,
-    isLoading,
+    isPremium: context.isPremium,
+    isLoading: context.isLoading,
     isPurchasing,
-    error,
-    checkPremiumStatus,
+    error: context.error,
+    checkPremiumStatus: context.refreshPremiumStatus,
     handlePurchase,
     handleRestore,
   };
 };
+

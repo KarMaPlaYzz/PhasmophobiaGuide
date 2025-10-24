@@ -2,19 +2,30 @@
   "build": {
     "development": {
       "developmentClient": true,
-      "distribution": "internal"
-    },
-    "preview": {
-      "android": {
-        "buildType": "apk"
+      "distribution": "internal",
+      "ios": {
+        "cocoapods": "1.16.2"
       }
     },
-    "production": {}
+    "preview": {
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      },
+      "ios": {
+        "cocoapods": "1.16.2"
+      }
+    },
+    "production": {
+      "ios": {
+        "cocoapods": "1.16.2"
+      }
+    }
   },
   "submit": {
     "production": {
       "ios": {
-        "ascAppId": "com.Playzzon.PhasmophobiaGuide"
+        "ascAppId": "1542465368"
       }
     }
   }

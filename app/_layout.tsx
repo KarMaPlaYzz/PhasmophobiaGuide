@@ -19,8 +19,10 @@ import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { LocalizationProvider } from '@/hooks/use-localization';
+import { PremiumProvider } from '@/lib/context/PremiumContext';
 import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
 import { initializeAdMob } from '@/lib/services/admobService';
+import { initializePremium } from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Equipment, Ghost } from '@/lib/types';
 import { cleanupBlogNotifications, initializeBlogNotifications } from '@/lib/utils/blog-notifications';
@@ -94,6 +96,15 @@ export default function RootLayout() {
           console.warn('[App] AdMob initialization failed (non-critical):', error);
         }
         
+        // Initialize Premium/IAP with error handling
+        try {
+          console.log('[App] Initializing Premium');
+          await initializePremium();
+          console.log('[App] Premium initialized successfully');
+        } catch (error) {
+          console.warn('[App] Premium initialization failed (non-critical):', error);
+        }
+        
         // Request notification permissions
         try {
           console.log('[App] Requesting notification permissions');
@@ -129,67 +140,69 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <LocalizationProvider>
-        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-          <BottomSheetModalProvider>
-            <Stack
-              screenOptions={{
-                contentStyle: { backgroundColor: colors.background },
-              }}
-            >
-              <Stack.Screen
-                name="(tabs)"
-                options={{
-                  headerShown: true,
-                  header: () => (
-                    <LibraryHeader 
-                      variant="compact"
-                      onBookmarksPress={() => setIsBookmarksVisible(true)}
-                      onHistoryPress={() => setIsHistoryVisible(true)}
-                      onWhatsNewPress={() => setIsWhatsNewVisible(true)}
-                      onSettingsPress={() => setIsSettingsVisible(true)}
-                    />
-                  ),
+        <PremiumProvider>
+          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <BottomSheetModalProvider>
+              <Stack
+                screenOptions={{
+                  contentStyle: { backgroundColor: colors.background },
                 }}
-              />
-            </Stack>
+              >
+                <Stack.Screen
+                  name="(tabs)"
+                  options={{
+                    headerShown: true,
+                    header: () => (
+                      <LibraryHeader 
+                        variant="compact"
+                        onBookmarksPress={() => setIsBookmarksVisible(true)}
+                        onHistoryPress={() => setIsHistoryVisible(true)}
+                        onWhatsNewPress={() => setIsWhatsNewVisible(true)}
+                        onSettingsPress={() => setIsSettingsVisible(true)}
+                      />
+                    ),
+                  }}
+                />
+              </Stack>
 
-            <BookmarksDetailSheet
-              isVisible={isBookmarksVisible}
-              onClose={() => setIsBookmarksVisible(false)}
-            />
-            <HistoryDetailSheet
-              isVisible={isHistoryVisible}
-              onClose={() => setIsHistoryVisible(false)}
-            />
-            <WhatsNewDetailSheet
-              isVisible={isWhatsNewVisible}
-              onClose={() => setIsWhatsNewVisible(false)}
-              releases={FEATURE_RELEASES}
-              upcomingFeatures={UPCOMING_FEATURES}
-            />
-            <SettingsDetailSheet
-              isVisible={isSettingsVisible}
-              onClose={() => setIsSettingsVisible(false)}
-            />
-            <GhostDetailSheet
-              ghost={selectedGhost}
-              isVisible={selectedGhost !== null}
-              onClose={() => setSelectedGhost(null)}
-            />
-            <EquipmentDetailSheet
-              equipment={selectedEquipment}
-              isVisible={selectedEquipment !== null}
-              onClose={() => setSelectedEquipment(null)}
-            />
-            <MapDetailSheet
-              map={selectedMap}
-              isVisible={selectedMap !== null}
-              onClose={() => setSelectedMap(null)}
-            />
-            {/* PremiumPaywallSheet removed - requires native modules not available in dev builds */}
-          </BottomSheetModalProvider>
-          <StatusBar style="auto" />
-        </ThemeProvider>
+              <BookmarksDetailSheet
+                isVisible={isBookmarksVisible}
+                onClose={() => setIsBookmarksVisible(false)}
+              />
+              <HistoryDetailSheet
+                isVisible={isHistoryVisible}
+                onClose={() => setIsHistoryVisible(false)}
+              />
+              <WhatsNewDetailSheet
+                isVisible={isWhatsNewVisible}
+                onClose={() => setIsWhatsNewVisible(false)}
+                releases={FEATURE_RELEASES}
+                upcomingFeatures={UPCOMING_FEATURES}
+              />
+              <SettingsDetailSheet
+                isVisible={isSettingsVisible}
+                onClose={() => setIsSettingsVisible(false)}
+              />
+              <GhostDetailSheet
+                ghost={selectedGhost}
+                isVisible={selectedGhost !== null}
+                onClose={() => setSelectedGhost(null)}
+              />
+              <EquipmentDetailSheet
+                equipment={selectedEquipment}
+                isVisible={selectedEquipment !== null}
+                onClose={() => setSelectedEquipment(null)}
+              />
+              <MapDetailSheet
+                map={selectedMap}
+                isVisible={selectedMap !== null}
+                onClose={() => setSelectedMap(null)}
+              />
+              {/* PremiumPaywallSheet removed - requires native modules not available in dev builds */}
+            </BottomSheetModalProvider>
+            <StatusBar style="auto" />
+          </ThemeProvider>
+        </PremiumProvider>
       </LocalizationProvider>
     </GestureHandlerRootView>
   );

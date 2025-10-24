@@ -1,7 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { EventEmitter } from 'eventemitter3';
 import * as RNIap from 'react-native-iap';
 
-const PREMIUM_PRODUCT_ID = 'com.Playzzon.PhasmophobiaGuide.no_ad';
+// Product ID as it appears in App Store Connect
+const PREMIUM_PRODUCT_ID = 'no_ad';
 const PREMIUM_STATUS_KEY = 'premium_status';
 const PURCHASE_DATE_KEY = 'premium_purchase_date';
 
@@ -9,6 +11,30 @@ const PURCHASE_DATE_KEY = 'premium_purchase_date';
  * Premium Service
  * Manages in-app purchases and premium feature access
  */
+
+// Event emitter for premium status changes
+const premiumEmitter = new EventEmitter();
+
+export interface PremiumEvent {
+  'premium-purchased': (data: { transactionDate: number }) => void;
+  'premium-status-changed': (isPremium: boolean) => void;
+  'purchase-error': (error: { code: string; message: string }) => void;
+}
+
+export const onPremiumPurchased = (callback: (data: { transactionDate: number }) => void) => {
+  premiumEmitter.on('premium-purchased', callback);
+  return () => premiumEmitter.off('premium-purchased', callback);
+};
+
+export const onPremiumStatusChanged = (callback: (isPremium: boolean) => void) => {
+  premiumEmitter.on('premium-status-changed', callback);
+  return () => premiumEmitter.off('premium-status-changed', callback);
+};
+
+export const onPurchaseError = (callback: (error: { code: string; message: string }) => void) => {
+  premiumEmitter.on('purchase-error', callback);
+  return () => premiumEmitter.off('purchase-error', callback);
+};
 
 let isInitialized = false;
 let purchaseUpdateSubscription: RNIap.EventSubscription | null = null;
@@ -64,14 +90,45 @@ export const initializePremium = async () => {
  */
 const setupPurchaseListeners = () => {
   purchaseUpdateSubscription = RNIap.purchaseUpdatedListener((purchase) => {
-    console.log('Purchase updated:', purchase);
+    console.log('[Premium] Purchase updated:', purchase);
+    
+    // Only process if it's our premium product and it's not already acknowledged
     if (purchase.productId === PREMIUM_PRODUCT_ID) {
+      // Mark as premium immediately
       setPremiumStatus(true, purchase.transactionDate);
+      
+      // Finish the transaction to acknowledge purchase to the store
+      try {
+        RNIap.finishTransaction({
+          purchase,
+          isConsumable: false,
+        }).catch((error) => {
+          console.warn('[Premium] Error finishing transaction:', error);
+          // Non-fatal error - user is marked as premium even if finish fails
+        });
+      } catch (error) {
+        console.warn('[Premium] Error finishing transaction:', error);
+      }
     }
   });
 
   purchaseErrorSubscription = RNIap.purchaseErrorListener((error) => {
-    console.error('Purchase error:', error);
+    console.warn('[Premium] Purchase error:', error);
+    
+    // Check if error is user cancellation
+    const isUserCancellation = 
+      error.code === 'user-cancelled' || 
+      error.message?.toLowerCase().includes('cancel');
+    
+    if (isUserCancellation) {
+      console.log('[Premium] User cancelled purchase');
+    } else {
+      console.error('[Premium] Purchase failed with error:', error.code, error.message);
+      premiumEmitter.emit('purchase-error', {
+        code: error.code,
+        message: error.message,
+      });
+    }
   });
 };
 
@@ -132,9 +189,22 @@ export const isPremiumUser = async (): Promise<boolean> => {
  */
 export const setPremiumStatus = async (isPremium: boolean, purchaseDate?: number) => {
   try {
+    const previousStatus = await isPremiumUser();
+    
     await AsyncStorage.setItem(PREMIUM_STATUS_KEY, isPremium.toString());
     if (isPremium && purchaseDate) {
       await AsyncStorage.setItem(PURCHASE_DATE_KEY, purchaseDate.toString());
+    }
+
+    // Emit events if status changed
+    if (isPremium && !previousStatus) {
+      console.log('[Premium] Premium purchased, emitting event');
+      premiumEmitter.emit('premium-purchased', { transactionDate: purchaseDate || Date.now() });
+    }
+    
+    if (isPremium !== previousStatus) {
+      console.log('[Premium] Premium status changed:', isPremium);
+      premiumEmitter.emit('premium-status-changed', isPremium);
     }
   } catch (error) {
     console.error('Error setting premium status:', error);
@@ -173,25 +243,42 @@ export const getAvailableProducts = async () => {
 /**
  * Request premium purchase
  * Call this when user taps "Upgrade to Premium"
- * Note: This is event-based, listen for purchaseUpdatedListener
+ * Note: This is event-based. Listen for purchase updates in the component.
+ * Returns immediately after requesting - actual result comes via event listeners.
  */
 export const purchasePremium = async (): Promise<void> => {
   try {
+    console.log('[Premium] Attempting to fetch products...');
     const products = await RNIap.fetchProducts({
       skus: [PREMIUM_PRODUCT_ID],
     });
     
+    console.log('[Premium] Fetched products:', products);
+    
     if (!products || products.length === 0) {
-      throw new Error('Premium product not found');
+      console.warn('[Premium] No products found. This is expected in development builds without NitroModules.');
+      console.warn('[Premium] To test IAP, build with: eas build --platform ios --local');
+      throw new Error(
+        'Premium product not found. This feature only works in production builds. ' +
+        'Run "eas build --platform ios --local" to test on a real device.'
+      );
     }
 
-    // Request purchase with new API structure
+    console.log('[Premium] Requesting purchase for:', PREMIUM_PRODUCT_ID);
+    // Request purchase with platform-specific structure
+    // The actual result will come through the purchase event listeners
     await RNIap.requestPurchase({
-      sku: PREMIUM_PRODUCT_ID,
-      type: 'in-app',
-    } as any); // Use 'any' as a workaround for the new type system
-  } catch (error) {
-    console.error('Error requesting premium purchase:', error);
+      request: {
+        ios: { sku: PREMIUM_PRODUCT_ID },
+        android: { skus: [PREMIUM_PRODUCT_ID] }
+      },
+      type: 'in-app'
+    });
+    
+    // Don't show success here - wait for the purchase listener callback
+    console.log('[Premium] Purchase request sent, waiting for store response...');
+  } catch (error: any) {
+    console.error('[Premium] Error requesting premium purchase:', error);
     throw error;
   }
 };

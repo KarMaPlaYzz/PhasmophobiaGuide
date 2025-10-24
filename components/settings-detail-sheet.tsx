@@ -9,6 +9,8 @@ import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
+import * as premiumService from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { BookmarkService, HistoryService } from '@/lib/storage/storageService';
 
@@ -25,6 +27,7 @@ export const SettingsDetailSheet = ({
   const colors = Colors[colorScheme ?? 'light'];
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { t } = useLocalization();
+  const { isPremium, isLoading: isPremiumLoading } = usePremium();
 
   const [blogNotificationsEnabled, setBlogNotificationsEnabled] = useState(true);
   const [hapticFeedbackEnabled, setHapticFeedbackEnabled] = useState(true);
@@ -32,6 +35,50 @@ export const SettingsDetailSheet = ({
   const [appVersion, setAppVersion] = useState('1.0.0');
   const [gameVersionDate, setGameVersionDate] = useState('');
   const [isLoading, setIsLoading] = useState(true);
+  const [isPurchasing, setIsPurchasing] = useState(false);
+  const [isRestoring, setIsRestoring] = useState(false);
+  const [premiumStatusBefore, setPremiumStatusBefore] = useState(false);
+  const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
+  const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
+
+  // Track premium status changes to show success alerts
+  useEffect(() => {
+    if (isPurchasing && isPremium && !premiumStatusBefore) {
+      setShowPurchaseSuccess(true);
+      setIsPurchasing(false);
+      setPremiumStatusBefore(true);
+    }
+  }, [isPremium, isPurchasing, premiumStatusBefore]);
+
+  // Track restore success
+  useEffect(() => {
+    if (isRestoring && isPremium && !premiumStatusBefore) {
+      setShowRestoreSuccess(true);
+      setIsRestoring(false);
+      setPremiumStatusBefore(true);
+    }
+  }, [isPremium, isRestoring, premiumStatusBefore]);
+
+  // Show success alerts
+  useEffect(() => {
+    if (showPurchaseSuccess) {
+      Alert.alert(
+        'Premium Unlocked! 🎉',
+        'Thank you for supporting the app. All ads have been removed!'
+      );
+      setShowPurchaseSuccess(false);
+    }
+  }, [showPurchaseSuccess]);
+
+  useEffect(() => {
+    if (showRestoreSuccess) {
+      Alert.alert(
+        'Purchases Restored',
+        'Your previous purchases have been restored.'
+      );
+      setShowRestoreSuccess(false);
+    }
+  }, [showRestoreSuccess]);
 
   // Load preferences on mount
   useEffect(() => {
@@ -162,6 +209,55 @@ export const SettingsDetailSheet = ({
     );
   };
 
+  const handlePurchasePremium = async () => {
+    try {
+      setPremiumStatusBefore(isPremium);
+      setIsPurchasing(true);
+      if (hapticFeedbackEnabled) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      
+      // Start the purchase request
+      await premiumService.purchasePremium();
+      
+      // Premium status will be updated via event listener and context
+      // The useEffect hooks will show the alert when isPremium changes
+    } catch (error: any) {
+      setIsPurchasing(false);
+      const errorMessage = error.message || 'Unable to process purchase. Please try again.';
+      
+      // Don't show alert for user cancellation
+      if (errorMessage.toLowerCase().includes('cancel') || errorMessage.toLowerCase().includes('cancelled')) {
+        console.log('Purchase cancelled by user');
+        return;
+      }
+      
+      console.error('Purchase error:', error);
+      Alert.alert('Purchase Failed', errorMessage);
+    }
+  };
+
+  const handleRestorePurchases = async () => {
+    try {
+      setPremiumStatusBefore(isPremium);
+      setIsRestoring(true);
+      if (hapticFeedbackEnabled) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      await premiumService.restorePurchases();
+      
+      // Premium status will be updated via event listener and context
+      // The useEffect hooks will show the alert when isPremium changes
+    } catch (error: any) {
+      setIsRestoring(false);
+      console.error('Restore error:', error);
+      Alert.alert(
+        'Restore Failed',
+        error.message || 'Unable to restore purchases. Please try again.'
+      );
+    }
+  };
+
   if (isLoading) {
     return (
       <BottomSheet
@@ -212,6 +308,42 @@ export const SettingsDetailSheet = ({
             </ThemedText>
           </View>
           <Ionicons name="settings" size={28} color={colors.spectral} />
+        </View>
+
+        {/* Premium Section */}
+        {!isPremium && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>✨ Premium</ThemedText>
+            <PremiumPrompt
+              isLoading={isPurchasing}
+              onPurchase={handlePurchasePremium}
+              colors={colors}
+            />
+          </View>
+        )}
+
+        {isPremium && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>✨ Premium Status</ThemedText>
+            <SettingItem
+              icon="checkmark-circle"
+              label="Premium Unlocked"
+              description="You have ad-free access forever"
+              colors={colors}
+              disabled
+            />
+          </View>
+        )}
+
+        {/* Restore Purchases Button - Always show */}
+        <View style={styles.section}>
+          <SettingItem
+            icon="refresh"
+            label="Restore Purchases"
+            description="Restore previous purchases on this device"
+            onPress={handleRestorePurchases}
+            colors={colors}
+          />
         </View>
 
         {/* Notifications Section */}
@@ -418,6 +550,62 @@ const DefaultTabSelector: React.FC<DefaultTabSelectorProps> = ({
   );
 };
 
+interface PremiumPromptProps {
+  isLoading: boolean;
+  onPurchase: () => void;
+  colors: typeof Colors.light;
+}
+
+const PremiumPrompt: React.FC<PremiumPromptProps> = ({ isLoading, onPurchase, colors }) => {
+  return (
+    <Pressable
+      onPress={onPurchase}
+      disabled={isLoading}
+      style={[
+        styles.premiumCard,
+        {
+          backgroundColor: colors.spectral + '15',
+          borderColor: colors.spectral,
+          opacity: isLoading ? 0.6 : 1,
+        },
+      ]}
+    >
+      <View style={styles.premiumContent}>
+        <View style={styles.premiumTextContent}>
+          <ThemedText style={styles.premiumTitle}>Remove All Ads Forever</ThemedText>
+          <ThemedText style={styles.premiumDescription}>
+            One-time payment of $2.99 • Lifetime access • No subscriptions
+          </ThemedText>
+          <View style={styles.premiumFeatures}>
+            <PremiumFeature text="✓ No banner ads" />
+            <PremiumFeature text="✓ No interstitial ads" />
+            <PremiumFeature text="✓ Support development" />
+          </View>
+        </View>
+        <View
+          style={[
+            styles.premiumButton,
+            { backgroundColor: colors.spectral },
+          ]}
+        >
+          {isLoading ? (
+            <Ionicons name="hourglass" size={20} color="white" />
+          ) : (
+            <>
+              <Ionicons name="star" size={18} color="white" />
+              <ThemedText style={styles.premiumButtonText}>Unlock</ThemedText>
+            </>
+          )}
+        </View>
+      </View>
+    </Pressable>
+  );
+};
+
+const PremiumFeature: React.FC<{ text: string }> = ({ text }) => (
+  <ThemedText style={styles.premiumFeatureText}>{text}</ThemedText>
+);
+
 const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
@@ -474,6 +662,55 @@ const styles = StyleSheet.create({
     fontSize: 11,
     opacity: 0.6,
     lineHeight: 14,
+  },
+
+  premiumCard: {
+    borderRadius: 12,
+    borderWidth: 2,
+    padding: 16,
+    marginBottom: 10,
+  },
+  premiumContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: 12,
+  },
+  premiumTextContent: {
+    flex: 1,
+  },
+  premiumTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    marginBottom: 4,
+  },
+  premiumDescription: {
+    fontSize: 12,
+    opacity: 0.7,
+    marginBottom: 8,
+    lineHeight: 16,
+  },
+  premiumFeatures: {
+    gap: 4,
+  },
+  premiumFeatureText: {
+    fontSize: 11,
+    opacity: 0.8,
+    fontWeight: '500',
+  },
+  premiumButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    minWidth: 90,
+  },
+  premiumButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: 'white',
   },
 
   loadingContainer: {
