@@ -16,6 +16,7 @@ const STORAGE_KEYS = {
   FAVORITES: '@phasmophobia_guide/favorites',
   LAST_UPDATE: '@phasmophobia_guide/last_update',
   USER_LIBRARY: '@phasmophobia_guide/user_library',
+  EVIDENCE_IDENTIFIER_USAGE: '@phasmophobia_guide/evidence_identifier_usage',
 } as const;
 
 // ============================================================================
@@ -408,7 +409,21 @@ export const BookmarkService = {
   async removeBookmark(bookmarkId: string): Promise<void> {
     try {
       const library = await getLibrary();
+      
+      // Find the bookmark to get its collectionId
+      const bookmark = library.bookmarks.find(b => b.id === bookmarkId);
+      
+      // Remove the bookmark from the bookmarks list
       library.bookmarks = library.bookmarks.filter(b => b.id !== bookmarkId);
+      
+      // If the bookmark was in a collection, remove it from that collection
+      if (bookmark?.collectionId && library.bookmarkCollections) {
+        const collection = library.bookmarkCollections.find((c: any) => c.id === bookmark.collectionId);
+        if (collection) {
+          collection.bookmarkIds = collection.bookmarkIds.filter((id: string) => id !== bookmarkId);
+        }
+      }
+      
       library.lastUpdated = Date.now();
       await AsyncStorage.setItem(STORAGE_KEYS.USER_LIBRARY, JSON.stringify(library));
     } catch (error) {
@@ -630,6 +645,20 @@ export const BookmarkService = {
   },
 
   /**
+   * Get collection by ID (Premium)
+   */
+  async getCollectionById(collectionId: string): Promise<any | null> {
+    try {
+      const library = await getLibrary();
+      const collection = (library.bookmarkCollections || []).find(c => c.id === collectionId);
+      return collection || null;
+    } catch (error) {
+      console.error('Error getting collection:', error);
+      return null;
+    }
+  },
+
+  /**
    * Get bookmarks in collection (Premium)
    */
   async getCollectionBookmarks(collectionId: string): Promise<Bookmark[]> {
@@ -700,6 +729,46 @@ export const BookmarkService = {
     } catch (error) {
       console.error('Error getting pinned bookmarks:', error);
       return [];
+    }
+  },
+
+  /**
+   * Increment evidence identifier usage count
+   */
+  async incrementEvidenceIdentifierUsage(): Promise<number> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.EVIDENCE_IDENTIFIER_USAGE);
+      let count = data ? parseInt(data, 10) : 0;
+      count++;
+      await AsyncStorage.setItem(STORAGE_KEYS.EVIDENCE_IDENTIFIER_USAGE, count.toString());
+      return count;
+    } catch (error) {
+      console.error('Error incrementing evidence identifier usage:', error);
+      return 0;
+    }
+  },
+
+  /**
+   * Get evidence identifier usage count
+   */
+  async getEvidenceIdentifierUsage(): Promise<number> {
+    try {
+      const data = await AsyncStorage.getItem(STORAGE_KEYS.EVIDENCE_IDENTIFIER_USAGE);
+      return data ? parseInt(data, 10) : 0;
+    } catch (error) {
+      console.error('Error getting evidence identifier usage:', error);
+      return 0;
+    }
+  },
+
+  /**
+   * Reset evidence identifier usage count
+   */
+  async resetEvidenceIdentifierUsage(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEYS.EVIDENCE_IDENTIFIER_USAGE);
+    } catch (error) {
+      console.error('Error resetting evidence identifier usage:', error);
     }
   },
 };

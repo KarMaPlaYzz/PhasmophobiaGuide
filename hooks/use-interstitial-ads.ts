@@ -6,7 +6,7 @@ import { useEffect, useRef } from 'react';
  * Hook for managing interstitial ad impressions
  * Shows ads after user interactions with a configurable frequency
  */
-export const useInterstitialAds = (triggerKey: string, triggerCount: number = 3) => {
+export const useInterstitialAds = (triggerKey: string, triggerCount: number = 3, dependency?: number | string) => {
   const { isPremium } = usePremium();
   const impressionCount = useRef(0);
 
@@ -17,15 +17,15 @@ export const useInterstitialAds = (triggerKey: string, triggerCount: number = 3)
       return;
     }
 
-    impressionCount.current++;
-
-    // Show ad every N interactions
-    if (impressionCount.current >= triggerCount) {
-      showInterstitialAd().then(() => {
-        impressionCount.current = 0; // Reset counter after showing ad
-      });
+    // If dependency is provided and is a number (usage count), check if we should show ad
+    if (dependency !== undefined && typeof dependency === 'number') {
+      if (dependency > 0 && dependency % triggerCount === 0) {
+        showInterstitialAd().then(() => {
+          // Counter reset is handled by parent since this is usage-based
+        });
+      }
     }
-  }, [triggerKey, isPremium]);
+  }, [triggerKey, isPremium, dependency, triggerCount]);
 
   return {
     impressionCount: impressionCount.current,

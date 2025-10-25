@@ -12,6 +12,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
 
 interface PremiumPaywallSheetProps {
@@ -61,6 +62,7 @@ export const PremiumPaywallSheet = ({
   const snapPoints = useMemo(() => ['90%'], []);
   const { t } = useLocalization();
   const { isPremium, isPurchasing, error, handlePurchase, handleRestore } = usePremium();
+  const { isMockPremiumEnabled, toggleMockPremium, isAvailable: isMockAvailable } = useMockPremium();
   const bottomSheetRef = useRef<BottomSheet>(null);
   const animatedPosition = useSharedValue(0);
 
@@ -80,9 +82,20 @@ export const PremiumPaywallSheet = ({
   const handlePurchasePress = async () => {
     try {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      await handlePurchase();
+      
+      // In Expo Go, toggle mock premium instead of real purchase
+      if (isMockAvailable) {
+        await toggleMockPremium();
+        Alert.alert(
+          'Mock Premium',
+          isMockPremiumEnabled ? 'Premium disabled' : 'Premium enabled - Enjoy all features!',
+          [{ text: 'OK', onPress: () => isMockPremiumEnabled && onClose() }]
+        );
+      } else {
+        await handlePurchase();
+      }
     } catch (err) {
-      Alert.alert('Error', 'Failed to start purchase. Please try again.');
+      Alert.alert('Error', 'Failed to process request. Please try again.');
     }
   };
 
@@ -214,30 +227,32 @@ export const PremiumPaywallSheet = ({
                 { color: colors.background, fontWeight: '700' },
               ]}
             >
-              {isPurchasing ? 'Processing...' : 'Unlock Premium'}
+              {isPurchasing ? 'Processing...' : isMockAvailable ? (isMockPremiumEnabled ? 'Disable Mock Premium' : 'Enable Mock Premium') : 'Unlock Premium'}
             </ThemedText>
           </Pressable>
 
-          <Pressable
-            onPress={handleRestorePress}
-            disabled={isPurchasing}
-            style={({ pressed }) => [
-              styles.restoreButton,
-              {
-                borderColor: colors.tint,
-                opacity: pressed || isPurchasing ? 0.7 : 1,
-              },
-            ]}
-          >
-            <ThemedText
-              style={[
-                styles.restoreButtonText,
-                { color: colors.tint, fontWeight: '600' },
+          {!isMockAvailable && (
+            <Pressable
+              onPress={handleRestorePress}
+              disabled={isPurchasing}
+              style={({ pressed }) => [
+                styles.restoreButton,
+                {
+                  borderColor: colors.tint,
+                  opacity: pressed || isPurchasing ? 0.7 : 1,
+                },
               ]}
             >
-              Restore Purchase
-            </ThemedText>
-          </Pressable>
+              <ThemedText
+                style={[
+                  styles.restoreButtonText,
+                  { color: colors.tint, fontWeight: '600' },
+                ]}
+              >
+                Restore Purchase
+              </ThemedText>
+            </Pressable>
+          )}
         </View>
 
         {/* Error Message */}
@@ -255,10 +270,28 @@ export const PremiumPaywallSheet = ({
           </View>
         )}
 
+        {/* Mock Premium Info */}
+        {isMockAvailable && (
+          <View
+            style={[
+              styles.infoContainer,
+              { backgroundColor: colors.tint + '20' },
+            ]}
+          >
+            <Ionicons name="bulb" size={16} color={colors.tint} />
+            <ThemedText style={[styles.infoText, { color: colors.tint }]}>
+              {isMockPremiumEnabled 
+                ? 'Mock Premium is active - test all features!' 
+                : 'Click "Enable Mock Premium" to test all features in Expo Go'}
+            </ThemedText>
+          </View>
+        )}
+
         {/* Footer Info */}
         <ThemedText style={[styles.footer, { color: colors.text + '60' }]}>
-          Restore purchases to regain access on a new device. You'll need an internet
-          connection to verify your purchase.
+          {isMockAvailable 
+            ? 'Mock premium is for testing in Expo Go only.'
+            : 'Restore purchases to regain access on a new device. You\'ll need an internet connection to verify your purchase.'}
         </ThemedText>
 
         <View style={{ height: 32 }} />
@@ -425,6 +458,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   errorText: {
+    flex: 1,
+    fontSize: 12,
+    fontWeight: '500',
+  },
+
+  // Info
+  infoContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 8,
+    marginBottom: 16,
+    alignItems: 'center',
+  },
+  infoText: {
     flex: 1,
     fontSize: 12,
     fontWeight: '500',

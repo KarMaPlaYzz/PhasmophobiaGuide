@@ -1,4 +1,5 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useState } from 'react';
 import { Pressable } from 'react-native';
 import { BookmarkService } from '../lib/storage/storageService';
@@ -35,6 +36,8 @@ export const BookmarkButton: React.FC<BookmarkButtonProps> = ({
   const toggleBookmark = async () => {
     setLoading(true);
     try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      
       if (isBookmarked) {
         // Remove bookmark
         const bookmarks = await BookmarkService.getBookmarks(itemType);

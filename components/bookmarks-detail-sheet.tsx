@@ -3,17 +3,20 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
-import { useEffect, useMemo, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   FlatList,
   Pressable,
+  ScrollView,
   StyleSheet,
   View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
 import { PremiumBookmarksFeaturesSheet } from '@/components/premium-bookmarks-features';
+import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -40,9 +43,18 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
 
   const [bookmarks, setBookmarks] = useState<Bookmark[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<CategoryType>('all');
+  const [selectedCollection, setSelectedCollection] = useState<string | undefined>();
+  const [showPinnedOnly, setShowPinnedOnly] = useState(false);
   const [loading, setLoading] = useState(true);
   const [premiumSheetVisible, setPremiumSheetVisible] = useState(false);
+  const [premiumPaywallVisible, setPremiumPaywallVisible] = useState(false);
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | undefined>();
+  const [collectionsMap, setCollectionsMap] = useState<Record<string, { name: string; color: string }>>({});
+  const [collectionsArray, setCollectionsArray] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  
+  const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const longPressTriggeredRef = useRef(false);
+  const LONG_PRESS_DURATION = 200; // 200ms instead of default 500ms
 
   useEffect(() => {
     const unsubscribe = detailSheetEmitter.subscribe(() => {
@@ -55,13 +67,12 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
     if (isVisible) {
       loadBookmarks();
     }
-  }, [isVisible, selectedCategory]);
+  }, [isVisible, selectedCategory, selectedCollection, showPinnedOnly]);
 
   const loadBookmarks = async () => {
     setLoading(true);
     try {
-      const categoryFilter = selectedCategory === 'all' ? undefined : selectedCategory;
-      let items = await BookmarkService.getBookmarks(categoryFilter);
+      let items = await BookmarkService.getBookmarks();
       
       // Premium: Sort pinned bookmarks to top, then by date
       if (isPremium) {
@@ -70,9 +81,40 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
           if (!a.isPinned && b.isPinned) return 1;
           return b.createdAt - a.createdAt;
         });
+        
+        // Load collections map and array for premium users
+        try {
+          const collections = await BookmarkService.getCollections();
+          const map: Record<string, { name: string; color: string }> = {};
+          const array: Array<{ id: string; name: string; color: string }> = [];
+          collections.forEach(col => {
+            map[col.id] = { name: col.name, color: col.color };
+            array.push({ id: col.id, name: col.name, color: col.color });
+          });
+          setCollectionsMap(map);
+          setCollectionsArray(array);
+        } catch (error) {
+          console.error('Error loading collections:', error);
+        }
       } else {
         // Free: Just sort by date
         items = items.sort((a, b) => b.createdAt - a.createdAt);
+        setCollectionsArray([]);
+      }
+      
+      // Apply category filter (type: ghost, equipment, map, evidence)
+      if (selectedCategory !== 'all') {
+        items = items.filter(b => b.type === selectedCategory);
+      }
+      
+      // Apply collection filter (overrides category filter)
+      if (selectedCollection) {
+        items = items.filter(b => b.collectionId === selectedCollection);
+      }
+      
+      // Apply pinned filter
+      if (showPinnedOnly) {
+        items = items.filter(b => b.isPinned);
       }
       
       setBookmarks(items);
@@ -84,8 +126,40 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   };
 
   const handleRemoveBookmark = async (bookmarkId: string) => {
-    await BookmarkService.removeBookmark(bookmarkId);
-    loadBookmarks();
+    Alert.alert(
+      'Remove Bookmark',
+      'Are you sure you want to remove this bookmark?',
+      [
+        { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'Remove',
+          onPress: async () => {
+            await BookmarkService.removeBookmark(bookmarkId);
+            loadBookmarks();
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
+  const handleDeleteCollection = async (collectionId: string, collectionName: string) => {
+    Alert.alert(
+      'Delete Collection',
+      `Are you sure you want to delete "${collectionName}"? Bookmarks in this collection will not be deleted.`,
+      [
+        { text: 'Cancel', onPress: () => {}, style: 'cancel' },
+        {
+          text: 'Delete',
+          onPress: async () => {
+            await BookmarkService.deleteCollection(collectionId);
+            setSelectedCollection(undefined); // Reset collection filter
+            loadBookmarks();
+          },
+          style: 'destructive',
+        },
+      ]
+    );
   };
 
   const handleClearAllBookmarks = () => {
@@ -148,6 +222,18 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
     onClose();
   };
 
+  const handleLongPressStart = () => {
+    longPressTriggeredRef.current = false;
+    longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }, LONG_PRESS_DURATION);
+  };
+
+  const handleLongPressEnd = (callback: () => void) => {
+    callback();
+  };
+
   const getCategoryIcon = (type: string): any => {
     const icons: Record<string, any> = {
       ghost: 'skull',
@@ -168,13 +254,36 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
     return iconColors[type] || colors.icon;
   };
 
-  const renderBookmarkItem = ({ item }: { item: Bookmark }) => (
+  const renderBookmarkItem = ({ item }: { item: Bookmark }) => {
+    const collection = item.collectionId ? collectionsMap[item.collectionId] : null;
+    
+    return (
     <Pressable
-      onPress={() => handleNavigateToItem(item)}
-      onLongPress={() => {
-        if (isPremium) {
-          setSelectedBookmark(item);
-          setPremiumSheetVisible(true);
+      onPress={() => {
+        // Only navigate if this wasn't a long-press
+        if (!longPressTriggeredRef.current) {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          handleNavigateToItem(item);
+        } else {
+          longPressTriggeredRef.current = false;
+        }
+      }}
+      onPressIn={() => handleLongPressStart()}
+      onPressOut={() => {
+        if (longPressTriggeredRef.current) {
+          handleLongPressEnd(() => {
+            setSelectedBookmark(item);
+            if (isPremium) {
+              setPremiumSheetVisible(true);
+            } else {
+              setPremiumPaywallVisible(true);
+            }
+          });
+        } else {
+          if (longPressTimerRef.current) {
+            clearTimeout(longPressTimerRef.current);
+            longPressTimerRef.current = null;
+          }
         }
       }}
       style={({ pressed }) => [
@@ -201,40 +310,144 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
           />
         </View>
         <View style={styles.bookmarkText}>
+          {/* Primary row: Name + Pin */}
           <View style={styles.nameRow}>
             <ThemedText style={styles.bookmarkName} numberOfLines={1}>
               {item.itemName}
             </ThemedText>
             {isPremium && item.isPinned && (
-              <MaterialIcons name="pin" size={14} color={colors.warning} style={{ marginLeft: 6 }} />
+              <MaterialIcons name="push-pin" size={14} color={colors.warning} style={{ marginLeft: 6 }} />
             )}
           </View>
+          
+          {/* Secondary row: Type */}
           <ThemedText style={styles.bookmarkType}>
             {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
           </ThemedText>
+          
+          {/* Premium features: Note */}
           {isPremium && item.note && (
-            <ThemedText style={styles.bookmarkNote} numberOfLines={1}>
-              {item.note}
+            <ThemedText style={styles.bookmarkNote} numberOfLines={2}>
+              "{item.note}"
             </ThemedText>
           )}
+          
+          {/* Premium features: Collection + Color */}
+          {isPremium && (collection || item.color) && (
+            <View style={styles.premiumBadgesRow}>
+              {collection && (
+                <View style={[styles.premiumBadge, { borderColor: collection.color }]}>
+                  <MaterialIcons name="folder" size={12} color={collection.color} />
+                  <ThemedText style={styles.premiumBadgeText} numberOfLines={1}>
+                    {collection.name}
+                  </ThemedText>
+                </View>
+              )}
+              {item.color && (
+                <View
+                  style={[
+                    styles.colorBadge,
+                    {
+                      backgroundColor: item.color,
+                      borderColor: colors.border,
+                    },
+                  ]}
+                />
+              )}
+            </View>
+          )}
         </View>
-        <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            if (isPremium) {
+              setSelectedBookmark(item);
+              setPremiumSheetVisible(true);
+            } else {
+              setPremiumPaywallVisible(true);
+            }
+          }}
+          style={({ pressed }) => [
+            styles.actionIcon,
+            {
+              opacity: !isPremium ? 0.4 : pressed ? 0.7 : 1,
+              borderColor: colors.spectral,
+            },
+          ]}
+        >
+          <MaterialIcons name="more-vert" size={20} color={colors.spectral} />
+          {!isPremium && (
+            <View style={styles.lockOverlay}>
+              <Ionicons name="lock-closed" size={12} color="#fff" />
+            </View>
+          )}
+        </Pressable>
       </View>
       <Pressable
-        onPress={() => handleRemoveBookmark(item.id)}
-        style={({ pressed }) => [{ opacity: pressed ? 0.6 : 1 }]}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          handleRemoveBookmark(item.id);
+        }}
+        style={({ pressed }) => [
+          styles.deleteIcon,
+          {
+            opacity: pressed ? 0.6 : 1,
+            borderColor: colors.error,
+          },
+        ]}
       >
         <MaterialIcons name="close" size={20} color={colors.error} />
       </Pressable>
     </Pressable>
-  );
+    );
+  };
 
   const renderCategoryFilter = () => (
-    <View style={styles.filterContainer}>
+    <ScrollView 
+      horizontal 
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.filterContentContainer}
+      style={styles.filterScroll}
+    >
+      {isPremium && (
+        <Pressable
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setShowPinnedOnly(!showPinnedOnly);
+          }}
+          style={[
+            styles.filterPill,
+            {
+              backgroundColor: showPinnedOnly ? colors.warning : colors.surfaceLight,
+            },
+          ]}
+        >
+          <MaterialIcons
+            name="push-pin"
+            size={14}
+            color={showPinnedOnly ? '#000' : colors.text}
+            style={{ marginRight: 4 }}
+          />
+          <ThemedText
+            style={{
+              color: showPinnedOnly ? '#000' : colors.text,
+              fontWeight: showPinnedOnly ? '700' : '500',
+              fontSize: 13,
+            }}
+          >
+            Pinned
+          </ThemedText>
+        </Pressable>
+      )}
+      
       {(['all', 'ghost', 'equipment', 'map', 'evidence'] as const).map((cat) => (
         <Pressable
           key={cat}
-          onPress={() => setSelectedCategory(cat)}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setSelectedCategory(cat);
+            setSelectedCollection(undefined); // Reset collection filter when switching categories
+          }}
           style={[
             styles.filterPill,
             {
@@ -254,7 +467,76 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
           </ThemedText>
         </Pressable>
       ))}
-    </View>
+    </ScrollView>
+  );
+
+  const renderCollectionFilter = () => (
+    isPremium && collectionsArray.length > 0 ? (
+      <View>
+        <ThemedText style={styles.filterLabel}>Collections</ThemedText>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterContentContainer}
+          style={styles.filterScroll}
+        >
+          {collectionsArray.map((collection) => (
+            <Pressable
+              key={collection.id}
+              onPress={() => {
+                // Only select collection if this wasn't a long-press
+                if (!longPressTriggeredRef.current) {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setSelectedCollection(collection.id);
+                  setSelectedCategory('all'); // Reset category to 'all' when selecting collection
+                } else {
+                  longPressTriggeredRef.current = false;
+                }
+              }}
+              onPressIn={() => handleLongPressStart()}
+              onPressOut={() => {
+                if (longPressTriggeredRef.current) {
+                  handleLongPressEnd(() => handleDeleteCollection(collection.id, collection.name));
+                } else {
+                  if (longPressTimerRef.current) {
+                    clearTimeout(longPressTimerRef.current);
+                    longPressTimerRef.current = null;
+                  }
+                }
+              }}
+              style={[
+                styles.filterPill,
+                {
+                  backgroundColor:
+                    selectedCollection === collection.id
+                      ? collection.color + '40'
+                      : colors.surfaceLight,
+                  borderColor: selectedCollection === collection.id ? collection.color : colors.border,
+                  borderWidth: 1,
+                },
+              ]}
+            >
+              <MaterialIcons
+                name="folder"
+                size={13}
+                color={selectedCollection === collection.id ? collection.color : collection.color}
+                style={{ marginRight: 4 }}
+              />
+              <ThemedText
+                style={{
+                  color: selectedCollection === collection.id ? collection.color : colors.text,
+                  fontWeight: selectedCollection === collection.id ? '700' : '500',
+                  fontSize: 13,
+                }}
+                numberOfLines={1}
+              >
+                {collection.name}
+              </ThemedText>
+            </Pressable>
+          ))}
+        </ScrollView>
+      </View>
+    ) : null
   );
 
   const renderEmptyState = () => (
@@ -297,18 +579,23 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
               </ThemedText>
             </View>
             <Pressable
-              onPress={handleClearAllBookmarks}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                handleClearAllBookmarks();
+              }}
               disabled={bookmarks.length === 0}
             style={({ pressed }) => [
               styles.clearIconButton,
               { opacity: bookmarks.length === 0 ? 0.4 : pressed ? 0.6 : 1 },
             ]}
           >
-            <MaterialIcons name="delete-outline" size={24} color={colors.error} />
+            <MaterialIcons name="highlight-off" size={24} color={colors.error} />
           </Pressable>
         </View>
 
         {renderCategoryFilter()}
+
+        {renderCollectionFilter()}
 
         {loading ? (
           <View style={styles.centerContainer}>
@@ -338,7 +625,14 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
         setSelectedBookmark(undefined);
         loadBookmarks(); // Reload to reflect changes
       }}
+      onBookmarkUpdate={loadBookmarks}
       bookmark={selectedBookmark}
+    />
+
+    {/* Premium Paywall Sheet */}
+    <PremiumPaywallSheet
+      isVisible={premiumPaywallVisible}
+      onClose={() => setPremiumPaywallVisible(false)}
     />
     </>
   );
@@ -366,16 +660,37 @@ const styles = StyleSheet.create({
   },
   filterContainer: {
     flexDirection: 'row',
-    paddingVertical: 12,
+    paddingVertical: 4,
+    gap: 8,
+  },
+  filterScroll: {
+    maxHeight: 50,
+    overflow: 'visible',
+  },
+  filterContentContainer: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     gap: 8,
   },
   filterPill: {
     paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingVertical: 4,
     borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    opacity: 0.7,
+    marginBottom: 4,
+    marginLeft: 12,
+    marginTop: 8,
   },
   listContainer: {
     flex: 1,
+    marginTop: 18,
   },
   bookmarkItem: {
     flexDirection: 'row',
@@ -387,12 +702,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderLeftWidth: 4,
     backgroundColor: 'rgba(0, 217, 255, 0.05)',
+    gap: 6,
   },
   bookmarkContent: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     gap: 12,
+    justifyContent: 'space-between',
   },
   iconContainer: {
     width: 36,
@@ -423,9 +740,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     opacity: 0.6,
   },
+  premiumBadgesRow: {
+    flexDirection: 'row',
+    gap: 6,
+    marginTop: 6,
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  },
+  premiumBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 12,
+    borderWidth: 1,
+    backgroundColor: 'transparent',
+  },
+  premiumBadgeText: {
+    fontSize: 10,
+    opacity: 0.7,
+  },
+  colorBadge: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    borderWidth: 1.5,
+  },
+  actionIcon: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 8,
+    paddingRight: 8,
+    paddingVertical: 8,
+    borderWidth: 1.5,
+    borderRadius: 8,
+    backgroundColor: '#2B2737',
+  },
+  deleteIcon: {
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    borderWidth: 1.5,
+    borderRadius: 8,
+    backgroundColor: '#2B2737',
+  },
   centerContainer: {
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 40,
     gap: 12,
     minHeight: 200,
   },
@@ -452,5 +814,18 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginLeft: 16,
     flexShrink: 0,
+  },
+  lockOverlay: {
+    position: 'absolute',
+    bottom: -2,
+    right: -2,
+    backgroundColor: '#FF6B6B',
+    borderRadius: 10,
+    width: 20,
+    height: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#2B2737',
   },
 });

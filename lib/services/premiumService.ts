@@ -1,11 +1,35 @@
+import { isExpoGo } from '@/lib/utils/is-expo-go';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { EventEmitter } from 'eventemitter3';
-import * as RNIap from 'react-native-iap';
+
+// Lazy load react-native-iap - only available if not in Expo Go
+let RNIap: any = null;
+const initializeRNIap = () => {
+  if (isExpoGo()) {
+    console.log('[Premium] Running in Expo Go - native IAP module disabled');
+    return false;
+  }
+  
+  try {
+    RNIap = require('react-native-iap');
+    console.log('[Premium] React Native IAP module loaded successfully');
+    return true;
+  } catch (error) {
+    console.warn('[Premium] Failed to load React Native IAP module:', error);
+    return false;
+  }
+};
+
+const IAP_AVAILABLE = initializeRNIap();
 
 // Product ID as it appears in App Store Connect
 const PREMIUM_PRODUCT_ID = 'no_ad';
 const PREMIUM_STATUS_KEY = 'premium_status';
 const PURCHASE_DATE_KEY = 'premium_purchase_date';
+const MOCK_PREMIUM_KEY = 'mock_premium_enabled'; // For Expo Go testing
+
+// Enable mock premium in Expo Go for easier debugging
+const ENABLE_MOCK_PREMIUM = isExpoGo();
 
 /**
  * Premium Service
@@ -37,8 +61,56 @@ export const onPurchaseError = (callback: (error: { code: string; message: strin
 };
 
 let isInitialized = false;
-let purchaseUpdateSubscription: RNIap.EventSubscription | null = null;
-let purchaseErrorSubscription: RNIap.EventSubscription | null = null;
+let purchaseUpdateSubscription: any = null;
+let purchaseErrorSubscription: any = null;
+
+/**
+ * Enable mock premium (only in Expo Go for testing)
+ */
+export const enableMockPremium = async () => {
+  if (!ENABLE_MOCK_PREMIUM) {
+    console.warn('[Premium] Mock premium is only available in Expo Go');
+    return;
+  }
+  
+  try {
+    await AsyncStorage.setItem(MOCK_PREMIUM_KEY, 'true');
+    await setPremiumStatus(true, Date.now());
+    console.log('[Premium] Mock premium enabled - testing premium features');
+  } catch (error) {
+    console.error('[Premium] Error enabling mock premium:', error);
+  }
+};
+
+/**
+ * Disable mock premium
+ */
+export const disableMockPremium = async () => {
+  try {
+    await AsyncStorage.removeItem(MOCK_PREMIUM_KEY);
+    await setPremiumStatus(false);
+    console.log('[Premium] Mock premium disabled');
+  } catch (error) {
+    console.error('[Premium] Error disabling mock premium:', error);
+  }
+};
+
+/**
+ * Check if mock premium is enabled (Expo Go only)
+ */
+export const isMockPremiumEnabled = async (): Promise<boolean> => {
+  if (!ENABLE_MOCK_PREMIUM) {
+    return false;
+  }
+  
+  try {
+    const enabled = await AsyncStorage.getItem(MOCK_PREMIUM_KEY);
+    return enabled === 'true';
+  } catch (error) {
+    console.error('[Premium] Error checking mock premium:', error);
+    return false;
+  }
+};
 
 /**
  * Initialize the IAP service
@@ -47,6 +119,12 @@ export const initializePremium = async () => {
   try {
     if (isInitialized) {
       console.log('[Premium] Already initialized');
+      return;
+    }
+
+    if (!IAP_AVAILABLE) {
+      console.log('[Premium] IAP not available (running in Expo Go), skipping initialization');
+      isInitialized = true;
       return;
     }
 
@@ -89,7 +167,12 @@ export const initializePremium = async () => {
  * Setup purchase event listeners
  */
 const setupPurchaseListeners = () => {
-  purchaseUpdateSubscription = RNIap.purchaseUpdatedListener((purchase) => {
+  if (!RNIap) {
+    console.log('[Premium] Cannot setup listeners - IAP not available');
+    return;
+  }
+
+  purchaseUpdateSubscription = RNIap.purchaseUpdatedListener((purchase: any) => {
     console.log('[Premium] Purchase updated:', purchase);
     
     // Only process if it's our premium product and it's not already acknowledged
@@ -102,7 +185,7 @@ const setupPurchaseListeners = () => {
         RNIap.finishTransaction({
           purchase,
           isConsumable: false,
-        }).catch((error) => {
+        }).catch((error: any) => {
           console.warn('[Premium] Error finishing transaction:', error);
           // Non-fatal error - user is marked as premium even if finish fails
         });
@@ -112,7 +195,7 @@ const setupPurchaseListeners = () => {
     }
   });
 
-  purchaseErrorSubscription = RNIap.purchaseErrorListener((error) => {
+  purchaseErrorSubscription = RNIap.purchaseErrorListener((error: any) => {
     console.warn('[Premium] Purchase error:', error);
     
     // Check if error is user cancellation
@@ -137,6 +220,11 @@ const setupPurchaseListeners = () => {
  */
 export const endPremiumConnection = async () => {
   try {
+    if (!RNIap) {
+      console.log('[Premium] Cannot end connection - IAP not available');
+      return;
+    }
+
     if (purchaseUpdateSubscription) {
       purchaseUpdateSubscription.remove();
     }
@@ -155,6 +243,11 @@ export const endPremiumConnection = async () => {
  */
 const checkExistingPurchases = async () => {
   try {
+    if (!RNIap) {
+      console.log('[Premium] Cannot check purchases - IAP not available');
+      return;
+    }
+
     const availablePurchases = await RNIap.getAvailablePurchases();
     
     for (const purchase of availablePurchases) {
@@ -176,6 +269,15 @@ const checkExistingPurchases = async () => {
  */
 export const isPremiumUser = async (): Promise<boolean> => {
   try {
+    // In Expo Go, check mock premium first
+    if (ENABLE_MOCK_PREMIUM) {
+      const mockEnabled = await isMockPremiumEnabled();
+      if (mockEnabled) {
+        console.log('[Premium] Using mock premium in Expo Go');
+        return true;
+      }
+    }
+    
     const status = await AsyncStorage.getItem(PREMIUM_STATUS_KEY);
     return status === 'true';
   } catch (error) {
@@ -229,6 +331,11 @@ export const getPurchaseDate = async (): Promise<number | null> => {
  */
 export const getAvailableProducts = async () => {
   try {
+    if (!RNIap) {
+      console.log('[Premium] Cannot fetch products - IAP not available');
+      return [];
+    }
+
     const products = await RNIap.fetchProducts({
       skus: [PREMIUM_PRODUCT_ID],
     });
@@ -248,6 +355,15 @@ export const getAvailableProducts = async () => {
  */
 export const purchasePremium = async (): Promise<void> => {
   try {
+    if (!RNIap) {
+      console.warn('[Premium] Cannot purchase - IAP not available (running in Expo Go)');
+      throw new Error(
+        'Premium purchase is not available in Expo Go. ' +
+        'This feature only works in production builds. ' +
+        'Build with EAS (eas build --platform ios) to test on a real device.'
+      );
+    }
+
     console.log('[Premium] Attempting to fetch products...');
     const products = await RNIap.fetchProducts({
       skus: [PREMIUM_PRODUCT_ID],
@@ -288,6 +404,11 @@ export const purchasePremium = async (): Promise<void> => {
  */
 export const restorePurchases = async (): Promise<boolean> => {
   try {
+    if (!RNIap) {
+      console.log('[Premium] Cannot restore purchases - IAP not available');
+      return false;
+    }
+
     // Get available purchases
     const purchases = await RNIap.getAvailablePurchases();
     
@@ -329,4 +450,7 @@ export default {
   purchasePremium,
   restorePurchases,
   resetPremiumStatus,
+  enableMockPremium,
+  disableMockPremium,
+  isMockPremiumEnabled,
 };

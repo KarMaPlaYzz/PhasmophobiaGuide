@@ -1,15 +1,45 @@
+import { isExpoGo } from '@/lib/utils/is-expo-go';
 import { Platform } from 'react-native';
-import { BannerAdSize, InterstitialAd, TestIds } from 'react-native-google-mobile-ads';
 
 /**
  * AdMob Service
  * Manages banner ads and interstitial video ads
  * Uses test IDs by default - replace with real IDs in production
+ * 
+ * Note: In Expo Go, native modules (like Google Mobile Ads) are not available,
+ * so ads are gracefully disabled and all functions return safe defaults.
  */
 
+// Lazy load the Google Mobile Ads module only when needed (not in Expo Go)
+let BannerAdSize: any = null;
+let InterstitialAd: any = null;
+let TestIds: any = null;
+
+const initializeGoogleMobileAds = () => {
+  if (isExpoGo()) {
+    console.log('[AdMob] Running in Expo Go - native modules disabled, ads will not be shown');
+    return false;
+  }
+  
+  try {
+    const module = require('react-native-google-mobile-ads');
+    BannerAdSize = module.BannerAdSize;
+    InterstitialAd = module.InterstitialAd;
+    TestIds = module.TestIds;
+    console.log('[AdMob] Google Mobile Ads module loaded successfully');
+    return true;
+  } catch (error) {
+    console.warn('[AdMob] Failed to load Google Mobile Ads module:', error);
+    return false;
+  }
+};
+
+// Initialize on module load
+const ADS_AVAILABLE = initializeGoogleMobileAds();
+
 // Test Ad IDs (use these in development)
-const TEST_BANNER_ID = TestIds.BANNER;
-const TEST_INTERSTITIAL_ID = TestIds.INTERSTITIAL;
+const TEST_BANNER_ID = TestIds?.BANNER || 'test_banner';
+const TEST_INTERSTITIAL_ID = TestIds?.INTERSTITIAL || 'test_interstitial';
 
 // Production Ad IDs (replace with your real IDs from AdMob)
 // Format: "ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyyyyyy"
@@ -27,6 +57,7 @@ const PRODUCTION_INTERSTITIAL_ID = {
 const USE_TEST_IDS = false; // Set to false in production
 
 const getBannerId = (): string => {
+  if (!ADS_AVAILABLE) return 'ads_disabled';
   if (USE_TEST_IDS) return TEST_BANNER_ID;
   const platformId = Platform.OS === 'ios' 
     ? PRODUCTION_BANNER_ID.ios 
@@ -35,6 +66,7 @@ const getBannerId = (): string => {
 };
 
 const getInterstitialId = (): string => {
+  if (!ADS_AVAILABLE) return 'ads_disabled';
   if (USE_TEST_IDS) return TEST_INTERSTITIAL_ID;
   const platformId = Platform.OS === 'ios'
     ? PRODUCTION_INTERSTITIAL_ID.ios
@@ -52,6 +84,11 @@ let interstitialLoaded = false;
  */
 export const initializeAdMob = async () => {
   try {
+    if (!ADS_AVAILABLE) {
+      console.log('[AdMob] Ads not available (running in Expo Go or module not loaded)');
+      return;
+    }
+    
     console.log('[AdMob] Starting initialization');
     // AdMob SDK is automatically initialized by the plugin
     console.log('[AdMob] SDK auto-initialized by plugin');
@@ -78,6 +115,11 @@ export const initializeAdMob = async () => {
  */
 const loadInterstitialAd = async () => {
   try {
+    if (!ADS_AVAILABLE || !InterstitialAd) {
+      console.log('[AdMob] Cannot load interstitial ad - ads not available');
+      return;
+    }
+
     interstitialAd = InterstitialAd.createForAdRequest(getInterstitialId(), {
       requestNonPersonalizedAdsOnly: false,
     });
@@ -149,6 +191,9 @@ export const getBannerAdId = (): string => {
  * Get banner ad size (standard 320x50)
  */
 export const getBannerAdSize = (): string => {
+  if (!ADS_AVAILABLE || !BannerAdSize) {
+    return 'BANNER'; // Return a safe default
+  }
   return BannerAdSize.ANCHORED_ADAPTIVE_BANNER;
 };
 

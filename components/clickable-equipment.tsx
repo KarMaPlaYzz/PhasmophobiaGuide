@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, Text } from 'react-native';
 
@@ -24,6 +25,8 @@ export const ClickableEquipment: React.FC<ClickableEquipmentProps> = ({
   const colors = Colors[colorScheme ?? 'light'];
 
   const handlePress = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    
     if (onPress) {
       onPress();
       return;

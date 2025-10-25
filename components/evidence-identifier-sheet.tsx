@@ -5,37 +5,40 @@
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import {
-    ALL_EVIDENCE_TYPES,
-    EVIDENCE_DATABASE,
+  ALL_EVIDENCE_TYPES,
+  EVIDENCE_DATABASE,
 } from '@/lib/data/evidence-identifier';
 import { getEvidenceTip } from '@/lib/localization';
-import { HistoryService } from '@/lib/storage/storageService';
+import { BookmarkService, HistoryService } from '@/lib/storage/storageService';
 import { EvidenceType } from '@/lib/types';
 import {
-    calculateProgress,
-    EvidenceState,
-    filterGhostsByEvidence,
-    generateSmartHints,
-    getCollectedEquipment,
-    getIdentificationStatus,
-    getNextStepRecommendations,
-    getRequiredEquipment,
-    validateEvidence,
+  calculateProgress,
+  EvidenceState,
+  filterGhostsByEvidence,
+  generateSmartHints,
+  getCollectedEquipment,
+  getIdentificationStatus,
+  getNextStepRecommendations,
+  getRequiredEquipment,
+  validateEvidence,
 } from '@/lib/utils/evidence-identifier';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
+import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    LayoutAnimation,
-    Platform,
-    Text,
-    TouchableOpacity,
-    UIManager,
-    View,
+  LayoutAnimation,
+  Platform,
+  Text,
+  TouchableOpacity,
+  UIManager,
+  View,
 } from 'react-native';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
@@ -52,16 +55,10 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
   const colors = Colors[colorScheme ?? 'light'];
   const isDark = colorScheme === 'dark';
   const { language, t } = useLocalization();
+  const { isPremium } = usePremium();
   const snapPoints = useMemo(() => ['50%', '90%'], []);
   const navigation = useNavigation<any>();
-
-  // Track view when opened
-  useEffect(() => {
-    if (isVisible) {
-      HistoryService.trackView('evidence', 'evidence-identifier', 'Evidence Identifier');
-    }
-  }, [isVisible]);
-
+  
   // Evidence state management
   const [evidenceState, setEvidenceState] = useState<EvidenceState>({
     'EMF Level 5': 'not-found',
@@ -74,6 +71,17 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
   });
 
   const [expandedEvidence, setExpandedEvidence] = useState<string | null>(null);
+  const [usageCount, setUsageCount] = useState(0);
+
+  // Track ad impressions - show ad every 5 uses
+  useInterstitialAds('evidence-identifier', 5, usageCount);
+
+  // Track view when opened
+  useEffect(() => {
+    if (isVisible) {
+      HistoryService.trackView('evidence', 'evidence-identifier', 'Evidence Identifier');
+    }
+  }, [isVisible]);
 
   // Calculate all results
   const filteredResults = useMemo(
@@ -137,6 +145,14 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
       }
       return { ...prev, [evidence]: next };
     });
+
+    // Track usage for ad display (free users only)
+    if (!isPremium) {
+      BookmarkService.incrementEvidenceIdentifierUsage().then((count) => {
+        setUsageCount(count);
+        // Ad will be triggered via useInterstitialAds hook dependency on usageCount
+      });
+    }
   };
 
   // Get status icon and color
@@ -330,7 +346,10 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
               <TouchableOpacity
                 key={idx}
                 activeOpacity={0.7}
-                onPress={() => setExpandedEvidence(isExpanded ? null : evidenceType)}
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  setExpandedEvidence(isExpanded ? null : evidenceType);
+                }}
               >
                 <View
                   style={{
@@ -398,6 +417,7 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                       <TouchableOpacity
                         key={i}
                         onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                           LayoutAnimation.configureNext(
                             LayoutAnimation.Presets.easeInEaseOut
                           );
@@ -544,7 +564,10 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                 {filteredResults.definiteMatches.map((result, idx) => (
                   <TouchableOpacity
                     key={idx}
-                    onPress={() => navigateToGhost(result.ghostName)}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      navigateToGhost(result.ghostName);
+                    }}
                     activeOpacity={0.7}
                   >
                     <View
@@ -607,7 +630,10 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                 {filteredResults.veryLikely.slice(0, 3).map((result, idx) => (
                   <TouchableOpacity
                     key={idx}
-                    onPress={() => navigateToGhost(result.ghostName)}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      navigateToGhost(result.ghostName);
+                    }}
                     activeOpacity={0.7}
                   >
                     <View

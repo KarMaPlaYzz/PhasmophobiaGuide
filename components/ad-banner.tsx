@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
 
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePremium } from '@/hooks/use-premium';
 import { getBannerAdId } from '@/lib/services/admobService';
+import { isExpoGo } from '@/lib/utils/is-expo-go';
+
+// Lazy import BannerAd - only available if native modules are loaded
+let BannerAd: any = null;
+try {
+  if (!isExpoGo()) {
+    BannerAd = require('react-native-google-mobile-ads').BannerAd;
+  }
+} catch (error) {
+  console.warn('[AdBanner] Failed to load BannerAd component:', error);
+}
 
 interface AdBannerProps {
   /**
    * Size of the banner
-   * Default: BannerAdSize.ANCHORED_ADAPTIVE_BANNER
+   * Default: ANCHORED_ADAPTIVE_BANNER
    */
   size?: string;
 }
@@ -18,8 +28,9 @@ interface AdBannerProps {
 /**
  * Ad Banner Component
  * Shows Google AdMob banner ads (only for non-premium users)
+ * Gracefully handles Expo Go by returning null when native modules aren't available
  */
-export const AdBanner = ({ size = BannerAdSize.ANCHORED_ADAPTIVE_BANNER }: AdBannerProps) => {
+export const AdBanner = ({ size = 'ANCHORED_ADAPTIVE_BANNER' }: AdBannerProps) => {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const { isPremium, isLoading } = usePremium();
@@ -28,6 +39,12 @@ export const AdBanner = ({ size = BannerAdSize.ANCHORED_ADAPTIVE_BANNER }: AdBan
 
   // Don't show ads for premium users or while loading premium status
   if (isPremium || isLoading) {
+    return null;
+  }
+
+  // Don't render if BannerAd module is not available (e.g., in Expo Go)
+  if (!BannerAd) {
+    console.log('[AdBanner] BannerAd module not available - ads disabled');
     return null;
   }
 
@@ -51,7 +68,7 @@ export const AdBanner = ({ size = BannerAdSize.ANCHORED_ADAPTIVE_BANNER }: AdBan
           setAdLoaded(true);
           console.log('Banner ad loaded');
         }}
-        onAdFailedToLoad={(error) => {
+        onAdFailedToLoad={(error: any) => {
           console.log('Banner ad failed to load:', error);
           setAdError(true);
         }}

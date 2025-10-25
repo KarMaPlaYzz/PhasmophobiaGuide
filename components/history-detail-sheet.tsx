@@ -5,11 +5,11 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Pressable,
-  StyleSheet,
-  View,
+    Alert,
+    FlatList,
+    Pressable,
+    StyleSheet,
+    View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
@@ -159,7 +159,10 @@ export const HistoryDetailSheet = ({
 
   const renderHistoryItem = ({ item }: { item: HistoryItem }) => (
     <Pressable
-      onPress={() => handleNavigateToItem(item)}
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        handleNavigateToItem(item);
+      }}
       style={({ pressed }) => [
         styles.historyItem,
         { borderLeftColor: colors.info, opacity: pressed ? 0.7 : 1 },
@@ -194,7 +197,10 @@ export const HistoryDetailSheet = ({
       {(['all', 'ghost', 'equipment', 'map', 'evidence'] as const).map((cat) => (
         <Pressable
           key={cat}
-          onPress={() => setSelectedCategory(cat)}
+          onPress={() => {
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+            setSelectedCategory(cat);
+          }}
           style={[
             styles.filterPill,
             {
@@ -257,7 +263,10 @@ export const HistoryDetailSheet = ({
               </ThemedText>
             </View>
             <Pressable
-              onPress={handleClearHistory}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                handleClearHistory();
+              }}
               disabled={history.length === 0}
               style={({ pressed }) => [
                 styles.clearIconButton,

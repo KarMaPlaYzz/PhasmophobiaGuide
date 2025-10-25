@@ -5,7 +5,6 @@ import React, { useEffect, useRef } from 'react';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-import { useLocalization } from '@/hooks/use-localization';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -13,7 +12,6 @@ export default function TabLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
   const router = useRouter();
-  const { t } = useLocalization();
   const hasNavigated = useRef(false);
 
   // Load default tab preference on first mount

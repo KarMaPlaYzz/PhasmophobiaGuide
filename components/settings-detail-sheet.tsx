@@ -9,6 +9,7 @@ import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
 import * as premiumService from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
@@ -28,6 +29,7 @@ export const SettingsDetailSheet = ({
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { t } = useLocalization();
   const { isPremium, isLoading: isPremiumLoading } = usePremium();
+  const { isMockPremiumEnabled, toggleMockPremium, isAvailable: isMockAvailable } = useMockPremium();
 
   const [blogNotificationsEnabled, setBlogNotificationsEnabled] = useState(true);
   const [hapticFeedbackEnabled, setHapticFeedbackEnabled] = useState(true);
@@ -331,6 +333,22 @@ export const SettingsDetailSheet = ({
               description="You have ad-free access forever"
               colors={colors}
               disabled
+            />
+          </View>
+        )}
+
+        {/* Mock Premium Section - Only in Expo Go */}
+        {isMockAvailable && (
+          <View style={styles.section}>
+            <ThemedText style={styles.sectionTitle}>🧪 Mock Premium (Testing)</ThemedText>
+            <SettingItem
+              icon="flask"
+              label={isMockPremiumEnabled ? 'Mock Premium Active' : 'Enable Mock Premium'}
+              description={isMockPremiumEnabled ? 'Mock premium is active - test premium features!' : 'Test premium features without a purchase'}
+              toggle={true}
+              value={isMockPremiumEnabled}
+              onToggle={toggleMockPremium}
+              colors={colors}
             />
           </View>
         )}
