@@ -3,13 +3,13 @@ import * as Haptics from 'expo-haptics';
 import { PropsWithChildren, useState } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
 import Animated, {
-    Extrapolate,
-    FadeInDown,
-    FadeOutUp,
-    interpolate,
-    useAnimatedStyle,
-    useSharedValue,
-    withSpring,
+  Extrapolate,
+  FadeInDown,
+  FadeOutUp,
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
@@ -21,6 +21,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
   const [isOpen, setIsOpen] = useState(false);
   const theme = useColorScheme() ?? 'light';
   const rotationValue = useSharedValue(0);
+  const colors = Colors[theme];
 
   const animatedChevronStyle = useAnimatedStyle(() => {
     return {
@@ -29,7 +30,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
           rotate: `${interpolate(
             rotationValue.value,
             [0, 1],
-            [0, 90],
+            [0, 180],
             Extrapolate.CLAMP
           )}deg`,
         },
@@ -42,7 +43,7 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
     const newState = !isOpen;
     setIsOpen(newState);
     rotationValue.value = withSpring(newState ? 1 : 0, {
-      damping: 10,
+      damping: 12,
       mass: 1,
       overshootClamping: false,
     });
@@ -51,18 +52,18 @@ export function Collapsible({ children, title }: PropsWithChildren & { title: st
   return (
     <ThemedView>
       <TouchableOpacity
-        style={styles.heading}
+        style={[styles.heading, { backgroundColor: colors.surface + '80' }]}
         onPress={handlePress}
-        activeOpacity={0.8}>
-        <Animated.View style={animatedChevronStyle}>
+        activeOpacity={0.6}>
+        <Animated.View style={[animatedChevronStyle, styles.chevron]}>
           <MaterialIcons
-            name="chevron-right"
-            size={18}
-            color={theme === 'light' ? Colors.light.icon : Colors.dark.icon}
+            name="expand-more"
+            size={20}
+            color={colors.spectral}
           />
         </Animated.View>
 
-        <ThemedText type="defaultSemiBold">{title}</ThemedText>
+        <ThemedText style={styles.title}>{title}</ThemedText>
       </TouchableOpacity>
       {isOpen && (
         <Animated.View
@@ -80,10 +81,25 @@ const styles = StyleSheet.create({
   heading: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    marginVertical: 4,
+  },
+  chevron: {
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  title: {
+    fontSize: 15,
+    fontWeight: '600',
+    flex: 1,
   },
   content: {
-    marginTop: 6,
-    marginLeft: 24,
+    marginTop: 8,
+    marginLeft: 0,
   },
 });

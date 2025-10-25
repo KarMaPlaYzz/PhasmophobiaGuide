@@ -13,14 +13,15 @@ import { EvidenceCollectionAnimation } from '@/components/evidence-collection-an
 import { ghostSelectionEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
+import { Collapsible } from '@/components/ui/collapsible';
 import { ALL_EVIDENCE_TYPES, EVIDENCE_DATABASE } from '@/lib/data/evidence-identifier';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { EvidenceType } from '@/lib/types';
 import {
-    calculateProgress,
-    EvidenceState,
-    filterGhostsByEvidence,
-    generateSmartHints,
+  calculateProgress,
+  EvidenceState,
+  filterGhostsByEvidence,
+  generateSmartHints,
 } from '@/lib/utils/evidence-identifier';
 import * as Haptics from 'expo-haptics';
 
@@ -375,31 +376,63 @@ export default function EvidenceScreen() {
           {/* Smart Hints - When collecting evidence */}
           {confirmedCount > 0 && confirmedCount < 3 && smartHints.length > 0 && filteredResults.definiteMatches.length === 0 && filteredResults.veryLikely.length === 0 && (
             <>
-              <ThemedText style={styles.sectionLabel}>Next Steps</ThemedText>
-              <View style={[styles.hintsSection, { backgroundColor: colors.surfaceLight }]}>
-                {smartHints.slice(0, 3).map((hint, idx) => (
-                  <View
-                    key={idx}
-                    style={[
-                      styles.hintItem,
-                      {
-                        borderLeftColor:
-                          hint.priority === 'high'
-                            ? '#ef4444'
-                            : hint.priority === 'medium'
-                              ? '#f59e0b'
-                              : '#9ca3af',
-                        borderBottomWidth: idx === smartHints.slice(0, 3).length - 1 ? 0 : 1,
-                        borderBottomColor: colors.border,
-                        marginBottom: idx === smartHints.slice(0, 3).length - 1 ? 0 : 6,
-                      },
-                    ]}
-                  >
-                    <ThemedText style={styles.hintLabel}>#{idx + 1} {hint.evidence}</ThemedText>
-                    <ThemedText style={styles.hintReason}>{hint.reason}</ThemedText>
-                  </View>
-                ))}
-              </View>
+              <Collapsible title={`Next Steps (${filteredResults.possible.length + filteredResults.unlikely.length} Possible Ghosts)`}>
+                <View style={[styles.hintsSection, { backgroundColor: colors.surfaceLight }]}>
+                  {smartHints.slice(0, 3).map((hint, idx) => (
+                    <View
+                      key={idx}
+                      style={[
+                        styles.hintItem,
+                        {
+                          borderLeftColor:
+                            hint.priority === 'high'
+                              ? '#ef4444'
+                              : hint.priority === 'medium'
+                                ? '#f59e0b'
+                                : '#9ca3af',
+                          borderBottomWidth: idx === smartHints.slice(0, 3).length - 1 ? 0 : 1,
+                          borderBottomColor: colors.border,
+                          marginBottom: idx === smartHints.slice(0, 3).length - 1 ? 0 : 6,
+                        },
+                      ]}
+                    >
+                      <ThemedText style={styles.hintLabel}>#{idx + 1} {hint.evidence}</ThemedText>
+                      <ThemedText style={styles.hintReason}>{hint.reason}</ThemedText>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Show possible ghosts when expanded */}
+                {confirmedCount > 0 && (filteredResults.possible.length > 0 || filteredResults.unlikely.length > 0) && (
+                  <>
+                    <ThemedText style={[styles.sectionLabel, { marginTop: 16 }]}>Possible Ghosts</ThemedText>
+                    <View style={[styles.matchesSection, { backgroundColor: colors.surfaceLight, borderColor: colors.border }]}>
+                      {[...filteredResults.possible, ...filteredResults.unlikely].map((ghost, idx) => (
+                        <TouchableOpacity
+                          key={idx}
+                          onPress={() => navigateToGhost(ghost.ghostName)}
+                          activeOpacity={0.7}
+                        >
+                          <View
+                            style={[
+                              styles.ghostItem,
+                              { borderBottomColor: idx === [...filteredResults.possible, ...filteredResults.unlikely].length - 1 ? 'transparent' : colors.border },
+                            ]}
+                          >
+                            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+                              <View style={{ flex: 1 }}>
+                                <ThemedText style={styles.ghostName}>{ghost.ghostName}</ThemedText>
+                                <ThemedText style={styles.ghostReason}>{ghost.reason}</ThemedText>
+                              </View>
+                              <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
+                            </View>
+                          </View>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </>
+                )}
+              </Collapsible>
             </>
           )}
 
