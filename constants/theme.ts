@@ -180,26 +180,41 @@ export const GhostTypeColors: Record<string, string> = {
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
-    serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
-    mono: 'ui-monospace',
+    /** Outfit Regular */
+    outfit_400: 'Outfit_400Regular',
+    /** Outfit SemiBold */
+    outfit_600: 'Outfit_600SemiBold',
+    /** Outfit Bold */
+    outfit_700: 'Outfit_700Bold',
+    /** Outfit ExtraBold */
+    outfit_800: 'Outfit_800ExtraBold',
+  },
+  android: {
+    /** Outfit Regular */
+    outfit_400: 'Outfit_400Regular',
+    /** Outfit SemiBold */
+    outfit_600: 'Outfit_600SemiBold',
+    /** Outfit Bold */
+    outfit_700: 'Outfit_700Bold',
+    /** Outfit ExtraBold */
+    outfit_800: 'Outfit_800ExtraBold',
   },
   default: {
-    sans: 'normal',
-    serif: 'serif',
-    rounded: 'normal',
-    mono: 'monospace',
+    /** Fallback fonts */
+    outfit_400: 'normal',
+    outfit_600: 'normal',
+    outfit_700: 'bold',
+    outfit_800: 'bold',
   },
   web: {
-    sans: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    serif: "Georgia, 'Times New Roman', serif",
-    rounded: "'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif",
-    mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+    /** Outfit Regular */
+    outfit_400: "Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    /** Outfit SemiBold */
+    outfit_600: "Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    /** Outfit Bold */
+    outfit_700: "Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    /** Outfit ExtraBold */
+    outfit_800: "Outfit, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   },
 });
 

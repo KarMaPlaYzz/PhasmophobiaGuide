@@ -1,5 +1,7 @@
+import { Outfit_400Regular, Outfit_600SemiBold, Outfit_700Bold, Outfit_800ExtraBold } from '@expo-google-fonts/outfit';
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { useFonts } from 'expo-font';
 import * as Notifications from 'expo-notifications';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
@@ -34,6 +36,13 @@ export const unstable_settings = {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const colors = Colors[colorScheme ?? 'light'];
+
+  const [fontsLoaded] = useFonts({
+    Outfit_400Regular,
+    Outfit_600SemiBold,
+    Outfit_700Bold,
+    Outfit_800ExtraBold,
+  });
 
   const [isBookmarksVisible, setIsBookmarksVisible] = useState(false);
   const [isHistoryVisible, setIsHistoryVisible] = useState(false);
@@ -139,10 +148,11 @@ export default function RootLayout() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <LocalizationProvider>
-        <PremiumProvider>
-          <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <BottomSheetModalProvider>
+      {!fontsLoaded ? null : (
+        <LocalizationProvider>
+          <PremiumProvider>
+            <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <BottomSheetModalProvider>
               <Stack
                 screenOptions={{
                   contentStyle: { backgroundColor: colors.background },
@@ -204,6 +214,7 @@ export default function RootLayout() {
           </ThemeProvider>
         </PremiumProvider>
       </LocalizationProvider>
+      )}
     </GestureHandlerRootView>
   );
 }

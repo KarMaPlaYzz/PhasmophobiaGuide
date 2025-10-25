@@ -14,7 +14,7 @@ import {
 } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Colors } from '@/constants/theme';
+import { Colors, Fonts } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { BookmarkService } from '@/lib/storage/storageService';
 import { Bookmark, BookmarkCollection } from '@/lib/types';
@@ -207,7 +207,7 @@ export const PremiumBookmarksFeaturesSheet = ({
           style={{
             color: colors.text,
             fontSize: 14,
-            fontFamily: 'System',
+            fontFamily: Fonts.outfit_400,
           }}
         />
       </View>
