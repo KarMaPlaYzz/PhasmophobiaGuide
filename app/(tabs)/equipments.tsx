@@ -23,8 +23,6 @@ import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { getEquipmentDescription, getEquipmentName } from '@/lib/localization';
 import { Equipment } from '@/lib/types';
 import { getCategoryColor } from '@/lib/utils/colors';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 
 export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
@@ -33,14 +31,13 @@ export default function EquipmentScreen() {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { language, t } = useLocalization();
-  const { isPremium, checkPremiumStatus } = usePremium();
+  const { isPremium } = usePremium();
 
-  // Ensure premium status is fresh when this screen focuses so premium-only UI appears immediately
-  useFocusEffect(
-    useCallback(() => {
-      void checkPremiumStatus();
-    }, [checkPremiumStatus])
-  );
+  // NOTE: Premium status is automatically refreshed by PremiumContext:
+  // - On app startup
+  // - When app comes to foreground (AppState listener)
+  // - When purchase completes (event listener)
+  // No need to refresh on every tab focus - this causes unnecessary context updates
   
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');

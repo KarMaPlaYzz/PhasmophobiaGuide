@@ -140,12 +140,11 @@ export default function GhostsScreen() {
     }, [route.params])
   );
 
-  // Ensure premium status is fresh when this screen focuses so premium-only UI appears immediately
-  useFocusEffect(
-    useCallback(() => {
-      void checkPremiumStatus();
-    }, [checkPremiumStatus])
-  );
+  // NOTE: Premium status is automatically refreshed by PremiumContext:
+  // - On app startup
+  // - When app comes to foreground (AppState listener)
+  // - When purchase completes (event listener)
+  // No need to refresh on every tab focus - this causes unnecessary context updates
 
   return (
     <AnimatedScreen>

@@ -81,18 +81,24 @@ export const LoadoutPresetSheet = ({
   };
 
   const handleSavePreset = async () => {
+    console.log('[LoadoutPresetSheet] Save button pressed');
+    
     if (!formData.name.trim()) {
+      console.warn('[LoadoutPresetSheet] Save failed: No preset name provided');
       Alert.alert('Validation', 'Please enter a preset name');
       return;
     }
 
     if (!currentLoadout) {
+      console.warn('[LoadoutPresetSheet] Save failed: No current loadout available');
       Alert.alert('Error', 'No loadout to save');
       return;
     }
 
     try {
       setIsLoading(true);
+      console.log('[LoadoutPresetSheet] Attempting to save preset:', formData.name);
+      
       const preset = await loadoutService.savePreset({
         ...currentLoadout,
         name: formData.name,
@@ -103,13 +109,19 @@ export const LoadoutPresetSheet = ({
           .filter(t => t.length > 0),
       });
 
+      console.log('[LoadoutPresetSheet] Preset saved successfully:', preset.id);
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       Alert.alert('Success', `Preset "${preset.name}" saved!`);
 
-      // Reset form and reload
+      // Reset form and reload, then open details view
       setFormData({ name: '', description: '', tags: '' });
+      console.log('[LoadoutPresetSheet] Loading presets and opening details view');
+      
       await loadPresetsData();
-      setView('list');
+      setSelectedPreset(preset);
+      setView('details');
+      
+      console.log('[LoadoutPresetSheet] Details view opened for saved preset');
     } catch (error) {
       console.error('[LoadoutPresetSheet] Error saving preset:', error);
       Alert.alert('Error', 'Failed to save preset');
@@ -421,7 +433,10 @@ export const LoadoutPresetSheet = ({
                 styles.button,
                 { backgroundColor: colors.spectral, opacity: isLoading ? 0.6 : 1 },
               ]}
-              onPress={handleSavePreset}
+              onPress={() => {
+                console.log('[LoadoutPresetSheet] Save button pressed (onPress event)');
+                handleSavePreset();
+              }}
               disabled={isLoading}
             >
               {isLoading ? (

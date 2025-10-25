@@ -288,7 +288,14 @@ export const EquipmentOptimizerSheet = ({
 
                   {isPremium && (
                     <Pressable
-                      onPress={() => setIsPresetSheetVisible(true)}
+                      onPress={() => {
+                        console.log('[EquipmentOptimizerSheet] Save button pressed');
+                        console.log('[EquipmentOptimizerSheet] Current loadout:', {
+                          essential: recommendation.essential.length,
+                          recommended: recommendation.recommended.length,
+                        });
+                        setIsPresetSheetVisible(true);
+                      }}
                       style={({ pressed }) => [styles.actionButton, { backgroundColor: colors.spectral, opacity: pressed ? 0.8 : 1 }]}
                     >
                       <MaterialIcons name="save" size={18} color="white" />
