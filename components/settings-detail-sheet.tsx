@@ -8,7 +8,6 @@ import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
 import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
@@ -26,8 +25,7 @@ export const SettingsDetailSheet = ({
   isVisible,
   onClose,
 }: SettingsDetailSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { t } = useLocalization();
   const { isPremium, isLoading: isPremiumLoading } = usePremium();

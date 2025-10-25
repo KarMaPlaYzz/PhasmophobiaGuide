@@ -37,7 +37,7 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
 
   const [fontsLoaded] = useFonts({
     Outfit_400Regular,

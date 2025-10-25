@@ -35,7 +35,7 @@ export const ImageCarouselModal = ({
   title,
 }: ImageCarouselModalProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [scale] = useState(new Animated.Value(1));
   const [position] = useState(new Animated.ValueXY());

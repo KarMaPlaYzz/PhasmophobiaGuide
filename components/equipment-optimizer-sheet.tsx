@@ -8,7 +8,6 @@ import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import { PLAYSTYLE_PROFILES } from '@/lib/data/equipment-optimizer';
@@ -30,8 +29,7 @@ const formatEquipmentName = (name: string): string => {
 };
 
 export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimizerSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { t } = useLocalization();
   const { isPremium, handlePurchase, isPurchasing } = usePremium();
   const snapPoints = useMemo(() => ['80%', '100%'], []);
@@ -60,7 +58,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
       animateOnMount={true}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={90} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

@@ -11,7 +11,6 @@ import { FloorPlanViewer } from '@/components/floor-plan-viewer';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { getDifficultyLabel } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
@@ -24,8 +23,7 @@ interface MapDetailSheetProps {
 }
 
 export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { width: screenWidth } = Dimensions.get('window');
@@ -118,7 +116,7 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
       animatedIndex={undefined}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{
         backgroundColor: colors.spectral,

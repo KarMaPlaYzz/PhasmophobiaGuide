@@ -29,7 +29,7 @@ export const LibraryHeader: React.FC<LibraryHeaderProps> = ({
   onSettingsPress,
 }) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
 
   const [totalBookmarks, setTotalBookmarks] = useState(0);

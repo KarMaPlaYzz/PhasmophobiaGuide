@@ -27,7 +27,7 @@ interface GhostDetailSheetProps {
 
 export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheetProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const navigation = useNavigation<any>();
   const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['75%', '100%'], []);
@@ -141,7 +141,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
       animateOnMount={true}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

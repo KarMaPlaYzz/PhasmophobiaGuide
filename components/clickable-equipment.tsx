@@ -22,7 +22,7 @@ export const ClickableEquipment: React.FC<ClickableEquipmentProps> = ({
 }) => {
   const navigation = useNavigation<any>();
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
 
   const handlePress = () => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

@@ -10,7 +10,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const router = useRouter();
   const hasNavigated = useRef(false);
 

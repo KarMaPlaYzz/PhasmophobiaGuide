@@ -19,7 +19,6 @@ import { PremiumBookmarksFeaturesSheet } from '@/components/premium-bookmarks-fe
 import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePremium } from '@/hooks/use-premium';
 import { EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { GHOST_LIST } from '@/lib/data/ghosts';
@@ -35,8 +34,7 @@ interface BookmarksDetailSheetProps {
 type CategoryType = 'all' | 'ghost' | 'equipment' | 'map' | 'evidence';
 
 export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const navigation = useNavigation<any>();
   const { isPremium } = usePremium();
   const snapPoints = useMemo(() => ['50%', '90%'], []);
@@ -576,7 +574,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
         animateOnMount={true}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
-          <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.spectral }}
       >

@@ -7,7 +7,6 @@ import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-nativ
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import { GHOST_LIST } from '@/lib/data/ghosts';
@@ -33,8 +32,7 @@ export const GhostComparisonSheet = ({
   onClose,
   initialGhostIds,
 }: GhostComparisonSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { language } = useLocalization();
   const { isPremium, handlePurchase, isPurchasing } = usePremium();
   const snapPoints = useMemo(() => ['65%', '100%'], []);
@@ -354,7 +352,7 @@ export const GhostComparisonSheet = ({
       animateOnMount={true}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-              <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+              <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

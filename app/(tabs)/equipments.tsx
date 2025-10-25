@@ -26,7 +26,7 @@ import { useCallback } from 'react';
 
 export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const navigation = useNavigation<any>();

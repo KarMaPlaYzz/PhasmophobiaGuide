@@ -15,7 +15,6 @@ import {
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors, Fonts } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { BookmarkService } from '@/lib/storage/storageService';
 import { Bookmark, BookmarkCollection } from '@/lib/types';
 
@@ -45,8 +44,7 @@ export const PremiumBookmarksFeaturesSheet = ({
   bookmark,
   onBookmarkUpdate,
 }: PremiumBookmarksFeaturesProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const snapPoints = useMemo(() => ['60%', '90%'], []);
   const bottomSheetRef = useRef<BottomSheet>(null);
 
@@ -501,7 +499,7 @@ export const PremiumBookmarksFeaturesSheet = ({
       enablePanDownToClose={true}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

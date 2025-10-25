@@ -32,7 +32,7 @@ interface AdBannerProps {
  */
 export const AdBanner = ({ size = 'ANCHORED_ADAPTIVE_BANNER' }: AdBannerProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { isPremium, isLoading } = usePremium();
   const [adLoaded, setAdLoaded] = useState(false);
   const [adError, setAdError] = useState(false);

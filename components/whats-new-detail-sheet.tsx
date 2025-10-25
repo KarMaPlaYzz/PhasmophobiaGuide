@@ -8,17 +8,16 @@ import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 import { ImageCarouselModal } from '@/components/image-carousel-modal';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { BlogPost, clearBlogCache, getRecentBlogPosts } from '@/lib/data/blog-fetcher';
 import {
-    Feature,
-    FeatureRelease,
-    formatReleaseDate,
-    getCountdownLabel,
-    getDaysUntilRelease,
-    getPhasmophobiaUpdates,
-    getStatusLabel,
-    TBA_DATE,
+  Feature,
+  FeatureRelease,
+  formatReleaseDate,
+  getCountdownLabel,
+  getDaysUntilRelease,
+  getPhasmophobiaUpdates,
+  getStatusLabel,
+  TBA_DATE,
 } from '@/lib/data/whats-new';
 
 interface WhatsNewDetailSheetProps {
@@ -34,8 +33,7 @@ export const WhatsNewDetailSheet = ({
   releases,
   upcomingFeatures,
 }: WhatsNewDetailSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const snapPoints = useMemo(() => ['65%', '100%'], []);
   const [selectedTab, setSelectedTab] = useState<'latest' | 'upcoming' | 'game' | 'blog'>('latest');
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({});
@@ -349,7 +347,7 @@ export const WhatsNewDetailSheet = ({
       animateOnMount={true}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

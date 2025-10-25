@@ -172,7 +172,7 @@ const styles = StyleSheet.create({
 
 export default function EvidenceScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
 
   // Evidence collection state

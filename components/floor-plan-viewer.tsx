@@ -2,19 +2,19 @@ import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import React, { useState } from 'react';
 import {
-  Dimensions,
-  Image,
-  StyleSheet,
-  TouchableOpacity,
-  View,
+    Dimensions,
+    Image,
+    StyleSheet,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withDecay,
-  withSpring,
+    runOnJS,
+    useAnimatedStyle,
+    useSharedValue,
+    withDecay,
+    withSpring,
 } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';
@@ -28,7 +28,7 @@ interface FloorPlanViewerProps {
 
 export const FloorPlanViewer = ({ imageUrl, mapName }: FloorPlanViewerProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { width: screenWidth } = Dimensions.get('window');
 
   const [imageLoading, setImageLoading] = useState(true);

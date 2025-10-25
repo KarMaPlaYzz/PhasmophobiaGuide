@@ -76,7 +76,7 @@ export const OnboardingScreen = ({
   onShowPremium,
 }: OnboardingScreenProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { t } = useLocalization();
   const { isPremium } = usePremium();
   const insets = useSafeAreaInsets();
@@ -316,7 +316,7 @@ export const OnboardingScreen = ({
                     { color: colors.background, fontWeight: '700' },
                   ]}
                 >
-                  Allow Notifications
+                  Continue
                 </ThemedText>
                 <Ionicons
                   name="notifications"

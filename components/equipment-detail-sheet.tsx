@@ -24,7 +24,7 @@ interface EquipmentDetailSheetProps {
 
 export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: EquipmentDetailSheetProps) => {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const { language, t } = useLocalization();
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
@@ -128,7 +128,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
       animateOnMount={true}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

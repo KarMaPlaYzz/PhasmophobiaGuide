@@ -5,17 +5,16 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Pressable,
-    StyleSheet,
-    View,
+  Alert,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { MAP_LIST } from '@/lib/data/maps';
@@ -33,8 +32,7 @@ export const HistoryDetailSheet = ({
   isVisible, 
   onClose,
 }: HistoryDetailSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const navigation = useNavigation<any>();
   const snapPoints = useMemo(() => ['50%', '90%'], []);
 
@@ -247,7 +245,7 @@ export const HistoryDetailSheet = ({
         animateOnMount={true}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
-          <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+          <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.info }}
       >

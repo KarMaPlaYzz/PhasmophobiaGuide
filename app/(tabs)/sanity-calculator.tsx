@@ -22,7 +22,7 @@ type MapSize = 'small' | 'medium' | 'large';
 
 export default function SanityCulculatorScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { t } = useLocalization();

@@ -37,7 +37,7 @@ const SIZE_ORDER = ['small', 'medium', 'large'];
 
 export default function MapsScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { t } = useLocalization();

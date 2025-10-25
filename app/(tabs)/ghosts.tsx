@@ -25,7 +25,7 @@ import { getActivityIndicator, getMovementIndicator } from '@/lib/utils/colors';
 
 export default function GhostsScreen() {
   const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { language, t } = useLocalization();

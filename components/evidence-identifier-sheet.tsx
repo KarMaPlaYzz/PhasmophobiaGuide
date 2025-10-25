@@ -4,7 +4,6 @@
  */
 
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
@@ -51,9 +50,8 @@ interface Props {
 }
 
 export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose }) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
-  const isDark = colorScheme === 'dark';
+  const colors = Colors['dark'];
+  const isDark = true; // Always use dark mode for this sheet
   const { language, t } = useLocalization();
   const { isPremium } = usePremium();
   const snapPoints = useMemo(() => ['50%', '90%'], []);

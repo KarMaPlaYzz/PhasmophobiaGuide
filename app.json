@@ -2,7 +2,7 @@
   "expo": {
     "name": "PhasmophobiaGuide",
     "slug": "phasmophobiaguide",
-    "version": "206",
+    "version": "208",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "phasmophobiaguide",
@@ -11,7 +11,7 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.Playzzon.PhasmophobiaGuide",
-      "buildNumber": "206",
+      "buildNumber": "208",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }

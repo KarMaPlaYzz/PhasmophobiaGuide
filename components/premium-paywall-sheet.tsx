@@ -10,7 +10,6 @@ import {
 
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
@@ -57,8 +56,7 @@ export const PremiumPaywallSheet = ({
   isVisible,
   onClose,
 }: PremiumPaywallSheetProps) => {
-  const colorScheme = useColorScheme();
-  const colors = Colors[colorScheme ?? 'light'];
+  const colors = Colors['dark'];
   const snapPoints = useMemo(() => ['90%'], []);
   const { t } = useLocalization();
   const { isPremium, isPurchasing, error, handlePurchase, handleRestore } = usePremium();
@@ -121,7 +119,7 @@ export const PremiumPaywallSheet = ({
         </View>
       )}
       backgroundComponent={() => (
-        <BlurView intensity={90} style={styles.blurContainer} />
+        <BlurView intensity={90} tint="dark" style={styles.blurContainer} />
       )}
     >
       <BottomSheetScrollView
