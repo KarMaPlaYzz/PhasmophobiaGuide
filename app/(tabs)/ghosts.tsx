@@ -29,7 +29,7 @@ export default function GhostsScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { language, t } = useLocalization();
-  const { isPremium } = usePremium();
+  const { isPremium, checkPremiumStatus } = usePremium();
   
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
@@ -138,6 +138,13 @@ export default function GhostsScreen() {
     }, [route.params])
   );
 
+  // Ensure premium status is fresh when this screen focuses so premium-only UI appears immediately
+  useFocusEffect(
+    useCallback(() => {
+      void checkPremiumStatus();
+    }, [checkPremiumStatus])
+  );
+
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <ThemedView style={styles.container}>
@@ -194,18 +201,18 @@ export default function GhostsScreen() {
                           ? diffColor + '25'
                           : colors.tabIconDefault + '10',
                       borderWidth: selectedDifficulty === diff ? 2 : 1,
-                      borderColor: diffColor,
+                      borderColor: selectedDifficulty === diff ? diffColor : colors.tabIconDefault + '20',
                     },
                   ]}
                 >
                   <Ionicons
                     size={12}
                     name={getDifficultyIcon(diff) as any}
-                    color={diffColor}
+                    color={selectedDifficulty === diff ? diffColor : colors.tabIconDefault}
                   />
                   <ThemedText
                     style={{
-                      color: diffColor,
+                      color: selectedDifficulty === diff ? diffColor : colors.tabIconDefault,
                       fontSize: 11,
                       fontWeight: selectedDifficulty === diff ? '700' : '500',
                       marginLeft: 4,
@@ -217,13 +224,13 @@ export default function GhostsScreen() {
                     style={[
                       styles.filterCount,
                       {
-                        backgroundColor: diffColor + '30',
+                        backgroundColor: selectedDifficulty === diff ? diffColor + '30' : colors.tabIconDefault + '15',
                       },
                     ]}
                   >
                     <ThemedText
                       style={{
-                        color: diffColor,
+                        color: selectedDifficulty === diff ? diffColor : colors.tabIconDefault,
                         fontSize: 10,
                         fontWeight: 'bold',
                       }}

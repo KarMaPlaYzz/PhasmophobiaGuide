@@ -6,12 +6,12 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Alert,
-  FlatList,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  View,
+    Alert,
+    FlatList,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
@@ -496,7 +496,8 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
               onPressIn={() => handleLongPressStart()}
               onPressOut={() => {
                 if (longPressTriggeredRef.current) {
-                  handleLongPressEnd(() => handleDeleteCollection(collection.id, collection.name));
+                  longPressTriggeredRef.current = false;
+                  handleDeleteCollection(collection.id, collection.name);
                 } else {
                   if (longPressTimerRef.current) {
                     clearTimeout(longPressTimerRef.current);

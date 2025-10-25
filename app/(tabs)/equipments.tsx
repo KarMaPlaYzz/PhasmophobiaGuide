@@ -21,6 +21,8 @@ import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { getEquipmentDescription, getEquipmentName } from '@/lib/localization';
 import { Equipment } from '@/lib/types';
 import { getCategoryColor } from '@/lib/utils/colors';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
@@ -29,7 +31,14 @@ export default function EquipmentScreen() {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { language, t } = useLocalization();
-  const { isPremium } = usePremium();
+  const { isPremium, checkPremiumStatus } = usePremium();
+
+  // Ensure premium status is fresh when this screen focuses so premium-only UI appears immediately
+  useFocusEffect(
+    useCallback(() => {
+      void checkPremiumStatus();
+    }, [checkPremiumStatus])
+  );
   
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
@@ -155,17 +164,17 @@ export default function EquipmentScreen() {
                         ? catColor + '25'
                         : colors.tabIconDefault + '10',
                     borderWidth: selectedCategory === cat ? 2 : 1,
-                    borderColor: catColor,
+                    borderColor: selectedCategory === cat ? catColor : colors.tabIconDefault + '20',
                   },
                 ]}>
                 <Ionicons
                   size={12}
                   name={getCategoryIcon(cat) as any}
-                  color={catColor}
+                  color={selectedCategory === cat ? catColor : colors.tabIconDefault}
                 />
                 <ThemedText
                   style={{
-                    color: catColor,
+                    color: selectedCategory === cat ? catColor : colors.tabIconDefault,
                     fontSize: 11,
                     fontWeight: selectedCategory === cat ? '700' : '500',
                     marginLeft: 4,
@@ -176,13 +185,13 @@ export default function EquipmentScreen() {
                   style={[
                     styles.filterCount,
                     {
-                      backgroundColor: catColor + '30',
+                      backgroundColor: selectedCategory === cat ? catColor + '30' : colors.tabIconDefault + '15',
                     },
                   ]}
                 >
                   <ThemedText
                     style={{
-                      color: catColor,
+                      color: selectedCategory === cat ? catColor : colors.tabIconDefault,
                       fontSize: 10,
                       fontWeight: 'bold',
                     }}

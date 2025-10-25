@@ -3,14 +3,14 @@ import { useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import {
-    Dimensions,
-    Platform,
-    ScrollView,
-    StyleSheet,
-    TextInput,
-    TouchableOpacity,
-    UIManager,
-    View
+  Dimensions,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  TouchableOpacity,
+  UIManager,
+  View
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -25,6 +25,8 @@ import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import { MAP_LIST } from '@/lib/data/maps';
 import { Map } from '@/lib/types';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
@@ -39,7 +41,13 @@ export default function MapsScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { t } = useLocalization();
-  const { isPremium } = usePremium();
+  const { isPremium, checkPremiumStatus } = usePremium();
+  // Ensure premium status is fresh when this screen focuses so premium-only UI appears immediately
+  useFocusEffect(
+    useCallback(() => {
+      void checkPremiumStatus();
+    }, [checkPremiumStatus])
+  );
   const { width } = Dimensions.get('window');
   
   const [searchText, setSearchText] = useState('');
@@ -181,18 +189,18 @@ export default function MapsScreen() {
                         ? diffColor + '25'
                         : colors.tabIconDefault + '10',
                     borderWidth: selectedDifficulty === level ? 2 : 1,
-                    borderColor: diffColor,
+                    borderColor: selectedDifficulty === level ? diffColor : colors.tabIconDefault + '20',
                   },
                 ]}
               >
                 <Ionicons
                   size={12}
                   name={getDifficultyIcon(level)}
-                  color={diffColor}
+                  color={selectedDifficulty === level ? diffColor : colors.tabIconDefault}
                 />
                 <ThemedText
                   style={{
-                    color: diffColor,
+                    color: selectedDifficulty === level ? diffColor : colors.tabIconDefault,
                     fontSize: 11,
                     fontWeight: selectedDifficulty === level ? '700' : '500',
                     marginLeft: 4,
@@ -204,13 +212,13 @@ export default function MapsScreen() {
                   style={[
                     styles.filterCount,
                     {
-                      backgroundColor: diffColor + '30',
+                      backgroundColor: selectedDifficulty === level ? diffColor + '30' : colors.tabIconDefault + '15',
                     },
                   ]}
                 >
                   <ThemedText
                     style={{
-                      color: diffColor,
+                      color: selectedDifficulty === level ? diffColor : colors.tabIconDefault,
                       fontSize: 10,
                       fontWeight: 'bold',
                     }}

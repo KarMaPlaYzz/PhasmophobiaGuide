@@ -170,18 +170,14 @@ export const PremiumBookmarksFeaturesSheet = ({
     }
   };
 
+  const longPressTriggeredRef = useRef(false);
+
   const handleLongPressStart = () => {
+    longPressTriggeredRef.current = false;
     longPressTimerRef.current = setTimeout(() => {
+      longPressTriggeredRef.current = true;
       Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     }, LONG_PRESS_DURATION);
-  };
-
-  const handleLongPressEnd = (callback: () => void) => {
-    if (longPressTimerRef.current) {
-      clearTimeout(longPressTimerRef.current);
-      longPressTimerRef.current = null;
-      callback();
-    }
   };
 
   const renderNoteTab = () => (
@@ -344,11 +340,26 @@ export const PremiumBookmarksFeaturesSheet = ({
           <View style={styles.collectionItemContainer}>
             <Pressable
               onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                handleAddToCollection(item.id);
+                // Only select collection if this wasn't a long-press
+                if (!longPressTriggeredRef.current) {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                  handleAddToCollection(item.id);
+                } else {
+                  longPressTriggeredRef.current = false;
+                }
               }}
               onPressIn={() => handleLongPressStart()}
-              onPressOut={() => handleLongPressEnd(() => handleDeleteCollection(item.id, item.name))}
+              onPressOut={() => {
+                if (longPressTriggeredRef.current) {
+                  longPressTriggeredRef.current = false;
+                  handleDeleteCollection(item.id, item.name);
+                } else {
+                  if (longPressTimerRef.current) {
+                    clearTimeout(longPressTimerRef.current);
+                    longPressTimerRef.current = null;
+                  }
+                }
+              }}
               style={({ pressed }) => [
                 styles.collectionItem,
                 {

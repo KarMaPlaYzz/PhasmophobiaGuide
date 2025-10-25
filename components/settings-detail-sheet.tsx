@@ -337,7 +337,7 @@ export const SettingsDetailSheet = ({
           </View>
         )}
 
-        {/* Mock Premium Section - Only in Expo Go */}
+        {/* Mock Premium Section - Only in Expo Go
         {isMockAvailable && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>🧪 Mock Premium (Testing)</ThemedText>
@@ -351,7 +351,7 @@ export const SettingsDetailSheet = ({
               colors={colors}
             />
           </View>
-        )}
+        )} */}
 
         {/* Restore Purchases Button - Always show */}
         <View style={styles.section}>
@@ -643,7 +643,7 @@ const styles = StyleSheet.create({
   },
 
   section: {
-    marginBottom: 24,
+    
   },
   sectionTitle: {
     fontSize: 14,
