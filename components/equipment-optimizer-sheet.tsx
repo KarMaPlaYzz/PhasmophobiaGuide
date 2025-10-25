@@ -2,18 +2,21 @@ import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
+import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
-import { AnimatedEquipmentOption } from '@/components/animated-equipment-option';
+import { CollapsibleSection } from '@/components/collapsible-section';
+import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
+import { ALL_EQUIPMENT } from '@/lib/data/equipment';
 import { PLAYSTYLE_PROFILES } from '@/lib/data/equipment-optimizer';
 import { GHOSTS } from '@/lib/data/ghosts';
-import { Playstyle } from '@/lib/types';
+import { Equipment, Playstyle } from '@/lib/types';
 import { generateOptimalLoadout } from '@/lib/utils/equipment-optimizer';
 
 interface EquipmentOptimizerSheetProps {
@@ -21,28 +24,37 @@ interface EquipmentOptimizerSheetProps {
   onClose: () => void;
 }
 
-// Helper function to format equipment names from kebab-case to Title Case
 const formatEquipmentName = (name: string): string => {
   return name
     .split('-')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };
 
-export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimizerSheetProps) => {
+export const EquipmentOptimizerSheet = ({
+  isVisible,
+  onClose,
+}: EquipmentOptimizerSheetProps) => {
   const colors = Colors['dark'];
   const { t } = useLocalization();
   const { isPremium, handlePurchase, isPurchasing } = usePremium();
   const snapPoints = useMemo(() => ['80%', '100%'], []);
 
-  // Filter state
-  const [budget, setBudget] = useState(500);
+  const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | undefined>(undefined);
+  const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
+  const [showEquipmentDetail, setShowEquipmentDetail] = useState(false);
+  const [showGaps, setShowGaps] = useState(false);
+  const [expandedAdvanced, setExpandedAdvanced] = useState(false);
+  const [expandedEssential, setExpandedEssential] = useState(true);
+  const [expandedRecommended, setExpandedRecommended] = useState(true);
+  const [isPresetSheetVisible, setIsPresetSheetVisible] = useState(false);
+
   const [selectedPlaystyle, setSelectedPlaystyle] = useState<Playstyle>('balanced');
+  const [budget, setBudget] = useState(800);
   const [selectedGhost, setSelectedGhost] = useState<string | undefined>(undefined);
   const [selectedMapSize, setSelectedMapSize] = useState<'small' | 'medium' | 'large'>('medium');
-  const [selectedDifficulty, setSelectedDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'>('Beginner');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<'Beginner' | 'Intermediate' | 'Advanced' | 'Expert'>('Intermediate');
 
-  // Generate recommendation
   const recommendation = useMemo(() => {
     return generateOptimalLoadout(budget, selectedPlaystyle, selectedGhost, selectedMapSize, selectedDifficulty);
   }, [budget, selectedPlaystyle, selectedGhost, selectedMapSize, selectedDifficulty]);
@@ -51,6 +63,7 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
   const playstyles = Object.values(PLAYSTYLE_PROFILES);
 
   return (
+    <>
     <BottomSheet
       snapPoints={snapPoints}
       enablePanDownToClose={true}
@@ -93,424 +106,385 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
           </View>
         ) : (
           <>
-            {/* Header */}
-            <View style={styles.headerSection}>
-              <ThemedText style={styles.mainTitle} numberOfLines={1}>Loadout Builder</ThemedText>
-              <ThemedText style={styles.subtitle}>Get optimal equipment recommendations</ThemedText>
+            <View style={styles.header}>
+              <ThemedText style={styles.title}>Equipment Optimizer</ThemedText>
+              <ThemedText style={styles.subtitle}>Get the optimal loadout for your playstyle</ThemedText>
             </View>
 
-            {/* Primary Filters - Horizontal */}
-            <View style={styles.primaryFiltersContainer}>
-              {/* Budget Selector */}
-              <View style={styles.primaryFilter}>
-                <ThemedText style={styles.filterLabel}>{t('componentLabels.budget')}</ThemedText>
-                <View style={[styles.budgetDisplay, { backgroundColor: colors.spectral + '20' }]}>
-                  <ThemedText style={styles.budgetValue}>${budget}</ThemedText>
+            {/* Playstyle Selection */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name="person" size={20} color={colors.spectral} />
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={styles.sectionTitle}>Your Playstyle</ThemedText>
+                  <ThemedText style={styles.sectionHelper}>Choose how you play</ThemedText>
                 </View>
-                <ScrollView
-                  horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.budgetButtonsContainer}
-            >
-              {[250, 500, 800, 1200, 2000].map(preset => (
-                <TouchableOpacity
-                  key={preset}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setBudget(preset);
-                  }}
-                  style={[
-                    styles.budgetButton,
-                    {
-                      backgroundColor: budget === preset ? colors.spectral : colors.tabIconDefault + '15',
-                    },
-                  ]}
-                >
-                  <ThemedText
-                    style={[
-                      styles.budgetButtonText,
-                      { color: budget === preset ? 'white' : colors.text },
-                    ]}
-                  >
-                    {preset === 250 ? 'Min' : preset === 2000 ? 'Max' : `$${preset}`}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
-
-          {/* Playstyle Selector */}
-          <View style={styles.primaryFilter}>
-            <ThemedText style={styles.filterLabel}>Playstyle</ThemedText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.playstyleContainer}
-            >
-              {playstyles.map(playstyle => (
-                <AnimatedEquipmentOption
-                  key={playstyle.id}
-                  isSelected={selectedPlaystyle === playstyle.id}
-                  onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setSelectedPlaystyle(playstyle.id as Playstyle);
-                  }}
-                  selectedColor={colors.spectral}
-                  unselectedColor={colors.tabIconDefault + '08'}
-                >
-                  <View
-                    style={[
-                      styles.playstyleButton,
-                      {
-                        borderColor: selectedPlaystyle === playstyle.id ? colors.spectral : colors.border,
+              </View>
+              <View style={styles.playstyleGrid}>
+                {playstyles.map((playstyle) => (
+                  <Pressable
+                    key={playstyle.id}
+                    onPress={() => {
+                      setSelectedPlaystyle(playstyle.id as Playstyle);
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    }}
+                    style={({ pressed }) => [
+                      styles.playstyleCard,
+                      selectedPlaystyle === playstyle.id && {
+                        backgroundColor: colors.spectral + '20',
+                        borderColor: colors.spectral,
                         borderWidth: 2,
                       },
+                      selectedPlaystyle !== playstyle.id && {
+                        borderWidth: 1,
+                        borderColor: colors.border,
+                      },
+                      pressed && { opacity: 0.7 },
                     ]}
                   >
                     <ThemedText style={styles.playstyleEmoji}>{playstyle.emoji}</ThemedText>
-                    <ThemedText
-                      style={[
-                        styles.playstyleLabel,
-                        { color: selectedPlaystyle === playstyle.id ? 'white' : colors.text },
-                      ]}
-                    >
-                      {playstyle.name}
-                    </ThemedText>
-                  </View>
-                </AnimatedEquipmentOption>
-              ))}
-            </ScrollView>
-          </View>
-        </View>
+                    <ThemedText style={styles.playstyleName}>{playstyle.name}</ThemedText>
+                    <ThemedText style={styles.playstyleDesc} numberOfLines={2}>{playstyle.description}</ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
 
-        {/* Secondary Filters - Grid */}
-        <View style={styles.secondaryFiltersContainer}>
-          {/* Ghost Selection */}
-          <View style={styles.secondaryFilterSection}>
-            <ThemedText style={styles.filterLabel}>Target Ghost</ThemedText>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.ghostButtonsContainer}
+            {/* Budget Selection */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name="attach-money" size={20} color={colors.spectral} />
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={styles.sectionTitle}>Budget</ThemedText>
+                  <ThemedText style={styles.sectionHelper}>How much do you want to spend?</ThemedText>
+                </View>
+              </View>
+              <View style={[styles.budgetCard, { backgroundColor: colors.spectral + '15', borderColor: colors.spectral + '30' }]}>
+                <ThemedText style={styles.budgetLabel}>Total</ThemedText>
+                <ThemedText style={styles.budgetAmount}>${budget}</ThemedText>
+              </View>
+              <View style={styles.budgetButtonGrid}>
+                {[250, 500, 800, 1200, 2000].map((preset) => (
+                  <Pressable
+                    key={preset}
+                    onPress={() => { setBudget(preset); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    style={[
+                      styles.budgetButton,
+                      budget === preset && { backgroundColor: colors.spectral },
+                      budget !== preset && { backgroundColor: colors.spectral + '10' },
+                    ]}
+                  >
+                    <ThemedText style={[styles.budgetButtonText, budget === preset && { color: 'white', fontWeight: '700' }]}>
+                      {preset === 250 ? 'Min' : preset === 2000 ? 'Max' : `$${preset}`}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+
+            {/* Ghost Type (Optional) */}
+            <View style={styles.section}>
+              <View style={styles.sectionHeader}>
+                <MaterialIcons name="pets" size={20} color={colors.tabIconDefault} />
+                <View style={{ flex: 1 }}>
+                  <ThemedText style={styles.sectionTitle}>Specific Ghost? (Optional)</ThemedText>
+                  <ThemedText style={styles.sectionHelper}>Leave empty for general loadout</ThemedText>
+                </View>
+              </View>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.ghostList}>
+                <Pressable onPress={() => { setSelectedGhost(undefined); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }} style={[styles.ghostButton, !selectedGhost && { backgroundColor: colors.spectral }]}>
+                  <ThemedText style={[styles.ghostButtonText, !selectedGhost && { color: 'white', fontWeight: '700' }]}>All</ThemedText>
+                </Pressable>
+                {allGhosts.slice(0, 15).map((ghost) => (
+                  <Pressable
+                    key={ghost.id}
+                    onPress={() => { setSelectedGhost(ghost.id); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }}
+                    style={[styles.ghostButton, selectedGhost === ghost.id && { backgroundColor: colors.spectral }]}
+                  >
+                    <ThemedText style={[styles.ghostButtonText, selectedGhost === ghost.id && { color: 'white', fontWeight: '700' }]}>{ghost.name.split(' ')[0]}</ThemedText>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+
+            {/* Advanced Settings */}
+            <CollapsibleSection
+              title="Advanced Settings (Optional)"
+              isExpanded={expandedAdvanced}
+              onPress={() => setExpandedAdvanced(!expandedAdvanced)}
+              backgroundColor={colors.spectral + '08'}
+              borderColor={colors.spectral + '20'}
+              headerBackgroundColor={colors.spectral + '12'}
+              titleColor={colors.spectral}
+              iconColor={colors.spectral}
             >
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setSelectedGhost(undefined);
-                }}
-                style={[
-                  styles.ghostButton,
-                  {
-                    backgroundColor: !selectedGhost ? colors.spectral : colors.tabIconDefault + '15',
-                  },
-                ]}
-              >
-                <ThemedText
-                  style={[
-                    styles.ghostButtonLabel,
-                    { color: !selectedGhost ? 'white' : colors.text },
-                  ]}
-                >
-                  All
-                </ThemedText>
-              </TouchableOpacity>
+              <View style={styles.optionGroup}>
+                <ThemedText style={styles.optionLabel}>Map Size</ThemedText>
+                <View style={styles.optionButtons}>
+                  {(['small', 'medium', 'large'] as const).map((size) => (
+                    <Pressable key={size} onPress={() => { setSelectedMapSize(size); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }} style={[styles.optionButton, selectedMapSize === size && { backgroundColor: colors.spectral, borderColor: colors.spectral }]}>
+                      <ThemedText style={[styles.optionButtonText, selectedMapSize === size && { color: 'white', fontWeight: '700' }]}>{size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}</ThemedText>
+                    </Pressable>
+                  ))}
+                </View>
+              </View>
 
-              {allGhosts.slice(0, 12).map(ghost => (
-                <TouchableOpacity
-                  key={ghost.id}
+              <View style={styles.optionGroup}>
+                <ThemedText style={styles.optionLabel}>Difficulty</ThemedText>
+                <Pressable
                   onPress={() => {
-                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                    setSelectedGhost(ghost.id);
+                    const difficulties: ('Beginner' | 'Intermediate' | 'Advanced' | 'Expert')[] = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
+                    const idx = difficulties.indexOf(selectedDifficulty);
+                    setSelectedDifficulty(difficulties[(idx + 1) % difficulties.length]);
                   }}
-                  style={[
-                    styles.ghostButton,
-                    {
-                      backgroundColor: selectedGhost === ghost.id ? colors.spectral : colors.tabIconDefault + '15',
-                    },
-                  ]}
+                  style={[styles.difficultyButton, { backgroundColor: colors.spectral + '15', borderColor: colors.spectral }]}
                 >
-                  <ThemedText
-                    style={[
-                      styles.ghostButtonLabel,
-                      { color: selectedGhost === ghost.id ? 'white' : colors.text },
-                    ]}
-                  >
-                    {ghost.name.split(' ')[0]}
-                  </ThemedText>
-                </TouchableOpacity>
-              ))}
-            </ScrollView>
-          </View>
+                  <ThemedText style={styles.difficultyButtonText}>{selectedDifficulty}</ThemedText>
+                  <MaterialIcons name="arrow-forward" size={14} color={colors.spectral} />
+                </Pressable>
+              </View>
+            </CollapsibleSection>
 
-          {/* Map Size & Difficulty */}
-          <View style={styles.bottomFiltersRow}>
-            <View style={styles.bottomFilterItem}>
-              <ThemedText style={styles.filterLabel}>Map Size</ThemedText>
-              <View style={styles.mapSizeButtons}>
-                {(['small', 'medium', 'large'] as const).map(size => (
-                  <TouchableOpacity
-                    key={size}
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                      setSelectedMapSize(size);
+            {/* Results */}
+            {recommendation && (
+              <View style={styles.resultsSection}>
+                <View style={styles.sectionHeader}>
+                  <MaterialIcons name="check-circle" size={20} color={colors.spectral} />
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={styles.sectionTitle}>Your Optimal Loadout</ThemedText>
+                    <ThemedText style={styles.sectionHelper}>{recommendation.name}</ThemedText>
+                  </View>
+                </View>
+
+                <View style={[styles.statsCard, { backgroundColor: colors.spectral + '15' }]}>
+                  <View style={styles.stat}>
+                    <ThemedText style={styles.statLabel}>Efficiency</ThemedText>
+                    <ThemedText style={styles.statValue}>{recommendation.efficiency}%</ThemedText>
+                  </View>
+                  <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+                  <View style={styles.stat}>
+                    <ThemedText style={styles.statLabel}>Cost</ThemedText>
+                    <ThemedText style={styles.statValue}>${recommendation.totalCost}</ThemedText>
+                  </View>
+                  <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
+                  <View style={styles.stat}>
+                    <ThemedText style={styles.statLabel}>Left</ThemedText>
+                    <ThemedText style={styles.statValue}>${budget - recommendation.totalCost}</ThemedText>
+                  </View>
+                </View>
+
+                <View style={styles.actionButtons}>
+                  <Pressable
+                    onPress={async () => {
+                      const text = `${recommendation.name}\n\n📦 Equipment:\n${[...recommendation.essential, ...recommendation.recommended].map((e) => `• ${formatEquipmentName(e)}`).join('\n')}\n\n💰 Cost: $${recommendation.totalCost}\n⭐ Efficiency: ${recommendation.efficiency}%`;
+                      await Clipboard.setStringAsync(text);
+                      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
                     }}
-                    style={[
-                      styles.sizeButton,
-                      {
-                        backgroundColor: selectedMapSize === size ? colors.spectral : colors.tabIconDefault + '15',
-                      },
-                    ]}
+                    style={({ pressed }) => [styles.actionButton, { backgroundColor: colors.spectral + '15', opacity: pressed ? 0.6 : 1 }]}
                   >
-                    <ThemedText
-                      style={[
-                        styles.sizeButtonText,
-                        { color: selectedMapSize === size ? 'white' : colors.text },
-                      ]}
+                    <MaterialIcons name="content-copy" size={18} color={colors.spectral} />
+                    <ThemedText style={[styles.actionButtonText, { color: colors.spectral }]}>Copy</ThemedText>
+                  </Pressable>
+
+                  {isPremium && (
+                    <Pressable
+                      onPress={() => setIsPresetSheetVisible(true)}
+                      style={({ pressed }) => [styles.actionButton, { backgroundColor: colors.spectral, opacity: pressed ? 0.8 : 1 }]}
                     >
-                      {size === 'small' ? 'S' : size === 'medium' ? 'M' : 'L'}
-                    </ThemedText>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.bottomFilterItem}>
-              <ThemedText style={styles.filterLabel}>Difficulty</ThemedText>
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  const difficulties: ('Beginner' | 'Intermediate' | 'Advanced' | 'Expert')[] = ['Beginner', 'Intermediate', 'Advanced', 'Expert'];
-                  const currentIndex = difficulties.indexOf(selectedDifficulty);
-                  setSelectedDifficulty(difficulties[(currentIndex + 1) % difficulties.length]);
-                }}
-                style={[styles.difficultyButton, { backgroundColor: colors.spectral + '15' }]}
-              >
-                <ThemedText style={styles.difficultyLabel}>{selectedDifficulty}</ThemedText>
-                <MaterialIcons name="arrow-forward" size={14} color={colors.spectral} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-
-        {/* Divider */}
-        <View style={[styles.divider, { backgroundColor: colors.border }]} />
-
-        {/* Recommendation Card */}
-        {recommendation && (
-          <View style={styles.recommendationSection}>
-            {/* Stats Header */}
-            <View style={[styles.statsHeader, { backgroundColor: colors.spectral + '08', borderColor: colors.spectral + '20' }]}>
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>Efficiency</ThemedText>
-                <ThemedText style={styles.statValue}>{recommendation.efficiency}%</ThemedText>
-              </View>
-              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>{t('componentLabels.cost')}</ThemedText>
-                <ThemedText style={styles.statValue}>${recommendation.totalCost}</ThemedText>
-              </View>
-              <View style={[styles.statDivider, { backgroundColor: colors.border }]} />
-              <View style={styles.statItem}>
-                <ThemedText style={styles.statLabel}>{t('componentLabels.budgetLeft')}</ThemedText>
-                <ThemedText style={styles.statValue}>${budget - recommendation.totalCost}</ThemedText>
-              </View>
-            </View>
-
-            {/* Equipment Lists */}
-            {recommendation.essential.length > 0 && (
-              <View style={styles.equipmentListContainer}>
-                <View style={styles.equipmentListHeader}>
-                  <MaterialIcons name="check-circle" size={16} color={colors.spectral} />
-                  <ThemedText style={styles.equipmentListTitle}>Essential ({recommendation.essential.length})</ThemedText>
+                      <MaterialIcons name="save" size={18} color="white" />
+                      <ThemedText style={[styles.actionButtonText, { color: 'white', fontWeight: '700' }]}>Save</ThemedText>
+                    </Pressable>
+                  )}
                 </View>
-                {recommendation.essential.map((item, idx) => (
-                  <View key={idx} style={styles.equipmentListItem}>
-                    <View style={[styles.checkmark, { backgroundColor: colors.spectral + '20' }]}>
-                      <MaterialIcons name="check" size={12} color={colors.spectral} />
+
+                {recommendation.essential.length > 0 && (
+                  <CollapsibleSection
+                    title={`Must-Have (${recommendation.essential.length})`}
+                    isExpanded={expandedEssential}
+                    onPress={() => setExpandedEssential(!expandedEssential)}
+                    backgroundColor={colors.spectral + '08'}
+                    borderColor={colors.spectral + '20'}
+                    headerBackgroundColor={colors.spectral + '12'}
+                    titleColor={colors.spectral}
+                    iconColor={colors.spectral}
+                  >
+                    {recommendation.essential.map((item, idx) => (
+                      <Pressable
+                        key={idx}
+                        onPress={() => { 
+                          const equipmentId = item?.trim?.() || item;
+                          const equipment = ALL_EQUIPMENT[equipmentId as keyof typeof ALL_EQUIPMENT];
+                          if (equipment) {
+                            setSelectedEquipment(equipment);
+                            setShowEquipmentDetail(true);
+                            onClose();
+                          }
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
+                        }}
+                        android_ripple={{ color: colors.spectral + '30' }}
+                        style={({ pressed }) => [
+                          styles.equipmentItem, 
+                          pressed && { backgroundColor: colors.spectral + '20', opacity: 0.8 }
+                        ]}
+                      >
+                        <View style={[styles.checkmark, { backgroundColor: colors.spectral + '25' }]}>
+                          <MaterialIcons name="check" size={12} color={colors.spectral} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <ThemedText style={styles.equipmentName}>{formatEquipmentName(item)}</ThemedText>
+                          <ThemedText style={styles.equipmentHint}>Tap to learn more →</ThemedText>
+                        </View>
+                        <MaterialIcons name="info" size={14} color={colors.spectral + '60'} />
+                      </Pressable>
+                    ))}
+                  </CollapsibleSection>
+                )}
+
+                {recommendation.recommended.length > 0 && (
+                  <CollapsibleSection
+                    title={`Recommended (${recommendation.recommended.length})`}
+                    isExpanded={expandedRecommended}
+                    onPress={() => setExpandedRecommended(!expandedRecommended)}
+                    backgroundColor={colors.spectral + '08'}
+                    borderColor={colors.spectral + '20'}
+                    headerBackgroundColor={colors.spectral + '12'}
+                    titleColor={colors.spectral}
+                    iconColor={colors.spectral}
+                  >
+                    {recommendation.recommended.map((item, idx) => (
+                      <Pressable
+                        key={idx}
+                        onPress={() => { 
+                          const equipmentId = item?.trim?.() || item;
+                          const equipment = ALL_EQUIPMENT[equipmentId as keyof typeof ALL_EQUIPMENT];
+                          if (equipment) {
+                            setSelectedEquipment(equipment);
+                            setShowEquipmentDetail(true);
+                            onClose();
+                          }
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); 
+                        }}
+                        android_ripple={{ color: colors.spectral + '30' }}
+                        style={({ pressed }) => [
+                          styles.equipmentItem, 
+                          pressed && { backgroundColor: colors.spectral + '20', opacity: 0.8 }
+                        ]}
+                      >
+                        <View style={[styles.checkmark, { backgroundColor: colors.tabIconDefault + '20' }]}>
+                          <MaterialIcons name="add" size={12} color={colors.tabIconDefault} />
+                        </View>
+                        <View style={{ flex: 1 }}>
+                          <ThemedText style={styles.equipmentName}>{formatEquipmentName(item)}</ThemedText>
+                          <ThemedText style={styles.equipmentHint}>Tap to learn more →</ThemedText>
+                        </View>
+                        <MaterialIcons name="info" size={14} color={colors.spectral + '60'} />
+                      </Pressable>
+                    ))}
+                  </CollapsibleSection>
+                )}
+
+                {recommendation.explanation.length > 0 && (
+                  <View style={[styles.infoBox, { backgroundColor: colors.spectral + '10', borderLeftColor: colors.spectral, borderLeftWidth: 4 }]}>
+                    <View style={styles.infoBoxHeader}>
+                      <MaterialIcons name="lightbulb" size={16} color={colors.spectral} />
+                      <ThemedText style={styles.infoBoxTitle}>Why This?</ThemedText>
                     </View>
-                    <ThemedText style={styles.equipmentName}>{formatEquipmentName(item)}</ThemedText>
+                    {recommendation.explanation.map((reason, idx) => (
+                      <ThemedText key={idx} style={styles.infoBoxText}>• {reason}</ThemedText>
+                    ))}
                   </View>
-                ))}
-              </View>
-            )}
+                )}
 
-            {recommendation.recommended.length > 0 && (
-              <View style={styles.equipmentListContainer}>
-                <View style={styles.equipmentListHeader}>
-                  <MaterialIcons name="star" size={16} color={colors.spectral} />
-                  <ThemedText style={styles.equipmentListTitle}>Recommended ({recommendation.recommended.length})</ThemedText>
-                </View>
-                {recommendation.recommended.map((item, idx) => (
-                  <View key={idx} style={styles.equipmentListItem}>
-                    <View style={[styles.checkmark, { backgroundColor: colors.tabIconDefault + '15' }]}>
-                      <MaterialIcons name="add" size={12} color={colors.tabIconDefault} />
+                {recommendation.gaps.length > 0 && (
+                  <Pressable onPress={() => { setShowGaps(!showGaps); Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light); }} style={[styles.infoBox, { backgroundColor: '#FF6B6B15', borderLeftColor: '#FF6B6B', borderLeftWidth: 4 }]}>
+                    <View style={styles.infoBoxHeader}>
+                      <MaterialIcons name={showGaps ? 'expand-less' : 'expand-more'} size={16} color="#FF6B6B" />
+                      <ThemedText style={[styles.infoBoxTitle, { color: '#FF6B6B' }]}>Limitations ({recommendation.gaps.length})</ThemedText>
                     </View>
-                    <ThemedText style={styles.equipmentName}>{formatEquipmentName(item)}</ThemedText>
-                  </View>
-                ))}
-              </View>
-            )}
+                    {showGaps && recommendation.gaps.map((gap, idx) => (
+                      <ThemedText key={idx} style={[styles.infoBoxText, { color: colors.text }]}>• {gap}</ThemedText>
+                    ))}
+                  </Pressable>
+                )}
 
-            {/* Info Section */}
-            {recommendation.explanation.length > 0 && (
-              <View style={[styles.infoBox, { backgroundColor: colors.spectral + '08', borderLeftColor: colors.spectral }]}>
-                <View style={styles.infoBoxHeader}>
-                  <MaterialIcons name="info" size={14} color={colors.spectral} />
-                  <ThemedText style={styles.infoBoxTitle}>Why this loadout?</ThemedText>
-                </View>
-                {recommendation.explanation.slice(0, 2).map((reason, idx) => (
-                  <ThemedText key={idx} style={styles.infoBoxText}>• {reason}</ThemedText>
-                ))}
-              </View>
-            )}
 
-            {/* Gaps */}
-            {recommendation.gaps.length > 0 && (
-              <View style={[styles.warningBox, { backgroundColor: '#FF6B6B15', borderLeftColor: '#FF6B6B' }]}>
-                <View style={styles.infoBoxHeader}>
-                  <MaterialIcons name="warning" size={14} color="#FF6B6B" />
-                  <ThemedText style={[styles.infoBoxTitle, { color: '#FF6B6B' }]}>Gaps to Consider</ThemedText>
-                </View>
-                {recommendation.gaps.slice(0, 2).map((gap, idx) => (
-                  <ThemedText key={idx} style={[styles.infoBoxText, { color: colors.text }]}>• {gap}</ThemedText>
-                ))}
               </View>
             )}
-            {/* Effectiveness */}
-            {recommendation.ghostMatchup.length > 0 && (
-              <View style={[styles.effectivenessBox, { backgroundColor: colors.spectral + '12' }]}>
-                <View style={styles.effectivenessHeader}>
-                  <ThemedText style={styles.effectivenessLabel}>Effectiveness</ThemedText>
-                  <ThemedText style={styles.effectivenessValue}>{recommendation.ghostMatchup[0].effectiveness}%</ThemedText>
-                </View>
-                <View style={[styles.progressBar, { backgroundColor: colors.tabIconDefault + '20' }]}>
-                  <View
-                    style={[
-                      styles.progressFill,
-                      {
-                        width: `${recommendation.ghostMatchup[0].effectiveness}%`,
-                        backgroundColor: colors.spectral,
-                      },
-                    ]}
-                  />
-                </View>
-                <ThemedText style={styles.effectivenessReason}>{recommendation.ghostMatchup[0].reason}</ThemedText>
-              </View>
-            )}
-          </View>
-            )}
-            </>
+          </>
         )}
       </BottomSheetScrollView>
     </BottomSheet>
+
+    <EquipmentDetailSheet
+      equipment={selectedEquipment}
+      isVisible={showEquipmentDetail}
+      onClose={() => {
+        setShowEquipmentDetail(false);
+        setSelectedEquipment(null);
+      }}
+    />
+    </>
   );
 };
 
 const styles = StyleSheet.create({
-  // Header
-  headerSection: { marginBottom: 24, gap: 4 },
-  mainTitle: { fontSize: 26, fontWeight: '800', color: '#00D9FF', lineHeight: 32,},
-  subtitle: { fontSize: 13, opacity: 0.6, fontWeight: '500' },
-
-  // Primary Filters Container
-  primaryFiltersContainer: { gap: 20, marginBottom: 20 },
-  primaryFilter: { gap: 10 },
-  filterLabel: { fontSize: 12, fontWeight: '700', opacity: 0.7, textTransform: 'uppercase', letterSpacing: 0.5 },
-
-  // Budget
-  budgetDisplay: { paddingVertical: 10, paddingHorizontal: 14, borderRadius: 10, alignItems: 'center' },
-  budgetValue: { fontSize: 18, fontWeight: '700', color: '#00D9FF' },
-  budgetButtonsContainer: { gap: 8, paddingVertical: 4 },
-  budgetButton: { paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, minWidth: 65 },
-  budgetButtonText: { fontSize: 11, fontWeight: '600', textAlign: 'center' },
-
-  // Playstyle
-  playstyleContainer: { gap: 10, paddingVertical: 4 },
-  playstyleButton: { paddingVertical: 10, paddingHorizontal: 12, borderRadius: 12, alignItems: 'center', gap: 6, minWidth: 80 },
-  playstyleEmoji: { fontSize: 20 },
-  playstyleLabel: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
-
-  // Secondary Filters Container
-  secondaryFiltersContainer: { gap: 14, marginBottom: 20 },
-  secondaryFilterSection: { gap: 8 },
-  ghostButtonsContainer: { gap: 6, paddingVertical: 2 },
-  ghostButton: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 14, minWidth: 55 },
-  ghostButtonLabel: { fontSize: 10, fontWeight: '600', textAlign: 'center' },
-
-  // Bottom Filters Row
-  bottomFiltersRow: { flexDirection: 'row', gap: 12 },
-  bottomFilterItem: { flex: 1, gap: 8 },
-  mapSizeButtons: { flexDirection: 'row', gap: 6 },
-  sizeButton: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' },
-  sizeButtonText: { fontSize: 11, fontWeight: '700' },
-  difficultyButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 8, gap: 8 },
-  difficultyLabel: { fontSize: 11, fontWeight: '600' },
-
-  // Divider
-  divider: { height: 1, marginVertical: 18 },
-
-  // Recommendation Section
-  recommendationSection: { gap: 14 },
-
-  // Stats Header
-  statsHeader: { flexDirection: 'row', paddingVertical: 12, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'space-around' },
-  statItem: { flex: 1, alignItems: 'center', gap: 3 },
+  header: { marginBottom: 20, gap: 8 },
+  title: { fontSize: 28, fontWeight: '800', color: '#00D9FF', lineHeight: 36 },
+  subtitle: { fontSize: 14, opacity: 0.6, fontWeight: '500' },
+  section: { marginBottom: 20, gap: 12 },
+  sectionHeader: { flexDirection: 'row', alignItems: 'flex-start', gap: 12 },
+  sectionTitle: { fontSize: 16, fontWeight: '700', lineHeight: 22 },
+  sectionHelper: { fontSize: 12, opacity: 0.6, fontWeight: '500' },
+  stepBadge: { width: 32, height: 32, borderRadius: 8, justifyContent: 'center', alignItems: 'center', minWidth: 32 },
+  stepNumber: { fontSize: 14, fontWeight: '800', color: 'white' },
+  playstyleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
+  playstyleCard: { flex: 1, minWidth: '47%', paddingHorizontal: 12, paddingVertical: 12, borderRadius: 12, alignItems: 'center', gap: 8 },
+  playstyleEmoji: { fontSize: 28 },
+  playstyleName: { fontSize: 13, fontWeight: '700', textAlign: 'center' },
+  playstyleDesc: { fontSize: 11, opacity: 0.7, textAlign: 'center', lineHeight: 15 },
+  budgetCard: { paddingHorizontal: 16, paddingVertical: 14, borderRadius: 12, borderWidth: 1, gap: 4 },
+  budgetLabel: { fontSize: 12, opacity: 0.7, fontWeight: '600' },
+  budgetAmount: { fontSize: 24, fontWeight: '800', color: '#00D9FF' },
+  budgetButtonGrid: { flexDirection: 'row', gap: 8, flexWrap: 'wrap' },
+  budgetButton: { flex: 1, minWidth: 60, paddingVertical: 10, borderRadius: 10, alignItems: 'center', borderWidth: 1 },
+  budgetButtonText: { fontSize: 12, fontWeight: '600' },
+  ghostList: { gap: 8, paddingRight: 8 },
+  ghostButton: { paddingHorizontal: 14, paddingVertical: 8, borderRadius: 10, minWidth: 70, alignItems: 'center', borderWidth: 1, backgroundColor: 'rgba(0,0,0,0.05)' },
+  ghostButtonText: { fontSize: 12, fontWeight: '600' },
+  optionGroup: { gap: 10 },
+  optionLabel: { fontSize: 12, fontWeight: '700', opacity: 0.8 },
+  optionButtons: { flexDirection: 'row', gap: 8 },
+  optionButton: { flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center', borderWidth: 1, backgroundColor: 'rgba(0,0,0,0.05)' },
+  optionButtonText: { fontSize: 12, fontWeight: '600' },
+  difficultyButton: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8, borderWidth: 1 },
+  difficultyButtonText: { fontSize: 12, fontWeight: '600' },
+  advancedSection: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginBottom: 20 },
+  advancedContent: { paddingHorizontal: 12, paddingVertical: 12, gap: 14 },
+  resultsSection: { gap: 14 },
+  statsCard: { flexDirection: 'row', paddingVertical: 14, paddingHorizontal: 12, borderRadius: 12, borderWidth: 1, alignItems: 'center', justifyContent: 'space-around' },
+  stat: { flex: 1, alignItems: 'center', gap: 3 },
   statLabel: { fontSize: 10, opacity: 0.6, fontWeight: '500' },
-  statValue: { fontSize: 16, fontWeight: '700', color: '#00D9FF' },
-  statDivider: { width: 1, height: 28 },
-
-  // Equipment Lists
-  equipmentListContainer: { gap: 8 },
-  equipmentListHeader: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 4 },
-  equipmentListTitle: { fontSize: 12, fontWeight: '700', color: '#00D9FF' },
-  equipmentListItem: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(0,0,0,0.02)', borderRadius: 8 },
-  checkmark: { width: 24, height: 24, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
-  equipmentName: { fontSize: 12, fontWeight: '500', flex: 1 },
-
-  // Info Boxes
-  infoBox: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, borderLeftWidth: 4, gap: 8 },
-  warningBox: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, borderLeftWidth: 4, gap: 8 },
+  statValue: { fontSize: 18, fontWeight: '800', color: '#00D9FF' },
+  statDivider: { width: 1, height: 32 },
+  actionButtons: { flexDirection: 'row', gap: 10 },
+  actionButton: { flex: 1, flexDirection: 'row', paddingVertical: 11, borderRadius: 10, gap: 6, alignItems: 'center', justifyContent: 'center' },
+  actionButtonText: { fontSize: 13, fontWeight: '700' },
+  equipmentSection: { borderWidth: 1, borderRadius: 12, overflow: 'hidden', marginBottom: 14 },
+  equipmentContentContainer: { paddingHorizontal: 12, paddingVertical: 12, gap: 8 },
+  equipmentHeader: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 4 },
+  equipmentHeaderTab: { flexDirection: 'row', alignItems: 'center', gap: 8, paddingHorizontal: 12, paddingVertical: 12, borderRadius: 10, borderWidth: 1, justifyContent: 'space-between' },
+  equipmentSectionTitle: { fontSize: 13, fontWeight: '700', color: '#00D9FF', flex: 1 },
+  equipmentItem: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.03)' },
+  checkmark: { width: 28, height: 28, borderRadius: 6, justifyContent: 'center', alignItems: 'center' },
+  equipmentName: { fontSize: 13, fontWeight: '600', flex: 1 },
+  equipmentHint: { fontSize: 10, opacity: 0.5, marginTop: 2 },
+  infoBox: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, gap: 8 },
   infoBoxHeader: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  infoBoxTitle: { fontSize: 12, fontWeight: '700' },
-  infoBoxText: { fontSize: 11, opacity: 0.8, lineHeight: 15, paddingLeft: 4 },
-
-  // Effectiveness
-  effectivenessBox: { paddingVertical: 12, paddingHorizontal: 12, borderRadius: 10, gap: 8, borderWidth: 1, borderColor: 'rgba(0, 217, 255, 0.2)' },
-  effectivenessHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  effectivenessLabel: { fontSize: 12, fontWeight: '700' },
-  effectivenessValue: { fontSize: 16, fontWeight: '800', color: '#00D9FF' },
-  progressBar: { height: 6, borderRadius: 3, overflow: 'hidden' },
-  progressFill: { height: '100%' },
-  effectivenessReason: { fontSize: 11, opacity: 0.7 },
-  premiumPaywall: {
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 80,
-    gap: 16,
-  },
-  premiumTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-  },
-  premiumDescription: {
-    fontSize: 14,
-    textAlign: 'center',
-    marginHorizontal: 20,
-    lineHeight: 20,
-  },
-  premiumButton: {
-    flexDirection: 'row',
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    gap: 8,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  premiumButtonText: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: 'white',
-  },
+  infoBoxTitle: { fontSize: 13, fontWeight: '700', flex: 1 },
+  infoBoxText: { fontSize: 12, opacity: 0.8, lineHeight: 17, paddingLeft: 4 },
+  premiumPaywall: { justifyContent: 'center', alignItems: 'center', paddingVertical: 80, gap: 16 },
+  premiumTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
+  premiumDescription: { fontSize: 14, textAlign: 'center', marginHorizontal: 20, lineHeight: 20 },
+  premiumButton: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, gap: 8, alignItems: 'center' },
+  premiumButtonText: { fontSize: 16, fontWeight: '800', color: 'white' },
 });

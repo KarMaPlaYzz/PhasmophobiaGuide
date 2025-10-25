@@ -4,10 +4,9 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 
-import { AnimatedCollapsibleHeader } from '@/components/animated-collapsible-header';
 import { BookmarkButton } from '@/components/bookmark-button';
+import { CollapsibleSection } from '@/components/collapsible-section';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, EquipmentCategoryColors } from '@/constants/theme';
@@ -272,94 +271,82 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
 
         {/* Collapsible: Tiers */}
         {equipment.tiers && equipment.tiers.length > 0 && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={t('componentLabels.upgradeTiers')}
-              isExpanded={expandedSections.tiers}
-              onPress={() => toggleSection('tiers')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.tiers && (
-              <Animated.View entering={FadeInDown.springify()} exiting={FadeOutUp.springify()}>
-                <View>
-                  {equipment.tiers.map((tier, idx) => (
-                    <View key={idx} style={[styles.tierItem, { borderColor: colors.paranormal }]}>
-                      <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
-                      <View style={styles.tierDetails}>
-                        <View style={styles.tierDetail}>
-                          <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.level')}:</ThemedText>
-                          <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
-                        </View>
-                        <View style={styles.tierDetail}>
-                          <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.cost')}:</ThemedText>
-                          <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
-                        </View>
-                      </View>
+          <CollapsibleSection
+            title={t('componentLabels.upgradeTiers')}
+            isExpanded={expandedSections.tiers}
+            onPress={() => toggleSection('tiers')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={{ gap: 8 }}>
+              {equipment.tiers.map((tier, idx) => (
+                <View key={idx} style={[styles.tierItem, { borderColor: colors.paranormal }]}>
+                  <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
+                  <View style={styles.tierDetails}>
+                    <View style={styles.tierDetail}>
+                      <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.level')}:</ThemedText>
+                      <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
                     </View>
-                  ))}
+                    <View style={styles.tierDetail}>
+                      <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.cost')}:</ThemedText>
+                      <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
+                    </View>
+                  </View>
                 </View>
-              </Animated.View>
-            )}
-          </>
+              ))}
+            </View>
+          </CollapsibleSection>
         )}
 
         {/* Collapsible: Synergies */}
         {equipmentSynergies.length > 0 && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={`${t('componentLabels.synergies')} (${equipmentSynergies.length})`}
-              isExpanded={expandedSections.synergies}
-              onPress={() => toggleSection('synergies')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.synergies && (
-              <Animated.View entering={FadeInDown.springify()} exiting={FadeOutUp.springify()}>
-                <View style={styles.synergies}>
-                  {equipmentSynergies.map((synergyId) => (
-                    <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
-                      <Ionicons size={14} name="link" color={colors.spectral} />
-                      <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
-                        {getEquipmentName(synergyId, language)}
-                      </ThemedText>
-                    </View>
-                  ))}
+          <CollapsibleSection
+            title={`${t('componentLabels.synergies')} (${equipmentSynergies.length})`}
+            isExpanded={expandedSections.synergies}
+            onPress={() => toggleSection('synergies')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+              {equipmentSynergies.map((synergyId) => (
+                <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
+                  <Ionicons size={14} name="link" color={colors.spectral} />
+                  <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
+                    {getEquipmentName(synergyId, language)}
+                  </ThemedText>
                 </View>
-              </Animated.View>
-            )}
-          </>
+              ))}
+            </View>
+          </CollapsibleSection>
         )}
 
         {/* Collapsible: Recommended For */}
         {equipment.recommendedFor && equipment.recommendedFor.length > 0 && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={`${t('componentLabels.bestFor')} (${equipment.recommendedFor.length})`}
-              isExpanded={expandedSections.recommended}
-              onPress={() => toggleSection('recommended')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.recommended && (
-              <Animated.View entering={FadeInDown.springify()} exiting={FadeOutUp.springify()}>
-                <>
-                  {equipment.recommendedFor.map((recommendation, idx) => (
-                    <View key={idx} style={styles.recommendationItem}>
-                      <ThemedText style={styles.recommendationBullet}>•</ThemedText>
-                      <ThemedText style={styles.recommendationText}>{recommendation}</ThemedText>
-                    </View>
-                  ))}
-                </>
-              </Animated.View>
-            )}
-          </>
+          <CollapsibleSection
+            title={`${t('componentLabels.bestFor')} (${equipment.recommendedFor.length})`}
+            isExpanded={expandedSections.recommended}
+            onPress={() => toggleSection('recommended')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={{ gap: 8 }}>
+              {equipment.recommendedFor.map((recommendation, idx) => (
+                <View key={idx} style={styles.recommendationItem}>
+                  <ThemedText style={styles.recommendationBullet}>•</ThemedText>
+                  <ThemedText style={styles.recommendationText}>{recommendation}</ThemedText>
+                </View>
+              ))}
+            </View>
+          </CollapsibleSection>
         )}
 
         <View style={{ height: 20 }} />

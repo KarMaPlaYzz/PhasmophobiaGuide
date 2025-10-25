@@ -36,6 +36,11 @@ const PREMIUM_FEATURES = [
     description: 'Build the best equipment loadouts',
   },
   {
+    icon: 'layers' as const,
+    title: 'Loadout Presets',
+    description: 'Save and share equipment configurations',
+  },
+  {
     icon: 'finger-print' as const,
     title: 'Evidence Identifier',
     description: 'Identify ghosts by evidence',

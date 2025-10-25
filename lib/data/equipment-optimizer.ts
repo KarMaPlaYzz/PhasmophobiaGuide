@@ -189,6 +189,7 @@ export const EQUIPMENT_COSTS: Record<string, number> = {
   'smudge-sticks': 35,
   'incense': 30,
   'salt': 15,
+  'prayer-candle': 25,
 
   // Truck Equipment
   'photo-camera': 40,

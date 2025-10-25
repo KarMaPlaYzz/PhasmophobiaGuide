@@ -6,9 +6,8 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Dimensions, Image, StyleSheet, View } from 'react-native';
 
-import { AnimatedCollapsibleHeader } from '@/components/animated-collapsible-header';
 import { BookmarkButton } from '@/components/bookmark-button';
-import { CollapsibleSectionAnimation } from '@/components/collapsible-section-animation';
+import { CollapsibleSection } from '@/components/collapsible-section';
 import { FloorPlanViewer } from '@/components/floor-plan-viewer';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
@@ -271,184 +270,169 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
 
         {/* Collapsible: Zones */}
         {map.zones && map.zones.length > 0 && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={`${t('componentLabels.zones')} (${map.zones.length})`}
-              isExpanded={expandedSections.zones}
-              onPress={() => toggleSection('zones')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.zones && (
-              <CollapsibleSectionAnimation isVisible={expandedSections.zones} animationType="fade">
-                <View>
-                  {map.zones.map((zone, idx) => (
-                    <View key={idx} style={[styles.zoneItem, { borderColor: colors.paranormal, borderLeftWidth: 3, paddingLeft: 12, paddingVertical: 12, marginBottom: 12 }]}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                        <ThemedText style={[styles.zoneName, { flex: 1 }]}>{zone.name}</ThemedText>
-                        <View
-                          style={[
-                            styles.zoneDifficultyBadge,
-                            {
-                              backgroundColor:
-                                zone.difficulty === 'Easy'
-                                  ? '#4CAF50'
-                                  : zone.difficulty === 'Medium'
-                                    ? '#FFC107'
-                                    : '#FF6F6F',
-                            },
-                          ]}
-                        >
-                          <ThemedText style={styles.zoneDifficultyText}>{zone.difficulty}</ThemedText>
-                        </View>
-                      </View>
-                      <ThemedText style={[styles.description, { marginBottom: 8 }]}>{zone.description}</ThemedText>
+          <CollapsibleSection
+            title={`${t('componentLabels.zones')} (${map.zones.length})`}
+            isExpanded={expandedSections.zones}
+            onPress={() => toggleSection('zones')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={{ gap: 12 }}>
+              {map.zones.map((zone, idx) => (
+                <View key={idx} style={[styles.zoneItem, { borderColor: colors.paranormal, borderLeftWidth: 3, paddingLeft: 12, paddingVertical: 12 }]}>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                    <ThemedText style={[styles.zoneName, { flex: 1 }]}>{zone.name}</ThemedText>
+                    <View
+                      style={[
+                        styles.zoneDifficultyBadge,
+                        {
+                          backgroundColor:
+                            zone.difficulty === 'Easy'
+                              ? '#4CAF50'
+                              : zone.difficulty === 'Medium'
+                                ? '#FFC107'
+                                : '#FF6F6F',
+                        },
+                      ]}
+                    >
+                      <ThemedText style={styles.zoneDifficultyText}>{zone.difficulty}</ThemedText>
                     </View>
-                  ))}
+                  </View>
+                  <ThemedText style={[styles.description, { marginBottom: 0 }]}>{zone.description}</ThemedText>
                 </View>
-              </CollapsibleSectionAnimation>
-            )}
-          </>
+              ))}
+            </View>
+          </CollapsibleSection>
         )}
 
         {/* Collapsible: Hazards */}
         {map.characteristics.hazards && map.characteristics.hazards.length > 0 && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={`${t('componentLabels.hazards')} (${map.characteristics.hazards.length})`}
-              isExpanded={expandedSections.hazards}
-              onPress={() => toggleSection('hazards')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.hazards && (
-              <CollapsibleSectionAnimation isVisible={expandedSections.hazards} animationType="fade">
-                <View style={styles.tagsContainer}>
-                  {map.characteristics.hazards.map((hazard, idx) => (
-                    <View key={idx} style={[styles.hazardTag, { backgroundColor: '#FF4444' + '20' }]}>
-                      <Ionicons size={14} name="warning-outline" color="#FF4444" />
-                      <ThemedText style={[styles.tagText, { color: '#FF4444' }]}>{hazard}</ThemedText>
-                    </View>
-                  ))}
+          <CollapsibleSection
+            title={`${t('componentLabels.hazards')} (${map.characteristics.hazards.length})`}
+            isExpanded={expandedSections.hazards}
+            onPress={() => toggleSection('hazards')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={[styles.tagsContainer, { gap: 8 }]}>
+              {map.characteristics.hazards.map((hazard, idx) => (
+                <View key={idx} style={[styles.hazardTag, { backgroundColor: '#FF4444' + '20' }]}>
+                  <Ionicons size={14} name="warning-outline" color="#FF4444" />
+                  <ThemedText style={[styles.tagText, { color: '#FF4444' }]}>{hazard}</ThemedText>
                 </View>
-              </CollapsibleSectionAnimation>
-            )}
-          </>
+              ))}
+            </View>
+          </CollapsibleSection>
         )}
 
         {/* Collapsible: Special Features */}
         {map.characteristics.specialFeatures && map.characteristics.specialFeatures.length > 0 && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={`${t('componentLabels.specialFeatures')} (${map.characteristics.specialFeatures.length})`}
-              isExpanded={expandedSections.features}
-              onPress={() => toggleSection('features')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.features && (
-              <CollapsibleSectionAnimation isVisible={expandedSections.features} animationType="fade">
-                <View style={styles.tagsContainer}>
-                  {map.characteristics.specialFeatures.map((feature, idx) => (
-                    <View key={idx} style={[styles.featureTag, { backgroundColor: colors.spectral + '20' }]}>
-                      <Ionicons size={14} name="checkmark-circle" color={colors.spectral} />
-                    <ThemedText style={[styles.tagText, { color: colors.spectral }]}>{feature}</ThemedText>
-                    </View>
-                  ))}
+          <CollapsibleSection
+            title={`${t('componentLabels.specialFeatures')} (${map.characteristics.specialFeatures.length})`}
+            isExpanded={expandedSections.features}
+            onPress={() => toggleSection('features')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={[styles.tagsContainer, { gap: 8 }]}>
+              {map.characteristics.specialFeatures.map((feature, idx) => (
+                <View key={idx} style={[styles.featureTag, { backgroundColor: colors.spectral + '20' }]}>
+                  <Ionicons size={14} name="checkmark-circle" color={colors.spectral} />
+                  <ThemedText style={[styles.tagText, { color: colors.spectral }]}>{feature}</ThemedText>
                 </View>
-              </CollapsibleSectionAnimation>
-            )}
-          </>
+              ))}
+            </View>
+          </CollapsibleSection>
         )}
 
         {/* Collapsible: Strategies & Tips */}
+        {/* Collapsible: Strategies & Tips */}
         {(map.strategies || map.tips) && (
-          <>
-            <AnimatedCollapsibleHeader
-              title={`${t('componentLabels.strategies')} & ${t('componentLabels.tips')}`}
-              isExpanded={expandedSections.strategies}
-              onPress={() => toggleSection('strategies')}
-              backgroundColor={colors.spectral + '12'}
-              titleColor={colors.spectral}
-              iconColor={colors.spectral}
-              icon="chevron-forward"
-            />
-            {expandedSections.strategies && (
-              <CollapsibleSectionAnimation isVisible={expandedSections.strategies} animationType="fade">
-                <View>
-                  {/* Strategies */}
-                  {map.strategies && map.strategies.length > 0 && (
-                    <>
-                      <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                        {t('componentLabels.strategies')}
-                      </ThemedText>
-                      <View style={styles.listContainer}>
-                        {map.strategies.map((strategy, idx) => (
-                          <View key={idx} style={styles.listItem}>
-                            <ThemedText style={[styles.listBullet, { color: colors.spectral }]}>•</ThemedText>
-                            <ThemedText style={styles.listText}>{strategy}</ThemedText>
-                          </View>
-                        ))}
+          <CollapsibleSection
+            title={`${t('componentLabels.strategies')} & ${t('componentLabels.tips')}`}
+            isExpanded={expandedSections.strategies}
+            onPress={() => toggleSection('strategies')}
+            backgroundColor={colors.spectral + '12'}
+            borderColor={colors.spectral + '20'}
+            headerBackgroundColor={colors.spectral + '12'}
+            titleColor={colors.spectral}
+            iconColor={colors.spectral}
+          >
+            <View style={{ gap: 16 }}>
+              {/* Strategies */}
+              {map.strategies && map.strategies.length > 0 && (
+                <>
+                  <ThemedText style={[styles.sectionTitle, { marginTop: 0, fontSize: 14 }]}>
+                    {t('componentLabels.strategies')}
+                  </ThemedText>
+                  <View style={styles.listContainer}>
+                    {map.strategies.map((strategy, idx) => (
+                      <View key={idx} style={styles.listItem}>
+                        <ThemedText style={[styles.listBullet, { color: colors.spectral }]}>•</ThemedText>
+                        <ThemedText style={styles.listText}>{strategy}</ThemedText>
                       </View>
-                    </>
-                  )}
+                    ))}
+                  </View>
+                </>
+              )}
 
-                  {/* Tips */}
-                  {map.tips && map.tips.length > 0 && (
-                    <>
-                      <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                        {t('componentLabels.tips')}
-                      </ThemedText>
-                      <View style={styles.listContainer}>
-                        {map.tips.map((tip, idx) => (
-                          <View key={idx} style={styles.listItem}>
-                            <ThemedText style={styles.listBullet}>💡</ThemedText>
-                            <ThemedText style={styles.listText}>{tip}</ThemedText>
-                          </View>
-                        ))}
+              {/* Tips */}
+              {map.tips && map.tips.length > 0 && (
+                <>
+                  <ThemedText style={[styles.sectionTitle, { marginTop: 0, fontSize: 14 }]}>
+                    {t('componentLabels.tips')}
+                  </ThemedText>
+                  <View style={styles.listContainer}>
+                    {map.tips.map((tip, idx) => (
+                      <View key={idx} style={styles.listItem}>
+                        <ThemedText style={styles.listBullet}>💡</ThemedText>
+                        <ThemedText style={styles.listText}>{tip}</ThemedText>
                       </View>
-                    </>
-                  )}
+                    ))}
+                  </View>
+                </>
+              )}
 
-                  {/* Solo Tips */}
-                  {map.soloTips && map.soloTips.length > 0 && (
-                    <>
-                      <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                        {t('componentLabels.soloTips')}
-                      </ThemedText>
-                      <View style={styles.listContainer}>
-                        {map.soloTips.map((tip, idx) => (
-                          <View key={idx} style={styles.listItem}>
-                            <ThemedText style={styles.listBullet}>👤</ThemedText>
-                            <ThemedText style={styles.listText}>{tip}</ThemedText>
-                          </View>
-                        ))}
+              {/* Solo Tips */}
+              {map.soloTips && map.soloTips.length > 0 && (
+                <>
+                  <ThemedText style={[styles.sectionTitle, { marginTop: 0, fontSize: 14 }]}>
+                    {t('componentLabels.soloTips')}
+                  </ThemedText>
+                  <View style={styles.listContainer}>
+                    {map.soloTips.map((tip, idx) => (
+                      <View key={idx} style={styles.listItem}>
+                        <ThemedText style={styles.listBullet}>👤</ThemedText>
+                        <ThemedText style={styles.listText}>{tip}</ThemedText>
                       </View>
-                    </>
-                  )}
+                    ))}
+                  </View>
+                </>
+              )}
 
-                  {/* Hunt Strategy */}
-                  {map.huntStrategy && (
-                    <>
-                      <ThemedText style={[styles.sectionTitle, { marginTop: 12, fontSize: 14 }]}>
-                        {t('componentLabels.huntStrategy')}
-                      </ThemedText>
-                      <View style={[styles.strategyBox, { backgroundColor: colors.spectral + '15' }]}>
-                        <MaterialIcons name="verified" size={20} color={colors.spectral} />
-                        <ThemedText style={styles.strategyText}>{map.huntStrategy}</ThemedText>
-                      </View>
-                    </>
-                  )}
-                </View>
-              </CollapsibleSectionAnimation>
-            )}
-          </>
+              {/* Hunt Strategy */}
+              {map.huntStrategy && (
+                <>
+                  <ThemedText style={[styles.sectionTitle, { marginTop: 0, fontSize: 14 }]}>
+                    {t('componentLabels.huntStrategy')}
+                  </ThemedText>
+                  <View style={[styles.strategyBox, { backgroundColor: colors.spectral + '15' }]}>
+                    <MaterialIcons name="verified" size={20} color={colors.spectral} />
+                    <ThemedText style={styles.strategyText}>{map.huntStrategy}</ThemedText>
+                  </View>
+                </>
+              )}
+            </View>
+          </CollapsibleSection>
         )}
 
         <View style={{ height: 20 }} />
