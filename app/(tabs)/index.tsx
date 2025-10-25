@@ -22,6 +22,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { MAP_LIST } from '@/lib/data/maps';
 import { Map } from '@/lib/types';
 
@@ -38,10 +39,12 @@ export default function MapsScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { t } = useLocalization();
+  const { isPremium } = usePremium();
   const { width } = Dimensions.get('window');
   
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const viewMode = 'list';
   const [selectedMap, setSelectedMap] = useState<Map | null>(null);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -57,9 +60,10 @@ export default function MapsScreen() {
     return MAP_LIST.filter((map) => {
       const matchesSearch = map.name.toLowerCase().includes(searchText.toLowerCase());
       const matchesDifficulty = selectedDifficulty === 'All' || map.difficulty === selectedDifficulty;
-      return matchesSearch && matchesDifficulty;
+      const matchesSize = !selectedSize || map.size === selectedSize;
+      return matchesSearch && matchesDifficulty && matchesSize;
     });
-  }, [searchText, selectedDifficulty]);
+  }, [searchText, selectedDifficulty, selectedSize]);
 
   const mapsBySize = useMemo(() => {
     const grouped: Record<string, typeof filteredMaps> = {
@@ -218,6 +222,80 @@ export default function MapsScreen() {
               );
               })}
             </ScrollView>
+
+            {/* Map Size Filter - Premium Only */}
+            {isPremium && (
+              <View style={styles.filterSection}>
+                <ThemedText style={styles.filterLabel}>Map Size</ThemedText>
+                <ScrollView
+                  horizontal
+                  scrollEnabled={true}
+                  scrollEventThrottle={16}
+                  showsHorizontalScrollIndicator={false}
+                  style={[styles.filterContainer]}
+                  contentContainerStyle={styles.filterContent}
+                >
+                  {['small', 'medium', 'large'].map((size) => {
+                    const count = MAP_LIST.filter((m) => m.size === size).length;
+                    const sizeColor = colors.warning;
+                    return (
+                      <TouchableOpacity
+                        key={size}
+                        onPress={() => {
+                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                          setSelectedSize(selectedSize === size ? null : size);
+                        }}
+                        style={[
+                          styles.filterButton,
+                          {
+                            backgroundColor:
+                              selectedSize === size
+                                ? sizeColor + '25'
+                                : colors.tabIconDefault + '10',
+                            borderWidth: selectedSize === size ? 2 : 1,
+                            borderColor: selectedSize === size ? sizeColor : colors.border,
+                          },
+                        ]}
+                      >
+                        <Ionicons
+                          size={12}
+                          name={size === 'small' ? 'home' : 'business'}
+                          color={selectedSize === size ? sizeColor : colors.text}
+                        />
+                        <ThemedText
+                          style={{
+                            color: selectedSize === size ? sizeColor : colors.text,
+                            fontSize: 11,
+                            fontWeight: selectedSize === size ? '700' : '500',
+                            marginLeft: 4,
+                          }}
+                        >
+                          {size.charAt(0).toUpperCase() + size.slice(1)}
+                        </ThemedText>
+                        <View
+                          style={[
+                            styles.filterCount,
+                            {
+                              backgroundColor: (selectedSize === size ? sizeColor : colors.text) + '30',
+                            },
+                          ]}
+                        >
+                          <ThemedText
+                            style={{
+                              color: selectedSize === size ? sizeColor : colors.text,
+                              fontSize: 10,
+                              fontWeight: 'bold',
+                            }}
+                          >
+                            {count}
+                          </ThemedText>
+                        </View>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            )}
 
             {/* Maps by Size */}
         {filteredMaps.length > 0 ? (
@@ -459,6 +537,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 24,
+  },
+  filterSection: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    opacity: 0.7,
   },
 
   // Section Styles

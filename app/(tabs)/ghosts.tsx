@@ -17,6 +17,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { getActivityLabel, getDifficultyLabel, getGhostDescription, getGhostName, getSpeedLabel } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
@@ -28,9 +29,12 @@ export default function GhostsScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { language, t } = useLocalization();
+  const { isPremium } = usePremium();
   
   const [searchText, setSearchText] = useState('');
   const [selectedDifficulty, setSelectedDifficulty] = useState('All');
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [selectedSpeed, setSelectedSpeed] = useState<string | null>(null);
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
   const [showComparisonSheet, setShowComparisonSheet] = useState(false);
 
@@ -54,7 +58,9 @@ export default function GhostsScreen() {
     let filtered = GHOST_LIST.filter((ghost) => {
       const matchesSearch = ghost.name.toLowerCase().includes(searchText.toLowerCase());
       const matchesDifficulty = selectedDifficulty === 'All' || ghost.difficulty.toLowerCase() === selectedDifficulty;
-      return matchesSearch && matchesDifficulty;
+      const matchesActivity = !selectedActivity || ghost.activityLevel === selectedActivity;
+      const matchesSpeed = !selectedSpeed || ghost.movementSpeed === selectedSpeed;
+      return matchesSearch && matchesDifficulty && matchesActivity && matchesSpeed;
     });
 
     // Sort by difficulty
@@ -65,7 +71,7 @@ export default function GhostsScreen() {
     });
 
     return filtered;
-  }, [searchText, selectedDifficulty]);
+  }, [searchText, selectedDifficulty, selectedActivity, selectedSpeed]);
 
   const getDifficultyColor = (difficulty: string) => {
     if (difficulty === 'All') return colors.spectral;
@@ -229,6 +235,148 @@ export default function GhostsScreen() {
               );
             })}
           </ScrollView>
+
+          {/* Activity Level Filter - Premium Only */}
+          {isPremium && (
+            <View style={styles.filterSection}>
+              <ThemedText style={styles.filterLabel}>Activity Level</ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={[styles.filterContainer]}
+                contentContainerStyle={styles.filterContent}
+              >
+                {['Very High', 'High', 'Medium', 'Low'].map((activity) => {
+                  const count = GHOST_LIST.filter((g) => g.activityLevel === activity).length;
+                  return (
+                    <TouchableOpacity
+                      key={activity}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSelectedActivity(selectedActivity === activity ? null : activity);
+                      }}
+                      style={[
+                        styles.filterButton,
+                        {
+                          backgroundColor:
+                            selectedActivity === activity
+                              ? colors.warning + '25'
+                              : colors.tabIconDefault + '10',
+                          borderWidth: selectedActivity === activity ? 2 : 1,
+                          borderColor: selectedActivity === activity ? colors.warning : colors.border,
+                        },
+                      ]}
+                    >
+                      <Ionicons
+                        size={12}
+                        name="pulse"
+                        color={selectedActivity === activity ? colors.warning : colors.text}
+                      />
+                      <ThemedText
+                        style={{
+                          color: selectedActivity === activity ? colors.warning : colors.text,
+                          fontSize: 11,
+                          fontWeight: selectedActivity === activity ? '700' : '500',
+                          marginLeft: 4,
+                        }}
+                      >
+                        {activity}
+                      </ThemedText>
+                      <View
+                        style={[
+                          styles.filterCount,
+                          {
+                            backgroundColor: (selectedActivity === activity ? colors.warning : colors.text) + '30',
+                          },
+                        ]}
+                      >
+                        <ThemedText
+                          style={{
+                            color: selectedActivity === activity ? colors.warning : colors.text,
+                            fontSize: 10,
+                            fontWeight: 'bold',
+                          }}
+                        >
+                          {count}
+                        </ThemedText>
+                      </View>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
+
+          {/* Movement Speed Filter - Premium Only */}
+          {isPremium && (
+            <View style={styles.filterSection}>
+              <ThemedText style={styles.filterLabel}>Movement Speed</ThemedText>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={[styles.filterContainer]}
+                contentContainerStyle={styles.filterContent}
+              >
+                {['Slow', 'Normal', 'Fast', 'Variable'].map((speed) => {
+                  const count = GHOST_LIST.filter((g) => g.movementSpeed === speed).length;
+                  return (
+                    <TouchableOpacity
+                      key={speed}
+                      onPress={() => {
+                        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                        setSelectedSpeed(selectedSpeed === speed ? null : speed);
+                      }}
+                      style={[
+                        styles.filterButton,
+                        {
+                          backgroundColor:
+                            selectedSpeed === speed
+                              ? colors.paranormal + '25'
+                              : colors.tabIconDefault + '10',
+                          borderWidth: selectedSpeed === speed ? 2 : 1,
+                          borderColor: selectedSpeed === speed ? colors.paranormal : colors.border,
+                        },
+                    ]}
+                  >
+                    <Ionicons
+                      size={12}
+                      name="flash"
+                      color={selectedSpeed === speed ? colors.paranormal : colors.text}
+                    />
+                    <ThemedText
+                      style={{
+                        color: selectedSpeed === speed ? colors.paranormal : colors.text,
+                        fontSize: 11,
+                        fontWeight: selectedSpeed === speed ? '700' : '500',
+                        marginLeft: 4,
+                      }}
+                    >
+                      {speed}
+                    </ThemedText>
+                    <View
+                      style={[
+                        styles.filterCount,
+                        {
+                          backgroundColor: (selectedSpeed === speed ? colors.paranormal : colors.text) + '30',
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        style={{
+                          color: selectedSpeed === speed ? colors.paranormal : colors.text,
+                          fontSize: 10,
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {count}
+                      </ThemedText>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+            </View>
+          )}
 
           <ThemedText style={styles.resultCounter}>
             {filteredGhosts.length} {filteredGhosts.length === 1 ? t('tabs.ghosts_resultSingular') : t('tabs.ghosts_resultPlural')}
@@ -439,6 +587,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 24,
+  },
+  filterSection: {
+    marginBottom: 12,
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginLeft: 2,
+    marginBottom: 8,
+    opacity: 0.7,
   },
   resultCounter: { fontSize: 13, opacity: 0.6, marginBottom: 12, marginLeft: 2, fontWeight: '500' },
   ghostCard: {

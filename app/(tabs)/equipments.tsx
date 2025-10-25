@@ -16,6 +16,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { getEquipmentDescription, getEquipmentName } from '@/lib/localization';
 import { Equipment } from '@/lib/types';
@@ -28,9 +29,11 @@ export default function EquipmentScreen() {
   const route = useRoute();
   const navigation = useNavigation<any>();
   const { language, t } = useLocalization();
+  const { isPremium } = usePremium();
   
   const [searchText, setSearchText] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [selectedType, setSelectedType] = useState<string | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [optimizerVisible, setOptimizerVisible] = useState(false);
 
@@ -73,9 +76,10 @@ export default function EquipmentScreen() {
     return EQUIPMENT_LIST.filter((item) => {
       const matchesSearch = item.name.toLowerCase().includes(searchText.toLowerCase());
       const matchesCategory = selectedCategory === 'All' || item.category.toLowerCase() === selectedCategory.toLowerCase();
-      return matchesSearch && matchesCategory;
+      const matchesType = !selectedType || item.type === selectedType;
+      return matchesSearch && matchesCategory && matchesType;
     });
-  }, [searchText, selectedCategory]);
+  }, [searchText, selectedCategory, selectedType]);
 
   const getCategoryIcon = (category: string): string => {
     const cat = category.toLowerCase();
@@ -190,6 +194,79 @@ export default function EquipmentScreen() {
             );
           })}
         </ScrollView>
+
+        {/* Equipment Type Filter - Premium Only */}
+        {isPremium && (
+          <View style={styles.filterSection}>
+            <ThemedText style={styles.filterLabel}>Equipment Type</ThemedText>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              style={[styles.filterContainer]}
+              contentContainerStyle={styles.filterContent}
+            >
+              {['detector', 'audio', 'camera', 'utility', 'protective', 'consumable'].map((type) => {
+                const count = EQUIPMENT_LIST.filter((e) => e.type === type).length;
+                const typeColor = colors.paranormal;
+                const typeIcon = type === 'detector' ? 'pulse' : type === 'audio' ? 'volume-high' : type === 'camera' ? 'camera' : type === 'utility' ? 'construct' : type === 'protective' ? 'shield' : 'flask';
+                return (
+                  <TouchableOpacity
+                    key={type}
+                    onPress={() => {
+                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                      setSelectedType(selectedType === type ? null : type);
+                    }}
+                    style={[
+                      styles.filterButton,
+                      {
+                        backgroundColor:
+                          selectedType === type
+                            ? typeColor + '25'
+                            : colors.tabIconDefault + '10',
+                        borderWidth: selectedType === type ? 2 : 1,
+                        borderColor: selectedType === type ? typeColor : colors.border,
+                      },
+                    ]}
+                  >
+                    <Ionicons
+                      size={12}
+                      name={typeIcon as any}
+                      color={selectedType === type ? typeColor : colors.text}
+                    />
+                    <ThemedText
+                      style={{
+                        color: selectedType === type ? typeColor : colors.text,
+                        fontSize: 11,
+                        fontWeight: selectedType === type ? '700' : '500',
+                        marginLeft: 4,
+                      }}
+                    >
+                      {type.charAt(0).toUpperCase() + type.slice(1)}
+                    </ThemedText>
+                    <View
+                      style={[
+                        styles.filterCount,
+                        {
+                          backgroundColor: (selectedType === type ? typeColor : colors.text) + '30',
+                        },
+                      ]}
+                    >
+                      <ThemedText
+                        style={{
+                          color: selectedType === type ? typeColor : colors.text,
+                          fontSize: 10,
+                          fontWeight: 'bold',
+                        }}
+                      >
+                        {count}
+                      </ThemedText>
+                    </View>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
 
         <ThemedText style={styles.resultCounter}>
           {filteredEquipment.length} {filteredEquipment.length === 1 ? t('tabs.equipment_resultSingular') : t('tabs.equipment_resultPlural')}
@@ -382,6 +459,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     minWidth: 24,
+  },
+  filterSection: {
+    marginBottom: 12,
+    paddingHorizontal: 16,
+  },
+  filterLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    marginBottom: 8,
+    opacity: 0.7,
   },
   resultCounter: { fontSize: 13, opacity: 0.6, marginBottom: 12, marginLeft: 2, fontWeight: '500' },
   equipmentCard: {
