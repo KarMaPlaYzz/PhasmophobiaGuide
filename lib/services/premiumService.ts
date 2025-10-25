@@ -357,11 +357,10 @@ export const purchasePremium = async (): Promise<void> => {
   try {
     if (!RNIap) {
       console.warn('[Premium] Cannot purchase - IAP not available (running in Expo Go)');
-      throw new Error(
-        'Premium purchase is not available in Expo Go. ' +
-        'This feature only works in production builds. ' +
-        'Build with EAS (eas build --platform ios) to test on a real device.'
-      );
+      console.log('[Premium] Enabling mock premium for testing in Expo Go');
+      // In Expo Go, enable mock premium so users can test the premium features
+      await enableMockPremium();
+      return;
     }
 
     console.log('[Premium] Attempting to fetch products...');

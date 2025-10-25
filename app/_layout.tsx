@@ -16,6 +16,8 @@ import { equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter }
 import { HistoryDetailSheet } from '@/components/history-detail-sheet';
 import { LibraryHeader } from '@/components/library-header';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
+import { OnboardingScreen } from '@/components/onboarding-screen';
+import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { SettingsDetailSheet } from '@/components/settings-detail-sheet';
 import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
 import { Colors } from '@/constants/theme';
@@ -24,7 +26,7 @@ import { LocalizationProvider } from '@/hooks/use-localization';
 import { PremiumProvider } from '@/lib/context/PremiumContext';
 import { FEATURE_RELEASES, UPCOMING_FEATURES } from '@/lib/data/whats-new';
 import { initializeAdMob } from '@/lib/services/admobService';
-import { initializePremium } from '@/lib/services/premiumService';
+import { initializePremium, restorePurchases } from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { Equipment, Ghost } from '@/lib/types';
 import { cleanupBlogNotifications, initializeBlogNotifications } from '@/lib/utils/blog-notifications';
@@ -49,6 +51,7 @@ export default function RootLayout() {
   const [isWhatsNewVisible, setIsWhatsNewVisible] = useState(false);
   const [isSettingsVisible, setIsSettingsVisible] = useState(false);
   const [isPremiumPaywallVisible, setIsPremiumPaywallVisible] = useState(false);
+  const [isOnboardingVisible, setIsOnboardingVisible] = useState(false);
   const [selectedGhost, setSelectedGhost] = useState<Ghost | null>(null);
   const [selectedEquipment, setSelectedEquipment] = useState<Equipment | null>(null);
   const [selectedMap, setSelectedMap] = useState<any>(null);
@@ -74,6 +77,11 @@ export default function RootLayout() {
     return unsubscribe;
   }, []);
 
+  const handleOnboardingClose = async () => {
+    setIsOnboardingVisible(false);
+    await PreferencesService.setOnboardingCompleted();
+  };
+
   // Initialize blog notifications
   useEffect(() => {
     const initializeServices = async () => {
@@ -92,6 +100,12 @@ export default function RootLayout() {
           console.log('[App] Initializing preferences');
           PreferencesService.initialize();
           console.log('[App] Preferences initialized');
+          
+          // Check if onboarding has been completed
+          const onboardingCompleted = await PreferencesService.isOnboardingCompleted();
+          if (!onboardingCompleted) {
+            setIsOnboardingVisible(true);
+          }
         } catch (error) {
           console.warn('[App] Preferences initialization failed:', error);
         }
@@ -110,6 +124,15 @@ export default function RootLayout() {
           console.log('[App] Initializing Premium');
           await initializePremium();
           console.log('[App] Premium initialized successfully');
+          
+          // Attempt to restore purchases on app launch
+          try {
+            console.log('[App] Attempting to restore purchases');
+            await restorePurchases();
+            console.log('[App] Restore purchases completed');
+          } catch (error) {
+            console.warn('[App] Restore purchases failed:', error);
+          }
         } catch (error) {
           console.warn('[App] Premium initialization failed (non-critical):', error);
         }
@@ -208,7 +231,17 @@ export default function RootLayout() {
                 isVisible={selectedMap !== null}
                 onClose={() => setSelectedMap(null)}
               />
-              {/* PremiumPaywallSheet removed - requires native modules not available in dev builds */}
+              <OnboardingScreen
+                isVisible={isOnboardingVisible}
+                onClose={handleOnboardingClose}
+                onShowPremium={() => setIsPremiumPaywallVisible(true)}
+              />
+              {isPremiumPaywallVisible && (
+                <PremiumPaywallSheet
+                  isVisible={isPremiumPaywallVisible}
+                  onClose={() => setIsPremiumPaywallVisible(false)}
+                />
+              )}
             </BottomSheetModalProvider>
             <StatusBar style="auto" />
           </ThemeProvider>

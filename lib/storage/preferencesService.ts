@@ -9,6 +9,7 @@ export interface UserPreferences {
   blogNotificationsEnabled: boolean;
   hapticFeedbackEnabled: boolean;
   defaultTab: 'ghosts' | 'equipments' | 'index' | 'evidence' | 'sanity-calculator';
+  onboardingCompleted: boolean;
   lastUpdated: number;
 }
 
@@ -18,6 +19,7 @@ const DEFAULT_PREFERENCES: UserPreferences = {
   blogNotificationsEnabled: true,
   hapticFeedbackEnabled: true,
   defaultTab: 'index',
+  onboardingCompleted: false,
   lastUpdated: Date.now(),
 };
 
@@ -149,6 +151,30 @@ export const PreferencesService = {
       await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(DEFAULT_PREFERENCES));
     } catch (error) {
       console.error('Error resetting preferences:', error);
+    }
+  },
+
+  /**
+   * Check if onboarding has been completed
+   */
+  async isOnboardingCompleted(): Promise<boolean> {
+    try {
+      const prefs = await this.getPreferences();
+      return prefs.onboardingCompleted;
+    } catch (error) {
+      console.error('Error checking onboarding status:', error);
+      return false;
+    }
+  },
+
+  /**
+   * Mark onboarding as completed
+   */
+  async setOnboardingCompleted(): Promise<void> {
+    try {
+      await this.updatePreferences({ onboardingCompleted: true });
+    } catch (error) {
+      console.error('Error setting onboarding completed:', error);
     }
   },
 };

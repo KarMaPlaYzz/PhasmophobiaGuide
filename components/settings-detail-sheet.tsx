@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
 
+import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -12,6 +13,7 @@ import { useLocalization } from '@/hooks/use-localization';
 import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
 import * as premiumService from '@/lib/services/premiumService';
+import { disableMockPremium } from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
 import { BookmarkService, HistoryService } from '@/lib/storage/storageService';
 
@@ -42,6 +44,7 @@ export const SettingsDetailSheet = ({
   const [premiumStatusBefore, setPremiumStatusBefore] = useState(false);
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
   const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
+  const [premiumDetailSheetVisible, setPremiumDetailSheetVisible] = useState(false);
 
   // Track premium status changes to show success alerts
   useEffect(() => {
@@ -211,6 +214,69 @@ export const SettingsDetailSheet = ({
     );
   };
 
+  const handleResetEverything = () => {
+    Alert.alert(
+      'Reset Everything?',
+      'This will clear all your bookmarks, history, and reset all settings to defaults. The app will restart. This action cannot be undone.',
+      [
+        {
+          text: 'Cancel',
+          onPress: () => {},
+          style: 'cancel',
+        },
+        {
+          text: 'Reset',
+          onPress: async () => {
+            try {
+              if (hapticFeedbackEnabled) {
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              }
+              // Clear history
+              await HistoryService.clearHistory();
+              
+              // Clear bookmarks
+              const bookmarks = await BookmarkService.getBookmarks();
+              for (const bookmark of bookmarks) {
+                await BookmarkService.removeBookmark(bookmark.id);
+              }
+              
+              // Reset preferences
+              await PreferencesService.reset();
+              
+              // Reset premium status
+              await premiumService.resetPremiumStatus();
+              
+              // Disable mock premium if it was enabled
+              await disableMockPremium();
+              
+              // Close the settings sheet
+              onClose();
+              
+              // Show success alert then reload
+              Alert.alert(
+                'Reset Complete',
+                'All data has been cleared and settings have been reset to defaults. Please restart the app to see the changes.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Close the settings sheet and let user restart manually
+                      // In production apps, you would use expo-updates to reload
+                    },
+                  },
+                ]
+              );
+            } catch (error) {
+              console.error('Error resetting everything:', error);
+              Alert.alert('Reset Failed', 'An error occurred while resetting. Please try again.');
+            }
+          },
+          style: 'destructive',
+        },
+      ]
+    );
+  };
+
   const handlePurchasePremium = async () => {
     try {
       setPremiumStatusBefore(isPremium);
@@ -285,18 +351,19 @@ export const SettingsDetailSheet = ({
   }
 
   return (
-    <BottomSheet
-      snapPoints={snapPoints}
-      enablePanDownToClose={true}
-      onClose={onClose}
-      index={isVisible ? 0 : -1}
-      animateOnMount={true}
-      style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
-      backgroundComponent={() => (
-        <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
-      )}
-      handleIndicatorStyle={{ backgroundColor: colors.spectral }}
-    >
+    <>
+      <BottomSheet
+        snapPoints={snapPoints}
+        enablePanDownToClose={true}
+        onClose={onClose}
+        index={isVisible ? 0 : -1}
+        animateOnMount={true}
+        style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
+        backgroundComponent={() => (
+          <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+        )}
+        handleIndicatorStyle={{ backgroundColor: colors.spectral }}
+      >
       <BottomSheetScrollView
         style={{ flex: 1, paddingHorizontal: 16 }}
         showsVerticalScrollIndicator={false}
@@ -316,11 +383,33 @@ export const SettingsDetailSheet = ({
         {!isPremium && (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>✨ Premium</ThemedText>
-            <PremiumPrompt
-              isLoading={isPurchasing}
-              onPurchase={handlePurchasePremium}
-              colors={colors}
-            />
+            <Pressable
+              onPress={() => setPremiumDetailSheetVisible(true)}
+              style={({ pressed }) => [
+                styles.premiumCard,
+                {
+                  backgroundColor: colors.spectral + '15',
+                  borderColor: colors.spectral,
+                  opacity: pressed ? 0.7 : 1,
+                },
+              ]}
+            >
+              <View style={styles.premiumContent}>
+                <View style={styles.premiumTextContent}>
+                  <ThemedText style={styles.premiumTitle}>Unlock Premium</ThemedText>
+                  <ThemedText style={styles.premiumDescription}>
+                    One-time payment of $2.99 • Lifetime access • No subscriptions
+                  </ThemedText>
+                  <View style={styles.premiumFeatures}>
+                    <PremiumFeature text="✓ No ads" />
+                    <PremiumFeature text="✓ Ghost Comparison" />
+                    <PremiumFeature text="✓ Equipment Optimizer" />
+                    <PremiumFeature text="✓ Smart Bookmarks" />
+                  </View>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={colors.spectral} />
+              </View>
+            </Pressable>
           </View>
         )}
 
@@ -330,7 +419,7 @@ export const SettingsDetailSheet = ({
             <SettingItem
               icon="checkmark-circle"
               label="Premium Unlocked"
-              description="You have ad-free access forever"
+              description="You have all features forever"
               colors={colors}
               disabled
             />
@@ -397,6 +486,14 @@ export const SettingsDetailSheet = ({
             colors={colors}
             destructive
           />
+          <SettingItem
+            icon="refresh-circle"
+            label="Reset Everything"
+            description="Clear all data and reset to defaults"
+            onPress={handleResetEverything}
+            colors={colors}
+            destructive
+          />
         </View>
 
         {/* Behavior & Preferences Section */}
@@ -440,6 +537,15 @@ export const SettingsDetailSheet = ({
         <View style={{ height: 20 }} />
       </BottomSheetScrollView>
     </BottomSheet>
+
+    {/* Premium Paywall Sheet */}
+    {premiumDetailSheetVisible && (
+      <PremiumPaywallSheet
+        isVisible={premiumDetailSheetVisible}
+        onClose={() => setPremiumDetailSheetVisible(false)}
+      />
+    )}
+    </>
   );
 };
 
@@ -590,14 +696,15 @@ const PremiumPrompt: React.FC<PremiumPromptProps> = ({ isLoading, onPurchase, co
     >
       <View style={styles.premiumContent}>
         <View style={styles.premiumTextContent}>
-          <ThemedText style={styles.premiumTitle}>Remove All Ads Forever</ThemedText>
+          <ThemedText style={styles.premiumTitle}>Unlock Premium</ThemedText>
           <ThemedText style={styles.premiumDescription}>
             One-time payment of $2.99 • Lifetime access • No subscriptions
           </ThemedText>
           <View style={styles.premiumFeatures}>
-            <PremiumFeature text="✓ No banner ads" />
-            <PremiumFeature text="✓ No interstitial ads" />
-            <PremiumFeature text="✓ Support development" />
+            <PremiumFeature text="✓ No ads" />
+            <PremiumFeature text="✓ Ghost Comparison" />
+            <PremiumFeature text="✓ Equipment Optimizer" />
+            <PremiumFeature text="✓ Smart Bookmarks" />
           </View>
         </View>
         <View

@@ -6,12 +6,12 @@ import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
-    Alert,
-    FlatList,
-    Pressable,
-    ScrollView,
-    StyleSheet,
-    View,
+  Alert,
+  FlatList,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
 } from 'react-native';
 
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
@@ -68,6 +68,14 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
       loadBookmarks();
     }
   }, [isVisible, selectedCategory, selectedCollection, showPinnedOnly]);
+
+  useEffect(() => {
+    if (isVisible) {
+      // Reset premium sheets when bookmarks sheet opens
+      setPremiumSheetVisible(false);
+      setPremiumPaywallVisible(false);
+    }
+  }, [isVisible]);
 
   const loadBookmarks = async () => {
     setLoading(true);
@@ -559,7 +567,11 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
       <BottomSheet
         snapPoints={snapPoints}
         enablePanDownToClose={true}
-        onClose={onClose}
+        onClose={() => {
+          setPremiumSheetVisible(false);
+          setPremiumPaywallVisible(false);
+          onClose();
+        }}
         index={isVisible ? 0 : -1}
         animateOnMount={true}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
@@ -630,11 +642,13 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
       bookmark={selectedBookmark}
     />
 
-    {/* Premium Paywall Sheet */}
-    <PremiumPaywallSheet
-      isVisible={premiumPaywallVisible}
-      onClose={() => setPremiumPaywallVisible(false)}
-    />
+    {/* Premium Paywall Sheet - Only render when needed */}
+    {premiumPaywallVisible && (
+      <PremiumPaywallSheet
+        isVisible={premiumPaywallVisible}
+        onClose={() => setPremiumPaywallVisible(false)}
+      />
+    )}
     </>
   );
 };
