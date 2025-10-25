@@ -6,7 +6,9 @@ import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
+import { AnimatedScreen } from '@/components/animated-screen';
 import { scrollRefRegistry } from '@/components/haptic-tab';
+import { StaggeredListAnimation } from '@/components/staggered-list-animation';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
@@ -140,7 +142,8 @@ export default function SanityCulculatorScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
+    <AnimatedScreen>
+      <ThemedView style={styles.container}>
       <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
         {/* Difficulty Selection */}
         <View style={styles.section}>
@@ -397,7 +400,7 @@ export default function SanityCulculatorScreen() {
           </View>
         </View>
 
-        {/* Timeline 
+        {/* Timeline */}
         <View style={styles.section}>
           <ThemedText style={[styles.sectionTitle, { color: colors.spectral }]}>
             Sanity Timeline
@@ -412,37 +415,39 @@ export default function SanityCulculatorScreen() {
             ]}
           >
             {timeline.map((item, index) => (
-              <View key={index}>
-                <View style={styles.timelineItem}>
-                  <View
-                    style={[
-                      styles.timelineDot,
-                      { backgroundColor: getSanityColor(item.sanity) },
-                    ]}
-                  />
-                  <View style={styles.timelineContent}>
-                    <ThemedText style={styles.timelineSanity}>
-                      {item.sanity}% Sanity
-                    </ThemedText>
-                    <ThemedText style={styles.timelineTime}>
-                      {item.timeMinutes > 0
-                        ? `${item.timeMinutes}m ${item.timeSeconds % 60}s`
-                        : `${item.timeSeconds}s`}
-                    </ThemedText>
+              <StaggeredListAnimation key={index} index={index} itemCount={timeline.length}>
+                <View>
+                  <View style={styles.timelineItem}>
+                    <View
+                      style={[
+                        styles.timelineDot,
+                        { backgroundColor: getSanityColor(item.sanity) },
+                      ]}
+                    />
+                    <View style={styles.timelineContent}>
+                      <ThemedText style={styles.timelineSanity}>
+                        {item.sanity}% Sanity
+                      </ThemedText>
+                      <ThemedText style={styles.timelineTime}>
+                        {item.timeMinutes > 0
+                          ? `${item.timeMinutes}m ${item.timeSeconds % 60}s`
+                          : `${item.timeSeconds}s`}
+                      </ThemedText>
+                    </View>
                   </View>
+                  {index < timeline.length - 1 && (
+                    <View
+                      style={[
+                        styles.timelineLine,
+                        { backgroundColor: colors.border },
+                      ]}
+                    />
+                  )}
                 </View>
-                {index < timeline.length - 1 && (
-                  <View
-                    style={[
-                      styles.timelineLine,
-                      { backgroundColor: colors.border },
-                    ]}
-                  />
-                )}
-              </View>
+              </StaggeredListAnimation>
             ))}
           </View>
-        </View>*/}
+        </View>
 
         {/* Tips Section */}
         <View style={styles.section}>
@@ -473,7 +478,8 @@ export default function SanityCulculatorScreen() {
           <AdBanner />
         </View>
       </ScrollView>
-    </ThemedView>
+      </ThemedView>
+    </AnimatedScreen>
   );
 }
 

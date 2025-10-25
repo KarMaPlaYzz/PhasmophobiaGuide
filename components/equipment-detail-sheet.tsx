@@ -3,8 +3,10 @@ import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Image, StyleSheet, View } from 'react-native';
+import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 
+import { AnimatedCollapsibleHeader } from '@/components/animated-collapsible-header';
 import { BookmarkButton } from '@/components/bookmark-button';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
@@ -111,6 +113,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
   if (!equipment) return null;
 
   const toggleSection = (section: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -126,6 +129,11 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
         <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -265,40 +273,35 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         {/* Collapsible: Tiers */}
         {equipment.tiers && equipment.tiers.length > 0 && (
           <>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                toggleSection('tiers');
-              }}
-              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12' }]}
-            >
-              <Ionicons
-                name={expandedSections.tiers ? 'chevron-down' : 'chevron-forward'}
-                size={18}
-                color={colors.spectral}
-              />
-              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                {t('componentLabels.upgradeTiers')}
-              </ThemedText>
-            </Pressable>
+            <AnimatedCollapsibleHeader
+              title={t('componentLabels.upgradeTiers')}
+              isExpanded={expandedSections.tiers}
+              onPress={() => toggleSection('tiers')}
+              backgroundColor={colors.spectral + '12'}
+              titleColor={colors.spectral}
+              iconColor={colors.spectral}
+              icon="chevron-forward"
+            />
             {expandedSections.tiers && (
-              <View>
-                {equipment.tiers.map((tier, idx) => (
-                  <View key={idx} style={[styles.tierItem, { borderColor: colors.paranormal }]}>
-                    <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
-                    <View style={styles.tierDetails}>
-                      <View style={styles.tierDetail}>
-                        <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.level')}:</ThemedText>
-                        <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
-                      </View>
-                      <View style={styles.tierDetail}>
-                        <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.cost')}:</ThemedText>
-                        <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
+              <Animated.View entering={FadeInDown.springify()} exiting={FadeOutUp.springify()}>
+                <View>
+                  {equipment.tiers.map((tier, idx) => (
+                    <View key={idx} style={[styles.tierItem, { borderColor: colors.paranormal }]}>
+                      <ThemedText style={styles.tierLabel}>Tier {idx + 1}</ThemedText>
+                      <View style={styles.tierDetails}>
+                        <View style={styles.tierDetail}>
+                          <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.level')}:</ThemedText>
+                          <ThemedText style={styles.tierDetailValue}>{tier.level}</ThemedText>
+                        </View>
+                        <View style={styles.tierDetail}>
+                          <ThemedText style={styles.tierDetailLabel}>{t('componentLabels.cost')}:</ThemedText>
+                          <ThemedText style={styles.tierDetailValue}>${tier.upgradeCost.toLocaleString()}</ThemedText>
+                        </View>
                       </View>
                     </View>
-                  </View>
-                ))}
-              </View>
+                  ))}
+                </View>
+              </Animated.View>
             )}
           </>
         )}
@@ -306,33 +309,28 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         {/* Collapsible: Synergies */}
         {equipmentSynergies.length > 0 && (
           <>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                toggleSection('synergies');
-              }}
-              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
-            >
-              <Ionicons
-                name={expandedSections.synergies ? 'chevron-down' : 'chevron-forward'}
-                size={18}
-                color={colors.spectral}
-              />
-              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                {t('componentLabels.synergies')} ({equipmentSynergies.length})
-              </ThemedText>
-            </Pressable>
+            <AnimatedCollapsibleHeader
+              title={`${t('componentLabels.synergies')} (${equipmentSynergies.length})`}
+              isExpanded={expandedSections.synergies}
+              onPress={() => toggleSection('synergies')}
+              backgroundColor={colors.spectral + '12'}
+              titleColor={colors.spectral}
+              iconColor={colors.spectral}
+              icon="chevron-forward"
+            />
             {expandedSections.synergies && (
-              <View style={styles.synergies}>
-                {equipmentSynergies.map((synergyId) => (
-                  <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
-                    <Ionicons size={14} name="link" color={colors.spectral} />
-                    <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
-                      {getEquipmentName(synergyId, language)}
-                    </ThemedText>
-                  </View>
-                ))}
-              </View>
+              <Animated.View entering={FadeInDown.springify()} exiting={FadeOutUp.springify()}>
+                <View style={styles.synergies}>
+                  {equipmentSynergies.map((synergyId) => (
+                    <View key={synergyId} style={[styles.synergy, { backgroundColor: colors.spectral + '15' }]}>
+                      <Ionicons size={14} name="link" color={colors.spectral} />
+                      <ThemedText style={[styles.synergyText, { marginLeft: 6 }]}>
+                        {getEquipmentName(synergyId, language)}
+                      </ThemedText>
+                    </View>
+                  ))}
+                </View>
+              </Animated.View>
             )}
           </>
         )}
@@ -340,31 +338,26 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         {/* Collapsible: Recommended For */}
         {equipment.recommendedFor && equipment.recommendedFor.length > 0 && (
           <>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                toggleSection('recommended');
-              }}
-              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '12', marginTop: 16 }]}
-            >
-              <Ionicons
-                name={expandedSections.recommended ? 'chevron-down' : 'chevron-forward'}
-                size={18}
-                color={colors.spectral}
-              />
-              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                {t('componentLabels.bestFor')} ({equipment.recommendedFor.length})
-              </ThemedText>
-            </Pressable>
+            <AnimatedCollapsibleHeader
+              title={`${t('componentLabels.bestFor')} (${equipment.recommendedFor.length})`}
+              isExpanded={expandedSections.recommended}
+              onPress={() => toggleSection('recommended')}
+              backgroundColor={colors.spectral + '12'}
+              titleColor={colors.spectral}
+              iconColor={colors.spectral}
+              icon="chevron-forward"
+            />
             {expandedSections.recommended && (
-              <>
-                {equipment.recommendedFor.map((recommendation, idx) => (
-                  <View key={idx} style={styles.recommendationItem}>
-                    <ThemedText style={styles.recommendationBullet}>•</ThemedText>
-                    <ThemedText style={styles.recommendationText}>{recommendation}</ThemedText>
-                  </View>
-                ))}
-              </>
+              <Animated.View entering={FadeInDown.springify()} exiting={FadeOutUp.springify()}>
+                <>
+                  {equipment.recommendedFor.map((recommendation, idx) => (
+                    <View key={idx} style={styles.recommendationItem}>
+                      <ThemedText style={styles.recommendationBullet}>•</ThemedText>
+                      <ThemedText style={styles.recommendationText}>{recommendation}</ThemedText>
+                    </View>
+                  ))}
+                </>
+              </Animated.View>
             )}
           </>
         )}

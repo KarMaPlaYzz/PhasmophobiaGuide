@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { useMemo, useState } from 'react';
 import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
+import { GhostComparisonAnimation } from '@/components/ghost-comparison-animation';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
@@ -325,20 +326,28 @@ export const GhostComparisonSheet = ({
   );
 
   const renderTabContent = () => {
-    switch (activeTab) {
-      case 'basic':
-        return renderBasicStats();
-      case 'abilities':
-        return renderAbilities();
-      case 'evidence':
-        return renderEvidence();
-      case 'equipment':
-        return renderEquipment();
-      case 'strategies':
-        return renderStrategies();
-      default:
-        return null;
-    }
+    const content = (() => {
+      switch (activeTab) {
+        case 'basic':
+          return renderBasicStats();
+        case 'abilities':
+          return renderAbilities();
+        case 'evidence':
+          return renderEvidence();
+        case 'equipment':
+          return renderEquipment();
+        case 'strategies':
+          return renderStrategies();
+        default:
+          return null;
+      }
+    })();
+
+    return (
+      <GhostComparisonAnimation key={activeTab}>
+        {content}
+      </GhostComparisonAnimation>
+    );
   };
 
   if (!isVisible) return null;
@@ -350,6 +359,11 @@ export const GhostComparisonSheet = ({
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
               <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />

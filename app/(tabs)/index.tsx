@@ -7,7 +7,6 @@ import {
   Platform,
   ScrollView,
   StyleSheet,
-  TextInput,
   TouchableOpacity,
   UIManager,
   View
@@ -15,6 +14,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
+import { AnimatedScreen } from '@/components/animated-screen';
+import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
 import { ThemedText } from '@/components/themed-text';
@@ -128,8 +129,9 @@ export default function MapsScreen() {
   const cardWidth = width - 32;
 
   return (
-    <>
-      <ThemedView style={styles.container}>
+    <AnimatedScreen>
+      <>
+        <ThemedView style={styles.container}>
         <ScrollView 
           ref={handleScrollRef}
           style={styles.fullScroll} 
@@ -139,24 +141,19 @@ export default function MapsScreen() {
         >
           {/* Search Bar */}
           <View style={[styles.contentPadding ]}>
-            <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-              <Ionicons size={20} name="search" color={colors.spectral} />
-              <TextInput
-                style={[styles.searchInput, { color: colors.text }]}
-                placeholder={t('tabs.maps_searchPlaceholder')}
-                placeholderTextColor={colors.tabIconDefault}
-                value={searchText}
-                onChangeText={setSearchText}
-              />
-              {searchText && (
-                <TouchableOpacity onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setSearchText('');
-                }}>
-                  <Ionicons size={20} name="close-circle" color={colors.spectral} />
-                </TouchableOpacity>
-              )}
-            </View>
+            <AnimatedSearchBar
+              placeholder={t('tabs.maps_searchPlaceholder')}
+              value={searchText}
+              onChangeText={setSearchText}
+              searchIconColor={colors.spectral}
+              textColor={colors.text}
+              placeholderTextColor={colors.tabIconDefault}
+              backgroundColor={colors.surface}
+              borderColor={colors.border}
+              focusedBorderColor={colors.spectral}
+              clearButtonColor={colors.spectral}
+              style={[styles.searchContainer]}
+            />
           </View>
 
           {/* Difficulty Filter */}
@@ -486,7 +483,8 @@ export default function MapsScreen() {
         isVisible={sheetVisible}
         onClose={handleCloseSheet}
       />
-    </>
+      </>
+    </AnimatedScreen>
   );
 }
 

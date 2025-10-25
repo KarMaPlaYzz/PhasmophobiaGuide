@@ -14,6 +14,8 @@ import {
   View,
 } from 'react-native';
 
+import { AnimatedPressable } from '@/components/animated-pressable';
+import { EmptyStateAnimation } from '@/components/empty-state-animation';
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
 import { PremiumBookmarksFeaturesSheet } from '@/components/premium-bookmarks-features';
 import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
@@ -264,7 +266,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
     const collection = item.collectionId ? collectionsMap[item.collectionId] : null;
     
     return (
-    <Pressable
+    <AnimatedPressable
       onPress={() => {
         // Only navigate if this wasn't a long-press
         if (!longPressTriggeredRef.current) {
@@ -292,12 +294,11 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
           }
         }
       }}
-      style={({ pressed }) => [
+      style={[
         styles.bookmarkItem,
         {
           borderLeftColor: item.color || colors.spectral,
           borderLeftWidth: 4,
-          opacity: pressed ? 0.7 : 1,
           backgroundColor: item.color ? item.color + '15' : 'rgba(0, 217, 255, 0.05)',
         },
       ]}
@@ -404,7 +405,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
       >
         <MaterialIcons name="close" size={20} color={colors.error} />
       </Pressable>
-    </Pressable>
+    </AnimatedPressable>
     );
   };
 
@@ -547,15 +548,17 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   );
 
   const renderEmptyState = () => (
-    <View style={styles.centerContainer}>
-      <View style={[styles.emptyIconContainer, { backgroundColor: colors.spectral + '20' }]}>
-        <MaterialIcons name="favorite-border" size={48} color={colors.spectral} />
+    <EmptyStateAnimation type="float">
+      <View style={styles.centerContainer}>
+        <View style={[styles.emptyIconContainer, { backgroundColor: colors.spectral + '20' }]}>
+          <MaterialIcons name="favorite-border" size={48} color={colors.spectral} />
+        </View>
+        <ThemedText style={styles.emptyText}>No bookmarks yet</ThemedText>
+        <ThemedText style={styles.emptySubtext}>
+          Add items to your favorites to see them here
+        </ThemedText>
       </View>
-      <ThemedText style={styles.emptyText}>No bookmarks yet</ThemedText>
-      <ThemedText style={styles.emptySubtext}>
-        Add items to your favorites to see them here
-      </ThemedText>
-    </View>
+    </EmptyStateAnimation>
   );
 
   if (!isVisible) return null;
@@ -572,6 +575,11 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
         }}
         index={isVisible ? 0 : -1}
         animateOnMount={true}
+        animationConfigs={{
+          damping: 80,
+          mass: 1.2,
+          overshootClamping: true,
+        }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
           <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />

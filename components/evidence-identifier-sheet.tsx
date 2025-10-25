@@ -3,6 +3,7 @@
  * Bottom sheet for collecting evidence and identifying ghosts
  */
 
+import { EvidenceCollectionAnimation } from '@/components/evidence-collection-animation';
 import { Colors } from '@/constants/theme';
 import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
@@ -192,6 +193,11 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       backgroundStyle={{
         backgroundColor: isDark ? colors.surface : '#ffffff',
       }}
@@ -339,16 +345,21 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
             const status = evidenceState[evidenceType];
             const statusStyle = getStatusStyle(status);
             const isExpanded = expandedEvidence === evidenceType;
+            const isCollected = status === 'confirmed';
 
             return (
-              <TouchableOpacity
+              <EvidenceCollectionAnimation
                 key={idx}
-                activeOpacity={0.7}
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  setExpandedEvidence(isExpanded ? null : evidenceType);
-                }}
+                isCollected={isCollected}
+                delay={idx * 50}
               >
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={() => {
+                    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                    setExpandedEvidence(isExpanded ? null : evidenceType);
+                  }}
+                >
                 <View
                   style={{
                     backgroundColor: isDark ? '#1f2937' : '#f9fafb',
@@ -527,6 +538,7 @@ export const EvidenceIdentifierSheet: React.FC<Props> = ({ isVisible, onClose })
                   )}
                 </View>
               </TouchableOpacity>
+              </EvidenceCollectionAnimation>
             );
           })}
         </View>

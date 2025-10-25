@@ -12,7 +12,10 @@ import {
   View,
 } from 'react-native';
 
+import { AnimatedPressable } from '@/components/animated-pressable';
+import { EmptyStateAnimation } from '@/components/empty-state-animation';
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
+import { StaggeredListAnimation } from '@/components/staggered-list-animation';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { EQUIPMENT_LIST } from '@/lib/data/equipment';
@@ -155,39 +158,41 @@ export const HistoryDetailSheet = ({
     return viewDate.toLocaleDateString();
   };
 
-  const renderHistoryItem = ({ item }: { item: HistoryItem }) => (
-    <Pressable
-      onPress={() => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        handleNavigateToItem(item);
-      }}
-      style={({ pressed }) => [
-        styles.historyItem,
-        { borderLeftColor: colors.info, opacity: pressed ? 0.7 : 1 },
-      ]}
-    >
-      <View style={styles.historyContent}>
-        <View
-          style={[
-            styles.iconContainer,
-            { backgroundColor: getCategoryColor(item.type) + '20' },
-          ]}
-        >
-          <Ionicons
-            name={getCategoryIcon(item.type)}
-            size={16}
-            color={getCategoryColor(item.type)}
-          />
+  const renderHistoryItem = ({ item, index }: { item: HistoryItem; index?: number }) => (
+    <StaggeredListAnimation index={index || 0} itemCount={history.length}>
+      <AnimatedPressable
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          handleNavigateToItem(item);
+        }}
+        style={[
+          styles.historyItem,
+          { borderLeftColor: colors.info },
+        ]}
+      >
+        <View style={styles.historyContent}>
+          <View
+            style={[
+              styles.iconContainer,
+              { backgroundColor: getCategoryColor(item.type) + '20' },
+            ]}
+          >
+            <Ionicons
+              name={getCategoryIcon(item.type)}
+              size={16}
+              color={getCategoryColor(item.type)}
+            />
+          </View>
+          <View style={styles.historyText}>
+            <ThemedText style={styles.historyName}>{item.itemName}</ThemedText>
+            <ThemedText style={styles.historyTime}>
+              {item.type.charAt(0).toUpperCase() + item.type.slice(1)} • {formatTime(item.viewedAt)}
+            </ThemedText>
+          </View>
+          <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
         </View>
-        <View style={styles.historyText}>
-          <ThemedText style={styles.historyName}>{item.itemName}</ThemedText>
-          <ThemedText style={styles.historyTime}>
-            {item.type.charAt(0).toUpperCase() + item.type.slice(1)} • {formatTime(item.viewedAt)}
-          </ThemedText>
-        </View>
-        <MaterialIcons name="chevron-right" size={20} color={colors.text} opacity={0.5} />
-      </View>
-    </Pressable>
+      </AnimatedPressable>
+    </StaggeredListAnimation>
   );
 
   const renderCategoryFilter = () => (
@@ -222,15 +227,17 @@ export const HistoryDetailSheet = ({
   );
 
   const renderEmptyState = () => (
-    <View style={styles.centerContainer}>
-      <View style={[styles.emptyIconContainer, { backgroundColor: colors.info + '20' }]}>
-        <MaterialIcons name="access-time" size={48} color={colors.info} />
+    <EmptyStateAnimation type="float">
+      <View style={styles.centerContainer}>
+        <View style={[styles.emptyIconContainer, { backgroundColor: colors.info + '20' }]}>
+          <MaterialIcons name="access-time" size={48} color={colors.info} />
+        </View>
+        <ThemedText style={styles.emptyText}>No history yet</ThemedText>
+        <ThemedText style={styles.emptySubtext}>
+          Items you view will appear here
+        </ThemedText>
       </View>
-      <ThemedText style={styles.emptyText}>No history yet</ThemedText>
-      <ThemedText style={styles.emptySubtext}>
-        Items you view will appear here
-      </ThemedText>
-    </View>
+    </EmptyStateAnimation>
   );
 
   if (!isVisible) return null;
@@ -243,6 +250,11 @@ export const HistoryDetailSheet = ({
         onClose={onClose}
         index={isVisible ? 0 : -1}
         animateOnMount={true}
+        animationConfigs={{
+          damping: 80,
+          mass: 1.2,
+          overshootClamping: true,
+        }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
           <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />

@@ -497,6 +497,11 @@ export const PremiumBookmarksFeaturesSheet = ({
       snapPoints={snapPoints}
       onClose={onClose}
       enablePanDownToClose={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
         <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />

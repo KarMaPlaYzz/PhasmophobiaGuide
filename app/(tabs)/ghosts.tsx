@@ -4,11 +4,13 @@ import { useFocusEffect, useRoute } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, TapGestureHandler } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
+import { AnimatedScreen } from '@/components/animated-screen';
+import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { GhostComparisonSheet } from '@/components/ghost-comparison-sheet';
 import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
@@ -146,8 +148,9 @@ export default function GhostsScreen() {
   );
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <ThemedView style={styles.container}>
+    <AnimatedScreen>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <ThemedView style={styles.container}>
         <ScrollView 
           ref={handleScrollRef}
           style={styles.content} 
@@ -155,24 +158,19 @@ export default function GhostsScreen() {
           scrollEventThrottle={16}
           nestedScrollEnabled
         >
-          <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-            <MaterialIcons size={20} name="search" color={colors.spectral} />
-            <TextInput
-              style={[styles.searchInput, { color: colors.text }]}
-              placeholder={t('tabs.ghosts_searchPlaceholder')}
-              placeholderTextColor={colors.tabIconDefault}
-              value={searchText}
-              onChangeText={setSearchText}
-            />
-            {searchText && (
-              <TouchableOpacity onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setSearchText('');
-              }}>
-                <MaterialIcons size={20} name="cancel" color={colors.spectral} />
-              </TouchableOpacity>
-            )}
-          </View>
+          <AnimatedSearchBar
+            placeholder={t('tabs.ghosts_searchPlaceholder')}
+            value={searchText}
+            onChangeText={setSearchText}
+            searchIconColor={colors.spectral}
+            textColor={colors.text}
+            placeholderTextColor={colors.tabIconDefault}
+            backgroundColor={colors.surface}
+            borderColor={colors.border}
+            focusedBorderColor={colors.spectral}
+            clearButtonColor={colors.spectral}
+            style={[styles.searchContainer]}
+          />
 
           <ScrollView
             horizontal
@@ -550,6 +548,7 @@ export default function GhostsScreen() {
         </BlurView>
       )}
     </GestureHandlerRootView>
+    </AnimatedScreen>
   );
 }
 

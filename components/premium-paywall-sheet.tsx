@@ -112,6 +112,11 @@ export const PremiumPaywallSheet = ({
       snapPoints={snapPoints}
       onClose={onClose}
       enablePanDownToClose={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       animatedPosition={animatedPosition}
       handleComponent={() => (
         <View style={[styles.handleContainer, { backgroundColor: colors.background }]}>

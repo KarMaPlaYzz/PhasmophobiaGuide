@@ -4,10 +4,12 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
+import { AnimatedScreen } from '@/components/animated-screen';
+import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { EquipmentOptimizerSheet } from '@/components/equipment-optimizer-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
@@ -116,26 +118,22 @@ export default function EquipmentScreen() {
   };
 
   return (
-    <ThemedView style={styles.container}>
-      <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
-        <View style={[styles.searchContainer, { borderColor: colors.border, backgroundColor: colors.surface }]}>
-          <Ionicons size={20} name="search" color={colors.spectral} />
-          <TextInput
-            style={[styles.searchInput, { color: colors.text }]}
-            placeholder={t('tabs.equipment_searchPlaceholder')}
-            placeholderTextColor={colors.tabIconDefault}
-            value={searchText}
-            onChangeText={setSearchText}
-          />
-          {searchText ? (
-            <TouchableOpacity onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-              setSearchText('');
-            }}>
-              <Ionicons size={20} name="close-circle" color={colors.spectral} />
-            </TouchableOpacity>
-          ) : null}
-        </View>
+    <AnimatedScreen>
+      <ThemedView style={styles.container}>
+        <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
+        <AnimatedSearchBar
+          placeholder={t('tabs.equipment_searchPlaceholder')}
+          value={searchText}
+          onChangeText={setSearchText}
+          searchIconColor={colors.spectral}
+          textColor={colors.text}
+          placeholderTextColor={colors.tabIconDefault}
+          backgroundColor={colors.surface}
+          borderColor={colors.border}
+          focusedBorderColor={colors.spectral}
+          clearButtonColor={colors.spectral}
+          style={[styles.searchContainer]}
+        />
 
         <ScrollView
           horizontal
@@ -402,7 +400,8 @@ export default function EquipmentScreen() {
         isVisible={optimizerVisible}
         onClose={() => setOptimizerVisible(false)}
       />
-    </ThemedView>
+      </ThemedView>
+    </AnimatedScreen>
   );
 }
 

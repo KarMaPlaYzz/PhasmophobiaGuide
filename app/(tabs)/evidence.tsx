@@ -8,6 +8,8 @@ import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AdBanner } from '@/components/ad-banner';
+import { AnimatedScreen } from '@/components/animated-screen';
+import { EvidenceCollectionAnimation } from '@/components/evidence-collection-animation';
 import { ghostSelectionEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -263,7 +265,8 @@ export default function EvidenceScreen() {
   const confirmedCount = Object.values(evidenceState).filter(s => s === 'confirmed').length;
 
   return (
-    <ThemedView style={styles.container}>
+    <AnimatedScreen>
+      <ThemedView style={styles.container}>
       <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.contentPadding}>
           {/* Ghost Matches - Always reserve space */}
@@ -322,43 +325,49 @@ export default function EvidenceScreen() {
               const statusInfo = getStatusInfo(status);
               const confirmedCountLocal = Object.values(evidenceState).filter(s => s === 'confirmed').length;
               const isLocked = confirmedCountLocal >= 3 && status !== 'confirmed';
+              const isCollected = status === 'confirmed';
 
               return (
-                <LongPressGestureHandler
+                <EvidenceCollectionAnimation
                   key={idx}
-                  onHandlerStateChange={({ nativeEvent }) => handleLongPress(evidenceType, nativeEvent.state)}
-                  minDurationMs={150}
+                  isCollected={isCollected}
+                  delay={idx * 50}
                 >
-                <TouchableOpacity
-                    onPress={() => toggleEvidence(evidenceType)}
-                    activeOpacity={0.6}
-                    disabled={isLocked}
+                  <LongPressGestureHandler
+                    onHandlerStateChange={({ nativeEvent }) => handleLongPress(evidenceType, nativeEvent.state)}
+                    minDurationMs={150}
                   >
-                    <View
-                      style={[
-                        styles.evidenceCard,
-                        {
-                          backgroundColor: colors.tabIconDefault + '10',
-                          borderColor: (status === 'confirmed' || status === 'investigating') ? statusInfo.color : colors.tabIconDefault + '20',
-                          opacity: isLocked ? 0.5 : 1,
-                        },
-                      ]}
+                  <TouchableOpacity
+                      onPress={() => toggleEvidence(evidenceType)}
+                      activeOpacity={0.6}
+                      disabled={isLocked}
                     >
-                      <View style={styles.evidenceHeader}>
-                        <Text style={styles.evidenceEmoji}>{info.emoji}</Text>
-                        <View style={styles.evidenceContent}>
-                          <ThemedText style={styles.evidenceTitle}>{evidenceType}</ThemedText>
-                          <ThemedText style={styles.evidenceStatus}>{statusInfo.label}</ThemedText>
-                        </View>
-                        <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
-                          <ThemedText style={styles.statusText}>
-                            {statusInfo.symbol}
-                          </ThemedText>
+                      <View
+                        style={[
+                          styles.evidenceCard,
+                          {
+                            backgroundColor: colors.tabIconDefault + '10',
+                            borderColor: (status === 'confirmed' || status === 'investigating') ? statusInfo.color : colors.tabIconDefault + '20',
+                            opacity: isLocked ? 0.5 : 1,
+                          },
+                        ]}
+                      >
+                        <View style={styles.evidenceHeader}>
+                          <Text style={styles.evidenceEmoji}>{info.emoji}</Text>
+                          <View style={styles.evidenceContent}>
+                            <ThemedText style={styles.evidenceTitle}>{evidenceType}</ThemedText>
+                            <ThemedText style={styles.evidenceStatus}>{statusInfo.label}</ThemedText>
+                          </View>
+                          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
+                            <ThemedText style={styles.statusText}>
+                              {statusInfo.symbol}
+                            </ThemedText>
+                          </View>
                         </View>
                       </View>
-                    </View>
-                  </TouchableOpacity>
-                </LongPressGestureHandler>
+                    </TouchableOpacity>
+                  </LongPressGestureHandler>
+                </EvidenceCollectionAnimation>
               );
             })}
           </View>
@@ -469,6 +478,7 @@ export default function EvidenceScreen() {
           </BlurView>
         </TouchableOpacity>
       )}
-    </ThemedView>
+      </ThemedView>
+    </AnimatedScreen>
   );
 }

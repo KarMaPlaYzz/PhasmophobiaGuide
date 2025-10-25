@@ -6,6 +6,7 @@ import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 
+import { AnimatedEquipmentOption } from '@/components/animated-equipment-option';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
@@ -56,6 +57,11 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
         <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -142,31 +148,36 @@ export const EquipmentOptimizerSheet = ({ isVisible, onClose }: EquipmentOptimiz
               contentContainerStyle={styles.playstyleContainer}
             >
               {playstyles.map(playstyle => (
-                <TouchableOpacity
+                <AnimatedEquipmentOption
                   key={playstyle.id}
+                  isSelected={selectedPlaystyle === playstyle.id}
                   onPress={() => {
                     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                     setSelectedPlaystyle(playstyle.id as Playstyle);
                   }}
-                  style={[
-                    styles.playstyleButton,
-                    {
-                      backgroundColor: selectedPlaystyle === playstyle.id ? colors.spectral : colors.tabIconDefault + '08',
-                      borderColor: selectedPlaystyle === playstyle.id ? colors.spectral : colors.border,
-                      borderWidth: 2,
-                    },
-                  ]}
+                  selectedColor={colors.spectral}
+                  unselectedColor={colors.tabIconDefault + '08'}
                 >
-                  <ThemedText style={styles.playstyleEmoji}>{playstyle.emoji}</ThemedText>
-                  <ThemedText
+                  <View
                     style={[
-                      styles.playstyleLabel,
-                      { color: selectedPlaystyle === playstyle.id ? 'white' : colors.text },
+                      styles.playstyleButton,
+                      {
+                        borderColor: selectedPlaystyle === playstyle.id ? colors.spectral : colors.border,
+                        borderWidth: 2,
+                      },
                     ]}
                   >
-                    {playstyle.name}
-                  </ThemedText>
-                </TouchableOpacity>
+                    <ThemedText style={styles.playstyleEmoji}>{playstyle.emoji}</ThemedText>
+                    <ThemedText
+                      style={[
+                        styles.playstyleLabel,
+                        { color: selectedPlaystyle === playstyle.id ? 'white' : colors.text },
+                      ]}
+                    >
+                      {playstyle.name}
+                    </ThemedText>
+                  </View>
+                </AnimatedEquipmentOption>
               ))}
             </ScrollView>
           </View>

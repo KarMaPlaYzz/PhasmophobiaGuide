@@ -332,6 +332,11 @@ export const SettingsDetailSheet = ({
         onClose={onClose}
         index={isVisible ? 0 : -1}
         animateOnMount={true}
+        animationConfigs={{
+          damping: 80,
+          mass: 1.2,
+          overshootClamping: true,
+        }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
           <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
@@ -356,6 +361,11 @@ export const SettingsDetailSheet = ({
         onClose={onClose}
         index={isVisible ? 0 : -1}
         animateOnMount={true}
+        animationConfigs={{
+          damping: 80,
+          mass: 1.2,
+          overshootClamping: true,
+        }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
           <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />

@@ -7,7 +7,9 @@ import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
 
+import { AnimatedCollapsibleHeader } from '@/components/animated-collapsible-header';
 import { BookmarkButton } from '@/components/bookmark-button';
+import { CollapsibleSectionAnimation } from '@/components/collapsible-section-animation';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
@@ -79,6 +81,7 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
   }, [isVisible]);
 
   const toggleSection = (section: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setExpandedSections((prev) => ({
       ...prev,
       [section]: !prev[section],
@@ -139,6 +142,11 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
       onClose={onClose}
       index={isVisible ? 0 : -1}
       animateOnMount={true}
+      animationConfigs={{
+        damping: 80,
+        mass: 1.2,
+        overshootClamping: true,
+      }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
         <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
@@ -239,165 +247,150 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         </View>
 
         {/* Special Abilities - Collapsible (starts expanded) */}
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            toggleSection('abilities');
-          }}
-          style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '15', marginTop: 16 }]}
-        >
-          <Ionicons
-            name={expandedSections.abilities ? 'chevron-down' : 'chevron-forward'}
-            size={18}
-            color={colors.spectral}
-          />
-          <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-            {t('componentLabels.specialAbilities')}
-          </ThemedText>
-        </Pressable>
+        <AnimatedCollapsibleHeader
+          title={t('componentLabels.specialAbilities')}
+          isExpanded={expandedSections.abilities}
+          onPress={() => toggleSection('abilities')}
+          backgroundColor={colors.spectral + '15'}
+          titleColor={colors.spectral}
+          iconColor={colors.spectral}
+          icon="chevron-forward"
+        />
         {expandedSections.abilities && (
-          <>
-            {ghost.abilities.map((ability, idx) => (
-              <View key={idx} style={styles.abilityItem}>
-                <ThemedText style={styles.abilityName}>{ability.name}</ThemedText>
-                <ThemedText style={styles.abilityDescription}>{ability.description}</ThemedText>
-                {ability.effects.length > 0 && (
-                  <View style={styles.effectsList}>
-                    {ability.effects.map((effect, effIdx) => (
-                      <View key={effIdx} style={styles.effectItem}>
-                        <ThemedText style={styles.effectBullet}>◆</ThemedText>
-                        <ThemedText style={styles.effectText}>{effect}</ThemedText>
-                      </View>
-                    ))}
-                  </View>
-                )}
-              </View>
-            ))}
-          </>
+          <CollapsibleSectionAnimation isVisible={expandedSections.abilities} animationType="fade">
+            <>
+              {ghost.abilities.map((ability, idx) => (
+                <View key={idx} style={styles.abilityItem}>
+                  <ThemedText style={styles.abilityName}>{ability.name}</ThemedText>
+                  <ThemedText style={styles.abilityDescription}>{ability.description}</ThemedText>
+                  {ability.effects.length > 0 && (
+                    <View style={styles.effectsList}>
+                      {ability.effects.map((effect, effIdx) => (
+                        <View key={effIdx} style={styles.effectItem}>
+                          <ThemedText style={styles.effectBullet}>◆</ThemedText>
+                          <ThemedText style={styles.effectText}>{effect}</ThemedText>
+                        </View>
+                      ))}
+                    </View>
+                  )}
+                </View>
+              ))}
+            </>
+          </CollapsibleSectionAnimation>
         )}
 
         {/* Strengths & Weaknesses - Collapsible */}
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            toggleSection('strengths');
-          }}
-          style={[styles.collapsibleHeader, { backgroundColor: colors.paranormal + '15', marginTop: 16 }]}
-        >
-          <Ionicons
-            name={expandedSections.strengths ? 'chevron-down' : 'chevron-forward'}
-            size={18}
-            color={colors.paranormal}
-          />
-          <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1, color: colors.paranormal }]}>
-            {t('componentLabels.strengths')} & {t('componentLabels.weaknesses')}
-          </ThemedText>
-        </Pressable>
+        <AnimatedCollapsibleHeader
+          title={`${t('componentLabels.strengths')} & ${t('componentLabels.weaknesses')}`}
+          isExpanded={expandedSections.strengths}
+          onPress={() => toggleSection('strengths')}
+          backgroundColor={colors.paranormal + '15'}
+          titleColor={colors.paranormal}
+          iconColor={colors.paranormal}
+          icon="chevron-forward"
+        />
         {expandedSections.strengths && (
-          <>
-            <ThemedText style={[styles.sectionSubtitle, { color: colors.paranormal, marginTop: 12 }]}>
-              {t('componentLabels.strengths')}
-            </ThemedText>
-            {ghost.strengths.map((strength, idx) => (
-              <View key={`strength-${idx}`} style={[styles.strengthItem, { borderColor: colors.paranormal }]}>
-                <Ionicons size={16} name="checkmark-circle" color={colors.paranormal} />
-                <View style={{ flex: 1 }}>
-                  <ThemedText style={styles.strengthLabel}>{strength.description}</ThemedText>
-                  <ThemedText style={styles.strengthDetail}>{strength.mechanicalAdvantage}</ThemedText>
+          <CollapsibleSectionAnimation isVisible={expandedSections.strengths} animationType="fade">
+            <>
+              <ThemedText style={[styles.sectionSubtitle, { color: colors.paranormal, marginTop: 12 }]}>
+                {t('componentLabels.strengths')}
+              </ThemedText>
+              {ghost.strengths.map((strength, idx) => (
+                <View key={`strength-${idx}`} style={[styles.strengthItem, { borderColor: colors.paranormal }]}>
+                  <Ionicons size={16} name="checkmark-circle" color={colors.paranormal} />
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={styles.strengthLabel}>{strength.description}</ThemedText>
+                    <ThemedText style={styles.strengthDetail}>{strength.mechanicalAdvantage}</ThemedText>
+                  </View>
                 </View>
-              </View>
-            ))}
+              ))}
 
-            <ThemedText style={[styles.sectionSubtitle, { color: '#FF4444', marginTop: 12 }]}>
-              {t('componentLabels.weaknesses')}
-            </ThemedText>
-            {ghost.weaknesses.map((weakness, idx) => (
-              <View key={`weakness-${idx}`} style={[styles.weaknessItem, { borderColor: '#FF4444' }]}>
-                <Ionicons size={16} name="close-circle" color="#FF4444" />
-                <View style={{ flex: 1 }}>
-                  <ThemedText style={styles.weaknessLabel}>{weakness.description}</ThemedText>
-                  <ThemedText style={styles.weaknessDetail}>{weakness.counter}</ThemedText>
+              <ThemedText style={[styles.sectionSubtitle, { color: '#FF4444', marginTop: 12 }]}>
+                {t('componentLabels.weaknesses')}
+              </ThemedText>
+              {ghost.weaknesses.map((weakness, idx) => (
+                <View key={`weakness-${idx}`} style={[styles.weaknessItem, { borderColor: '#FF4444' }]}>
+                  <Ionicons size={16} name="close-circle" color="#FF4444" />
+                  <View style={{ flex: 1 }}>
+                    <ThemedText style={styles.weaknessLabel}>{weakness.description}</ThemedText>
+                    <ThemedText style={styles.weaknessDetail}>{weakness.counter}</ThemedText>
+                  </View>
                 </View>
-              </View>
-            ))}
-          </>
+              ))}
+            </>
+          </CollapsibleSectionAnimation>
         )}
 
         {/* Counter Strategies - Collapsible */}
         {ghost.counterStrategies && ghost.counterStrategies.length > 0 && (
           <>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                toggleSection('tactics');
-              }}
-              style={[styles.collapsibleHeader, { backgroundColor: '#4CAF50' + '15', marginTop: 16 }]}
-            >
-              <Ionicons
-                name={expandedSections.tactics ? 'chevron-down' : 'chevron-forward'}
-                size={18}
-                color="#4CAF50"
-              />
-              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1, color: '#4CAF50' }]}>
-                {t('componentLabels.counterStrategies')}
-              </ThemedText>
-            </Pressable>
+            <AnimatedCollapsibleHeader
+              title={t('componentLabels.counterStrategies')}
+              isExpanded={expandedSections.tactics}
+              onPress={() => toggleSection('tactics')}
+              backgroundColor={'#4CAF50' + '15'}
+              titleColor={'#4CAF50'}
+              iconColor={'#4CAF50'}
+              icon="chevron-forward"
+            />
             {expandedSections.tactics && (
-              <>
-                {ghost.counterStrategies.map((strategy, idx) => {
-                  const effectColor =
-                    strategy.effectiveness === 'High'
-                      ? '#4CAF50'
-                      : strategy.effectiveness === 'Medium'
-                        ? '#FFC107'
-                        : '#FF6F6F';
-                  const emoji =
-                    strategy.effectiveness === 'High'
-                      ? '✓'
-                      : strategy.effectiveness === 'Medium'
-                        ? '~'
-                        : '✗';
-                  
-                  const effectivenessLabel =
-                    strategy.effectiveness === 'High'
-                      ? t('componentLabels.high')
-                      : strategy.effectiveness === 'Medium'
-                        ? t('componentLabels.medium')
-                        : t('componentLabels.low');
-                  
-                  return (
-                    <View
-                      key={idx}
-                      style={[
-                        styles.strategyItem,
-                        { borderLeftColor: effectColor },
-                      ]}
-                    >
-                      <View style={styles.strategyHeader}>
-                        <ThemedText style={styles.strategyName}>{strategy.strategy}</ThemedText>
-                        <View
-                          style={[
-                            styles.effectivenessBadge,
-                            { backgroundColor: effectColor },
-                          ]}
-                        >
-                          <ThemedText style={styles.effectivenessText}>
-                            {emoji} {effectivenessLabel}
-                          </ThemedText>
+              <CollapsibleSectionAnimation isVisible={expandedSections.tactics} animationType="fade">
+                <>
+                  {ghost.counterStrategies.map((strategy, idx) => {
+                    const effectColor =
+                      strategy.effectiveness === 'High'
+                        ? '#4CAF50'
+                        : strategy.effectiveness === 'Medium'
+                          ? '#FFC107'
+                          : '#FF6F6F';
+                    const emoji =
+                      strategy.effectiveness === 'High'
+                        ? '✓'
+                        : strategy.effectiveness === 'Medium'
+                          ? '~'
+                          : '✗';
+                    
+                    const effectivenessLabel =
+                      strategy.effectiveness === 'High'
+                        ? t('componentLabels.high')
+                        : strategy.effectiveness === 'Medium'
+                          ? t('componentLabels.medium')
+                          : t('componentLabels.low');
+                    
+                    return (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.strategyItem,
+                          { borderLeftColor: effectColor },
+                        ]}
+                      >
+                        <View style={styles.strategyHeader}>
+                          <ThemedText style={styles.strategyName}>{strategy.strategy}</ThemedText>
+                          <View
+                            style={[
+                              styles.effectivenessBadge,
+                              { backgroundColor: effectColor },
+                            ]}
+                          >
+                            <ThemedText style={styles.effectivenessText}>
+                              {emoji} {effectivenessLabel}
+                            </ThemedText>
+                          </View>
+                        </View>
+                        <View style={styles.tipsContainer}>
+                          {strategy.tips.map((tip, tipIdx) => (
+                            <View key={tipIdx} style={styles.tipItem}>
+                              <ThemedText style={styles.tipBullet}>→</ThemedText>
+                              <ThemedText style={styles.tipText}>{tip}</ThemedText>
+                            </View>
+                          ))}
                         </View>
                       </View>
-                      <View style={styles.tipsContainer}>
-                        {strategy.tips.map((tip, tipIdx) => (
-                          <View key={tipIdx} style={styles.tipItem}>
-                            <ThemedText style={styles.tipBullet}>→</ThemedText>
-                            <ThemedText style={styles.tipText}>{tip}</ThemedText>
-                          </View>
-                        ))}
-                      </View>
-                    </View>
-                  );
-                })}
-              </>
+                    );
+                  })}
+                </>
+              </CollapsibleSectionAnimation>
             )}
           </>
         )}
@@ -405,78 +398,72 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         {/* Recommended Equipment - Collapsible */}
         {ghost.recommendedEquipment && (
           <>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                toggleSection('equipment');
-              }}
-              style={[styles.collapsibleHeader, { backgroundColor: '#FF1744' + '15', marginTop: 16 }]}
-            >
-              <Ionicons
-                name={expandedSections.equipment ? 'chevron-down' : 'chevron-forward'}
-                size={18}
-                color="#FF1744"
-              />
-              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1, color: '#FF1744' }]}>
-                {t('componentLabels.recommendedEquipment')}
-              </ThemedText>
-            </Pressable>
+            <AnimatedCollapsibleHeader
+              title={t('componentLabels.recommendedEquipment')}
+              isExpanded={expandedSections.equipment}
+              onPress={() => toggleSection('equipment')}
+              backgroundColor={'#FF1744' + '15'}
+              titleColor={'#FF1744'}
+              iconColor={'#FF1744'}
+              icon="chevron-forward"
+            />
             {expandedSections.equipment && (
-              <>
-                {ghost.recommendedEquipment?.essential && ghost.recommendedEquipment.essential.length > 0 && (
-                  <>
-                    <View
-                      style={[
-                        styles.equipmentCategory,
-                        { borderColor: '#FF1744', backgroundColor: 'rgba(255, 23, 68, 0.12)', marginBottom: 12, paddingVertical: 12, paddingHorizontal: 10, borderRadius: 8 },
-                      ]}
-                    >
-                      <MaterialIcons name="star" size={18} color="#FF1744" style={{ fontWeight: 'bold' }} />
-                      <ThemedText style={[styles.equipmentCategoryTitle, { fontWeight: '700', fontSize: 14 }]}>
-                        {t('componentLabels.mustBring')}
-                      </ThemedText>
-                    </View>
-                    <View style={styles.equipmentList}>
-                      {ghost.recommendedEquipment.essential.map((item, idx) => (
-                        <Pressable
-                          key={idx}
-                          onPress={() => handleEquipmentPress(item)}
-                          style={[
-                            styles.equipmentItem,
-                            {
-                              backgroundColor: pressedEquipmentId === item 
-                                ? 'rgba(255, 23, 68, 0.2)' 
-                                : 'rgba(255, 23, 68, 0.08)',
-                              paddingVertical: 8,
-                              paddingHorizontal: 8,
-                              borderRadius: 4,
-                              borderLeftWidth: 3,
-                              borderLeftColor: '#FF1744',
-                              opacity: pressedEquipmentId === item ? 0.8 : 1,
-                            },
-                          ]}
-                        >
-                          <MaterialIcons name="check-circle" size={16} color="#FF1744" />
-                          <ThemedText style={[styles.equipmentItemText, { fontWeight: '600' }]}>
-                            {item}
-                          </ThemedText>
-                          <MaterialIcons name="open-in-new" size={14} color="#FF1744" style={{ marginLeft: 'auto' }} />
-                        </Pressable>
-                      ))}
-                    </View>
-                  </>
-                )}
+              <CollapsibleSectionAnimation isVisible={expandedSections.equipment} animationType="fade">
+                <>
+                  {ghost.recommendedEquipment?.essential && ghost.recommendedEquipment.essential.length > 0 && (
+                    <>
+                      <View
+                        style={[
+                          styles.equipmentCategory,
+                          { borderColor: '#FF1744', backgroundColor: 'rgba(255, 23, 68, 0.12)', marginBottom: 12, paddingVertical: 12, paddingHorizontal: 10, borderRadius: 8 },
+                        ]}
+                      >
+                        <MaterialIcons name="star" size={18} color="#FF1744" style={{ fontWeight: 'bold' }} />
+                        <ThemedText style={[styles.equipmentCategoryTitle, { fontWeight: '700', fontSize: 14 }]}>
+                          {t('componentLabels.mustBring')}
+                        </ThemedText>
+                      </View>
+                      <View style={styles.equipmentList}>
+                        {ghost.recommendedEquipment.essential.map((item, idx) => (
+                          <Pressable
+                            key={idx}
+                            onPress={() => handleEquipmentPress(item)}
+                            style={[
+                              styles.equipmentItem,
+                              {
+                                backgroundColor: pressedEquipmentId === item 
+                                  ? 'rgba(255, 23, 68, 0.2)' 
+                                  : 'rgba(255, 23, 68, 0.08)',
+                                paddingVertical: 8,
+                                paddingHorizontal: 8,
+                                borderRadius: 4,
+                                borderLeftWidth: 3,
+                                borderLeftColor: '#FF1744',
+                                opacity: pressedEquipmentId === item ? 0.8 : 1,
+                              },
+                            ]}
+                          >
+                            <MaterialIcons name="check-circle" size={16} color="#FF1744" />
+                            <ThemedText style={[styles.equipmentItemText, { fontWeight: '600' }]}>
+                              {item}
+                            </ThemedText>
+                            <MaterialIcons name="open-in-new" size={14} color="#FF1744" style={{ marginLeft: 'auto' }} />
+                          </Pressable>
+                        ))}
+                      </View>
+                    </>
+                  )}
 
-                    {ghost.recommendedEquipment?.recommended && ghost.recommendedEquipment.recommended.length > 0 && (
-                  <>
-                    <View
-                      style={[
-                        styles.equipmentCategory,
-                        { borderColor: '#FFC107', marginTop: 12 },
-                      ]}
-                    >
-                      <MaterialIcons name="star-half" size={16} color="#FFC107" />
-                      <ThemedText style={styles.equipmentCategoryTitle}>{t('componentLabels.recommended')}</ThemedText>
+                      {ghost.recommendedEquipment?.recommended && ghost.recommendedEquipment.recommended.length > 0 && (
+                    <>
+                      <View
+                        style={[
+                          styles.equipmentCategory,
+                          { borderColor: '#FFC107', marginTop: 12 },
+                        ]}
+                      >
+                        <MaterialIcons name="star-half" size={16} color="#FFC107" />
+                        <ThemedText style={styles.equipmentCategoryTitle}>{t('componentLabels.recommended')}</ThemedText>
                     </View>
                     <View style={styles.equipmentList}>
                       {ghost.recommendedEquipment.recommended.map((item, idx) => (
@@ -573,7 +560,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
                     </View>
                   </>
                 )}
-              </>
+                </>
+              </CollapsibleSectionAnimation>
             )}
           </>
         )}
@@ -581,31 +569,26 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         {/* Identification Tips - Collapsible */}
         {ghost.identificationTips && ghost.identificationTips.length > 0 && (
           <>
-            <Pressable
-              onPress={() => {
-                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                toggleSection('identification');
-              }}
-              style={[styles.collapsibleHeader, { backgroundColor: colors.spectral + '15', marginTop: 16 }]}
-            >
-              <Ionicons
-                name={expandedSections.identification ? 'chevron-down' : 'chevron-forward'}
-                size={18}
-                color={colors.spectral}
-              />
-              <ThemedText style={[styles.sectionTitle, { marginTop: 0, marginBottom: 0, marginLeft: 0, flex: 1 }]}>
-                {t('componentLabels.identificationTips')}
-              </ThemedText>
-            </Pressable>
+            <AnimatedCollapsibleHeader
+              title={t('componentLabels.identificationTips')}
+              isExpanded={expandedSections.identification}
+              onPress={() => toggleSection('identification')}
+              backgroundColor={colors.spectral + '15'}
+              titleColor={colors.spectral}
+              iconColor={colors.spectral}
+              icon="chevron-forward"
+            />
             {expandedSections.identification && (
-              <>
-                {ghost.identificationTips.map((tip, idx) => (
-                  <View key={idx} style={styles.tipItem}>
-                    <ThemedText style={styles.tipBullet}>•</ThemedText>
-                    <ThemedText style={styles.tipText}>{tip}</ThemedText>
-                  </View>
-                ))}
-              </>
+              <CollapsibleSectionAnimation isVisible={expandedSections.identification} animationType="fade">
+                <>
+                  {ghost.identificationTips.map((tip, idx) => (
+                    <View key={idx} style={styles.tipItem}>
+                      <ThemedText style={styles.tipBullet}>•</ThemedText>
+                      <ThemedText style={styles.tipText}>{tip}</ThemedText>
+                    </View>
+                  ))}
+                </>
+              </CollapsibleSectionAnimation>
             )}
           </>
         )}
