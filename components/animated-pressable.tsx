@@ -55,12 +55,17 @@ export function AnimatedPressable({
     };
   });
 
+  // For Animated.View, we need layout styles (flex, width, etc.)
+  // For Pressable, we need state-dependent styles (like opacity changes)
+  const layoutStyle = typeof style === 'function' ? undefined : style;
+
   return (
-    <Animated.View style={animatedStyle}>
+    <Animated.View style={[animatedStyle, layoutStyle]}>
       <Pressable
         onPress={onPress}
         onPressIn={handlePressIn}
         onPressOut={handlePressOut}
+        style={layoutStyle}
         {...props}
       >
         {children}

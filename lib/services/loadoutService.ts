@@ -29,25 +29,44 @@ export const loadoutService = {
     preset: Omit<LoadoutRecommendation, 'id' | 'savedAt'>
   ): Promise<LoadoutRecommendation> {
     try {
+      console.log('[LoadoutService.savePreset] Input preset:', JSON.stringify(preset, null, 2));
+      
       const fullPreset: LoadoutRecommendation = {
         ...preset,
         id: generateId(),
         savedAt: Date.now(),
       };
 
+      console.log('[LoadoutService.savePreset] Full preset with ID:', JSON.stringify(fullPreset, null, 2));
+
       // Get existing presets
       const existing = await this.getPresets();
+      console.log('[LoadoutService.savePreset] Existing presets count:', existing.length);
 
       // Add new preset to beginning (most recent first)
       const updated = [fullPreset, ...existing].slice(0, MAX_PRESETS);
+      console.log('[LoadoutService.savePreset] Updated presets count:', updated.length);
 
       // Save to AsyncStorage
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      const jsonString = JSON.stringify(updated);
+      console.log('[LoadoutService.savePreset] Saving to AsyncStorage, size:', jsonString.length, 'bytes');
+      
+      await AsyncStorage.setItem(STORAGE_KEY, jsonString);
 
-      console.log('[LoadoutService] Preset saved:', fullPreset.name);
+      console.log('[LoadoutService.savePreset] Preset saved successfully:', fullPreset.name, 'with ID:', fullPreset.id);
+      
+      // Verify it was saved
+      const verify = await AsyncStorage.getItem(STORAGE_KEY);
+      if (verify) {
+        const verifyParsed = JSON.parse(verify);
+        console.log('[LoadoutService.savePreset] Verification - presets in storage:', verifyParsed.length);
+        console.log('[LoadoutService.savePreset] First preset ID in storage:', verifyParsed[0]?.id);
+      }
+      
       return fullPreset;
     } catch (error) {
       console.error('[LoadoutService] Error saving preset:', error);
+      console.error('[LoadoutService] Error type:', error instanceof Error ? error.message : typeof error);
       throw error;
     }
   },
@@ -57,10 +76,19 @@ export const loadoutService = {
    */
   async getPresets(): Promise<LoadoutRecommendation[]> {
     try {
+      console.log('[LoadoutService.getPresets] Fetching from storage key:', STORAGE_KEY);
       const data = await AsyncStorage.getItem(STORAGE_KEY);
-      return data ? JSON.parse(data) : [];
+      console.log('[LoadoutService.getPresets] Raw data from storage:', data ? `${data.length} bytes` : 'null');
+      
+      if (data) {
+        const parsed = JSON.parse(data);
+        console.log('[LoadoutService.getPresets] Parsed presets:', parsed.length);
+        return parsed;
+      }
+      console.log('[LoadoutService.getPresets] No data in storage, returning empty array');
+      return [];
     } catch (error) {
-      console.error('[LoadoutService] Error getting presets:', error);
+      console.error('[LoadoutService.getPresets] Error getting presets:', error);
       return [];
     }
   },
@@ -180,6 +208,140 @@ export const loadoutService = {
   },
 
   /**
+   * Decode a short preset code
+   * Format: PLAYSTYLE-EQ1-EQ2-EQ3-... (max 8 equipment items)
+   * Example: BAL-EMF--SPIR--GHOS--UV-L-VIDE-DOTS-CRUC-SANI
+   */
+  async decodePresetCode(code: string): Promise<LoadoutRecommendation | null> {
+    try {
+      console.log('[LoadoutService] Decoding preset code:', code);
+      
+      const parts = code.split('-').filter(p => p.length > 0);
+      if (parts.length < 1) {
+        console.warn('[LoadoutService] Invalid code format: too short');
+        return null;
+      }
+
+      // First part is playstyle prefix (3 letters)
+      const playstylePrefix = parts[0].toLowerCase();
+      const playstyleMap: { [key: string]: string } = {
+        'agg': 'aggressive',
+        'bal': 'balanced',
+        'def': 'defensive',
+        'exp': 'explorer',
+        'sol': 'solo',
+        'cau': 'cautious',
+      };
+      
+      const playstyle = playstyleMap[playstylePrefix] || 'balanced';
+      console.log('[LoadoutService] Decoded playstyle:', playstyle);
+
+      // Rest are equipment codes - match by checking against known equipment IDs
+      const equipmentMap: { [key: string]: string } = {
+        'emf-': 'emf-reader',
+        'ther': 'thermometer',
+        'spir': 'spirit-box',
+        'ghos': 'ghost-writing-book',
+        'uv-l': 'uv-light',
+        'vide': 'video-camera',
+        'dots': 'dots-projector',
+        'cruc': 'crucifix',
+        'crus': 'crucifix',
+        'sani': 'sanity-pills',
+        'salt': 'salt',
+        'smud': 'smudge-sticks',
+        'incn': 'incense',
+        'foto': 'photo-camera',
+        'phot': 'photo-camera',
+        'trip': 'tripod',
+        'anem': 'anemometer',
+        'taur': 'taurus',
+        'head': 'headphones',
+        'flsh': 'flashlight',
+        'paus': 'pause-button',
+        'drog': 'drog-detector',
+        'infr': 'infrared-head-mounted-display',
+        'laur': 'laurel-wreath',
+        'mire': 'mire-amethyst-gem',
+        'obsi': 'obsidian-knife',
+        'pent': 'pentagram-book',
+        'ring': 'rune-ring',
+        'tabu': 'tabu-mask',
+        'turn': 'turns-statuette',
+      };
+
+      const equipment: string[] = [];
+      for (let i = 1; i < parts.length; i++) {
+        const part = parts[i].toLowerCase();
+        if (part.length >= 3) {
+          // Try to find matching equipment
+          const match = equipmentMap[part.substring(0, 4)] || equipmentMap[part.substring(0, 3)];
+          if (match) {
+            equipment.push(match);
+            console.log('[LoadoutService] Decoded equipment:', part, '->', match);
+          } else {
+            console.warn('[LoadoutService] Unknown equipment code:', part);
+          }
+        }
+      }
+
+      // Create a basic loadout from decoded data
+      const preset: Omit<LoadoutRecommendation, 'id' | 'savedAt'> = {
+        name: `Imported ${playstyle.charAt(0).toUpperCase() + playstyle.slice(1)} Loadout`,
+        description: 'Imported from shareable code',
+        playstyle: playstyle as any,
+        difficulty: 'Intermediate',
+        ghostType: 'all',
+        essential: equipment.slice(0, 4),
+        recommended: equipment.slice(4, 8),
+        optional: [],
+        totalCost: 0, // Will be recalculated
+        maxBudget: 1000,
+        efficiency: 0,
+        explanation: ['Imported from shared code'],
+        gaps: [],
+        ghostMatchup: [],
+        tags: [playstyle, 'imported'],
+      };
+
+      console.log('[LoadoutService] Decoded preset:', JSON.stringify(preset, null, 2));
+      return await this.savePreset(preset);
+    } catch (error) {
+      console.error('[LoadoutService] Error decoding preset code:', error);
+      return null;
+    }
+  },
+
+  /**
+   * Smart import - detects format and imports accordingly
+   * Supports both short codes (BAL-EMF-...) and JSON strings
+   */
+  async importPreset(input: string): Promise<LoadoutRecommendation | null> {
+    try {
+      const trimmed = input.trim();
+      console.log('[LoadoutService] Smart import attempting on:', trimmed.substring(0, 50));
+
+      // Try to detect format
+      if (trimmed.startsWith('{')) {
+        // Looks like JSON
+        console.log('[LoadoutService] Detected JSON format');
+        return await this.importPresetJSON(trimmed);
+      } else if (trimmed.includes('-') && /^[A-Z]{3}-/.test(trimmed)) {
+        // Looks like short code format: XXX-YYYY-...
+        console.log('[LoadoutService] Detected short code format');
+        return await this.decodePresetCode(trimmed);
+      } else {
+        // Try JSON parsing anyway
+        console.log('[LoadoutService] Trying JSON parse as fallback');
+        return await this.importPresetJSON(trimmed);
+      }
+    } catch (error) {
+      console.error('[LoadoutService] Error in smart import:', error);
+      return null;
+    }
+  },
+
+  /**
    * Export preset as JSON string (for sharing/backup)
    */
   exportPresetJSON(preset: LoadoutRecommendation): string {
@@ -203,6 +365,38 @@ export const loadoutService = {
     } catch (error) {
       console.error('[LoadoutService] Error exporting preset:', error);
       return '{}';
+    }
+  },
+
+  /**
+   * Import preset from JSON string (for loading shared presets)
+   */
+  async importPresetJSON(jsonString: string): Promise<LoadoutRecommendation | null> {
+    try {
+      console.log('[LoadoutService] Parsing JSON preset...');
+      const data = JSON.parse(jsonString);
+      const preset: Omit<LoadoutRecommendation, 'id' | 'savedAt'> = {
+        name: data.name || 'Imported Preset',
+        description: data.description || '',
+        playstyle: data.playstyle || 'balanced',
+        difficulty: data.difficulty || 'Intermediate',
+        ghostType: data.ghostType || 'all',
+        essential: data.essential || [],
+        recommended: data.recommended || [],
+        optional: data.optional || [],
+        totalCost: data.totalCost || 0,
+        maxBudget: data.maxBudget || 1000,
+        efficiency: data.efficiency || 0,
+        explanation: data.explanation || [],
+        gaps: data.gaps || [],
+        ghostMatchup: data.ghostMatchup || [],
+        tags: data.tags || [],
+      };
+      console.log('[LoadoutService] JSON preset parsed successfully');
+      return await this.savePreset(preset);
+    } catch (error) {
+      console.error('[LoadoutService] Error importing JSON preset:', error);
+      return null;
     }
   },
 

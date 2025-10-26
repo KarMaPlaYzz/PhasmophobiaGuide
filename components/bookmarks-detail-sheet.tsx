@@ -19,6 +19,7 @@ import { EmptyStateAnimation } from '@/components/empty-state-animation';
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
 import { PremiumBookmarksFeaturesSheet } from '@/components/premium-bookmarks-features';
 import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
+import { StaggeredListAnimation } from '@/components/staggered-list-animation';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { usePremium } from '@/hooks/use-premium';
@@ -51,6 +52,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
   const [selectedBookmark, setSelectedBookmark] = useState<Bookmark | undefined>();
   const [collectionsMap, setCollectionsMap] = useState<Record<string, { name: string; color: string }>>({});
   const [collectionsArray, setCollectionsArray] = useState<Array<{ id: string; name: string; color: string }>>([]);
+  const [hasSeenLongPressHint, setHasSeenLongPressHint] = useState(false);
   
   const longPressTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const longPressTriggeredRef = useRef(false);
@@ -262,150 +264,173 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
     return iconColors[type] || colors.icon;
   };
 
-  const renderBookmarkItem = ({ item }: { item: Bookmark }) => {
+  const renderBookmarkItem = ({ item, index }: { item: Bookmark; index?: number }) => {
     const collection = item.collectionId ? collectionsMap[item.collectionId] : null;
     
     return (
-    <AnimatedPressable
-      onPress={() => {
-        // Only navigate if this wasn't a long-press
-        if (!longPressTriggeredRef.current) {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          handleNavigateToItem(item);
-        } else {
-          longPressTriggeredRef.current = false;
-        }
-      }}
-      onPressIn={() => handleLongPressStart()}
-      onPressOut={() => {
-        if (longPressTriggeredRef.current) {
-          handleLongPressEnd(() => {
-            setSelectedBookmark(item);
-            if (isPremium) {
-              setPremiumSheetVisible(true);
-            } else {
-              setPremiumPaywallVisible(true);
-            }
-          });
-        } else {
-          if (longPressTimerRef.current) {
-            clearTimeout(longPressTimerRef.current);
-            longPressTimerRef.current = null;
-          }
-        }
-      }}
-      style={[
-        styles.bookmarkItem,
-        {
-          borderLeftColor: item.color || colors.spectral,
-          borderLeftWidth: 4,
-          backgroundColor: item.color ? item.color + '15' : 'rgba(0, 217, 255, 0.05)',
-        },
-      ]}
-    >
-      <View style={styles.bookmarkContent}>
+      <StaggeredListAnimation index={index || 0} itemCount={bookmarks.length}>
         <View
           style={[
-            styles.iconContainer,
-            { backgroundColor: getCategoryColor(item.type) + '20' },
-          ]}
-        >
-          <Ionicons
-            name={getCategoryIcon(item.type)}
-            size={16}
-            color={getCategoryColor(item.type)}
-          />
-        </View>
-        <View style={styles.bookmarkText}>
-          {/* Primary row: Name + Pin */}
-          <View style={styles.nameRow}>
-            <ThemedText style={styles.bookmarkName} numberOfLines={1}>
-              {item.itemName}
-            </ThemedText>
-            {isPremium && item.isPinned && (
-              <MaterialIcons name="push-pin" size={14} color={colors.warning} style={{ marginLeft: 6 }} />
-            )}
-          </View>
-          
-          {/* Secondary row: Type */}
-          <ThemedText style={styles.bookmarkType}>
-            {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
-          </ThemedText>
-          
-          {/* Premium features: Note */}
-          {isPremium && item.note && (
-            <ThemedText style={styles.bookmarkNote} numberOfLines={2}>
-              "{item.note}"
-            </ThemedText>
-          )}
-          
-          {/* Premium features: Collection + Color */}
-          {isPremium && (collection || item.color) && (
-            <View style={styles.premiumBadgesRow}>
-              {collection && (
-                <View style={[styles.premiumBadge, { borderColor: collection.color }]}>
-                  <MaterialIcons name="folder" size={12} color={collection.color} />
-                  <ThemedText style={styles.premiumBadgeText} numberOfLines={1}>
-                    {collection.name}
-                  </ThemedText>
-                </View>
-              )}
-              {item.color && (
-                <View
-                  style={[
-                    styles.colorBadge,
-                    {
-                      backgroundColor: item.color,
-                      borderColor: colors.border,
-                    },
-                  ]}
-                />
-              )}
-            </View>
-          )}
-        </View>
-        <Pressable
-          onPress={() => {
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            if (isPremium) {
-              setSelectedBookmark(item);
-              setPremiumSheetVisible(true);
-            } else {
-              setPremiumPaywallVisible(true);
-            }
-          }}
-          style={({ pressed }) => [
-            styles.actionIcon,
+            styles.bookmarkItem,
             {
-              opacity: !isPremium ? 0.4 : pressed ? 0.7 : 1,
-              borderColor: colors.spectral,
+              borderLeftColor: item.color || colors.spectral,
+              borderLeftWidth: 4,
+              backgroundColor: item.color ? item.color + '15' : 'rgba(0, 217, 255, 0.05)',
             },
           ]}
         >
-          <MaterialIcons name="more-vert" size={20} color={colors.spectral} />
-          {!isPremium && (
-            <View style={styles.lockOverlay}>
-              <Ionicons name="lock-closed" size={12} color="#fff" />
+          <AnimatedPressable
+            onPress={() => {
+              // Only navigate if this wasn't a long-press
+              if (!longPressTriggeredRef.current) {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                handleNavigateToItem(item);
+              } else {
+                longPressTriggeredRef.current = false;
+              }
+            }}
+            onPressIn={() => handleLongPressStart()}
+            onPressOut={() => {
+              if (longPressTriggeredRef.current) {
+                handleLongPressEnd(() => {
+                  setSelectedBookmark(item);
+                  if (isPremium) {
+                    setPremiumSheetVisible(true);
+                  } else {
+                    setPremiumPaywallVisible(true);
+                  }
+                  // Mark hint as seen when first item is long-pressed
+                  if (index === 0 && !hasSeenLongPressHint) {
+                    setHasSeenLongPressHint(true);
+                  }
+                });
+              } else {
+                if (longPressTimerRef.current) {
+                  clearTimeout(longPressTimerRef.current);
+                  longPressTimerRef.current = null;
+                }
+              }
+            }}
+            style={styles.bookmarkContent}
+          >
+            <View
+              style={[
+                styles.iconContainer,
+                { backgroundColor: getCategoryColor(item.type) + '20' },
+              ]}
+            >
+              <Ionicons
+                name={getCategoryIcon(item.type)}
+                size={16}
+                color={getCategoryColor(item.type)}
+              />
             </View>
-          )}
-        </Pressable>
-      </View>
-      <Pressable
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          handleRemoveBookmark(item.id);
-        }}
-        style={({ pressed }) => [
-          styles.deleteIcon,
-          {
-            opacity: pressed ? 0.6 : 1,
-            borderColor: colors.error,
-          },
-        ]}
-      >
-        <MaterialIcons name="close" size={20} color={colors.error} />
-      </Pressable>
-    </AnimatedPressable>
+            <View style={styles.bookmarkText}>
+              {/* Primary row: Name + Pin */}
+              <View style={styles.nameRow}>
+                <ThemedText style={styles.bookmarkName} numberOfLines={1}>
+                  {item.itemName}
+                </ThemedText>
+                {isPremium && item.isPinned && (
+                  <MaterialIcons name="push-pin" size={14} color={colors.warning} style={{ marginLeft: 6 }} />
+                )}
+              </View>
+              
+              {/* Secondary row: Type */}
+              <ThemedText style={styles.bookmarkType}>
+                {item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+              </ThemedText>
+              
+              {/* Hint - Show on first item only until dismissed */}
+              {index === 0 && !hasSeenLongPressHint && (
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4 }}>
+                  <Ionicons name="hand-left" size={11} color={colors.spectral + '66'} />
+                  <ThemedText style={{ fontSize: 11, color: colors.spectral + '66', fontStyle: 'italic' }}>
+                    Hold for options
+                  </ThemedText>
+                </View>
+              )}
+              
+              {/* Premium features: Note */}
+              {isPremium && item.note && (
+                <ThemedText style={styles.bookmarkNote} numberOfLines={2}>
+                  "{item.note}"
+                </ThemedText>
+              )}
+              
+              {/* Premium features: Collection + Color */}
+              {isPremium && (collection || item.color) && (
+                <View style={styles.premiumBadgesRow}>
+                  {collection && (
+                    <View style={[styles.premiumBadge, { borderColor: collection.color }]}>
+                      <MaterialIcons name="folder" size={12} color={collection.color} />
+                      <ThemedText style={styles.premiumBadgeText} numberOfLines={1}>
+                        {collection.name}
+                      </ThemedText>
+                    </View>
+                  )}
+                  {item.color && (
+                    <View
+                      style={[
+                        styles.colorBadge,
+                        {
+                          backgroundColor: item.color,
+                          borderColor: colors.border,
+                        },
+                      ]}
+                    />
+                  )}
+                </View>
+              )}
+            </View>
+          </AnimatedPressable>
+
+          {/* Action Buttons */}
+          <View style={styles.bookmarkActionsContainer}>
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                if (isPremium) {
+                  setSelectedBookmark(item);
+                  setPremiumSheetVisible(true);
+                } else {
+                  setPremiumPaywallVisible(true);
+                }
+              }}
+              style={({ pressed }) => [
+                styles.actionIcon,
+                {
+                  opacity: !isPremium ? 0.4 : pressed ? 0.7 : 1,
+                  borderColor: colors.spectral,
+                },
+              ]}
+            >
+              <MaterialIcons name="more-vert" size={20} color={colors.spectral} />
+              {!isPremium && (
+                <View style={styles.lockOverlay}>
+                  <Ionicons name="lock-closed" size={12} color="#fff" />
+                </View>
+              )}
+            </Pressable>
+
+            <Pressable
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                handleRemoveBookmark(item.id);
+              }}
+              style={({ pressed }) => [
+                styles.deleteIcon,
+                {
+                  opacity: pressed ? 0.6 : 1,
+                  borderColor: colors.error,
+                },
+              ]}
+            >
+              <MaterialIcons name="close" size={20} color={colors.error} />
+            </Pressable>
+          </View>
+        </View>
+      </StaggeredListAnimation>
     );
   };
 
@@ -715,22 +740,21 @@ const styles = StyleSheet.create({
   },
   bookmarkItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
     paddingVertical: 12,
     paddingHorizontal: 12,
     marginVertical: 4,
     borderRadius: 8,
     borderLeftWidth: 4,
     backgroundColor: 'rgba(0, 217, 255, 0.05)',
-    gap: 6,
+    gap: 12,
   },
   bookmarkContent: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     flex: 1,
     gap: 12,
-    justifyContent: 'space-between',
   },
   iconContainer: {
     width: 36,
@@ -787,6 +811,12 @@ const styles = StyleSheet.create({
     height: 16,
     borderRadius: 8,
     borderWidth: 1.5,
+  },
+  bookmarkActionsContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    flexShrink: 0,
   },
   actionIcon: {
     justifyContent: 'center',

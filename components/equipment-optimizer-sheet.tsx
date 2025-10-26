@@ -9,6 +9,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
+import { LoadoutPresetSheet } from '@/components/loadout-preset-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
@@ -107,8 +108,22 @@ export const EquipmentOptimizerSheet = ({
         ) : (
           <>
             <View style={styles.header}>
-              <ThemedText style={styles.title}>Equipment Optimizer</ThemedText>
-              <ThemedText style={styles.subtitle}>Get the optimal loadout for your playstyle</ThemedText>
+              <View style={{ flex: 1 }}>
+                <ThemedText style={styles.title}>Equipment Optimizer</ThemedText>
+                <ThemedText style={styles.subtitle}>Get the optimal loadout for your playstyle</ThemedText>
+              </View>
+              <Pressable
+                onPress={() => {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  setIsPresetSheetVisible(true);
+                }}
+                style={({ pressed }) => [
+                  styles.presetButton,
+                  { opacity: pressed ? 0.7 : 1 },
+                ]}
+              >
+                <Ionicons name="save" size={20} color={colors.spectral} />
+              </Pressable>
             </View>
 
             {/* Playstyle Selection */}
@@ -430,12 +445,19 @@ export const EquipmentOptimizerSheet = ({
         setSelectedEquipment(null);
       }}
     />
+
+    <LoadoutPresetSheet
+      isVisible={isPresetSheetVisible}
+      onClose={() => setIsPresetSheetVisible(false)}
+      currentLoadout={recommendation}
+    />
     </>
   );
 };
 
 const styles = StyleSheet.create({
-  header: { marginBottom: 20, gap: 8 },
+  header: { marginBottom: 20, gap: 8, flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
+  presetButton: { padding: 8, borderRadius: 8, justifyContent: 'center', alignItems: 'center' },
   title: { fontSize: 28, fontWeight: '800', color: '#00D9FF', lineHeight: 36 },
   subtitle: { fontSize: 14, opacity: 0.6, fontWeight: '500' },
   section: { marginBottom: 20, gap: 12 },

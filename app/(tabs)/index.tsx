@@ -26,8 +26,6 @@ import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import { MAP_LIST } from '@/lib/data/maps';
 import { Map } from '@/lib/types';
-import { useFocusEffect } from '@react-navigation/native';
-import { useCallback } from 'react';
 
 if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
   UIManager.setLayoutAnimationEnabledExperimental(true);
