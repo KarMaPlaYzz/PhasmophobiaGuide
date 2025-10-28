@@ -13,6 +13,7 @@ import { AnimatedScreen } from '@/components/animated-screen';
 import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { GhostComparisonSheet } from '@/components/ghost-comparison-sheet';
 import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
+import { NativeAdCard } from '@/components/native-ad-card';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -389,7 +390,15 @@ export default function GhostsScreen() {
           {filteredGhosts.length > 0 ? (
             filteredGhosts.map((ghost, index) => (
               <React.Fragment key={ghost.id}>
-                {/* Show ad in the middle of the list */}
+                {/* Show native ad every 5th ghost */}
+                {index > 0 && index % 5 === 0 && (
+                  <NativeAdCard
+                    title="Unlock Premium"
+                    description="Remove all ads and get exclusive features"
+                    buttonText="Upgrade"
+                  />
+                )}
+                {/* Show banner ad in the middle of the list */}
                 {index === Math.floor(filteredGhosts.length / 2) && (
                   <View style={styles.adContainer}>
                     <AdBanner />
