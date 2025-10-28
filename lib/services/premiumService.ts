@@ -278,8 +278,27 @@ export const isPremiumUser = async (): Promise<boolean> => {
       }
     }
     
+    // Check if user has actual premium
     const status = await AsyncStorage.getItem(PREMIUM_STATUS_KEY);
-    return status === 'true';
+    if (status === 'true') {
+      return true;
+    }
+
+    // Check if user has active trial
+    const trialExpiry = await AsyncStorage.getItem('trial_ad_expiry');
+    if (trialExpiry) {
+      const expiryTime = parseInt(trialExpiry, 10);
+      if (expiryTime > Date.now()) {
+        console.log('[Premium] Trial is still active');
+        return true;
+      } else {
+        // Trial expired, clean up
+        await AsyncStorage.removeItem('trial_ad_expiry');
+        console.log('[Premium] Trial has expired');
+      }
+    }
+
+    return false;
   } catch (error) {
     console.error('Error checking premium status:', error);
     return false;

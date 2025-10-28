@@ -3,7 +3,7 @@ import { Platform } from 'react-native';
 
 /**
  * AdMob Service
- * Manages banner ads and interstitial video ads
+ * Manages banner ads, interstitial ads, and rewarded ads
  * Uses test IDs by default - replace with real IDs in production
  * 
  * Note: In Expo Go, native modules (like Google Mobile Ads) are not available,
@@ -13,6 +13,7 @@ import { Platform } from 'react-native';
 // Lazy load the Google Mobile Ads module only when needed (not in Expo Go)
 let BannerAdSize: any = null;
 let InterstitialAd: any = null;
+let RewardedAd: any = null;
 let TestIds: any = null;
 
 const initializeGoogleMobileAds = () => {
@@ -25,6 +26,7 @@ const initializeGoogleMobileAds = () => {
     const module = require('react-native-google-mobile-ads');
     BannerAdSize = module.BannerAdSize;
     InterstitialAd = module.InterstitialAd;
+    RewardedAd = module.RewardedAd;
     TestIds = module.TestIds;
     console.log('[AdMob] Google Mobile Ads module loaded successfully');
     return true;
@@ -40,17 +42,23 @@ const ADS_AVAILABLE = initializeGoogleMobileAds();
 // Test Ad IDs (use these in development)
 const TEST_BANNER_ID = TestIds?.BANNER || 'test_banner';
 const TEST_INTERSTITIAL_ID = TestIds?.INTERSTITIAL || 'test_interstitial';
+const TEST_REWARDED_ID = TestIds?.REWARDED || 'test_rewarded';
 
 // Production Ad IDs (replace with your real IDs from AdMob)
 // Format: "ca-app-pub-xxxxxxxxxxxxxxxx/yyyyyyyyyyyyyy"
 const PRODUCTION_BANNER_ID = {
-  ios: 'ca-app-pub-1542092338741994/1508942265', // Replace with your iOS banner ID
+  ios: 'ca-app-pub-1542092338741994/1508942265',
   android: 'ca-app-pub-3940256099942544/6300978111', // Replace with your Android banner ID
 };
 
 const PRODUCTION_INTERSTITIAL_ID = {
-  ios: 'ca-app-pub-1542092338741994/7284013125', // Replace with your iOS interstitial ID
+  ios: 'ca-app-pub-1542092338741994/7284013125', 
   android: 'ca-app-pub-3940256099942544/1033173712', // Replace with your Android interstitial ID
+};
+
+const PRODUCTION_REWARDED_ID = {
+  ios: 'ca-app-pub-1542092338741994/1890588787',
+  android: 'ca-app-pub-3940256099942544/5224354917', // Replace with your Android rewarded ID
 };
 
 // Use test IDs for development
@@ -74,9 +82,90 @@ const getInterstitialId = (): string => {
   return platformId;
 };
 
+const getRewardedId = (): string => {
+  if (!ADS_AVAILABLE) return 'ads_disabled';
+  if (USE_TEST_IDS) return TEST_REWARDED_ID;
+  const platformId = Platform.OS === 'ios'
+    ? PRODUCTION_REWARDED_ID.ios
+    : PRODUCTION_REWARDED_ID.android;
+  return platformId;
+};
+
 // State tracking
 let interstitialAd: any = null;
 let interstitialLoaded = false;
+let rewardedAd: any = null;
+let rewardedLoaded = false;
+
+// Retry tracking for exponential backoff
+let interstitialRetryCount = 0;
+let rewardedRetryCount = 0;
+let interstitialRetryTimeout: any = null;
+let rewardedRetryTimeout: any = null;
+
+// Frequency capping (prevent ad fatigue)
+let lastInterstitialShowTime = 0;
+let interstitialShowCount = 0;
+const INTERSTITIAL_MIN_INTERVAL = 2 * 60 * 1000; // 2 minutes between ads
+const INTERSTITIAL_MAX_PER_SESSION = 3; // Max 3 ads per session
+
+// Configuration
+const INITIAL_RETRY_DELAY = 5000; // 5 seconds
+const MAX_RETRIES = 5; // Max retry attempts
+const BACKOFF_MULTIPLIER = 1.5; // Exponential backoff multiplier
+const MAX_BACKOFF_DELAY = 60000; // Cap at 60 seconds
+
+/**
+ * Calculate exponential backoff delay
+ * Prevents overwhelming AdMob servers with requests
+ */
+const getRetryDelay = (retryCount: number): number => {
+  const exponentialDelay = INITIAL_RETRY_DELAY * Math.pow(BACKOFF_MULTIPLIER, retryCount);
+  return Math.min(exponentialDelay, MAX_BACKOFF_DELAY);
+};
+
+/**
+ * Check if enough time has passed since last interstitial ad
+ * Returns true if we can show an ad, false if too soon
+ */
+const canShowInterstitialAd = (): boolean => {
+  const now = Date.now();
+  const timeSinceLastAd = now - lastInterstitialShowTime;
+  const enoughTimeHasPassed = timeSinceLastAd >= INTERSTITIAL_MIN_INTERVAL;
+  const belowSessionLimit = interstitialShowCount < INTERSTITIAL_MAX_PER_SESSION;
+  
+  if (!enoughTimeHasPassed) {
+    const minutesRemaining = Math.ceil((INTERSTITIAL_MIN_INTERVAL - timeSinceLastAd) / 60000);
+    console.log(`[AdMob] Interstitial ad blocked: too soon (${minutesRemaining}min remaining)`);
+    return false;
+  }
+  
+  if (!belowSessionLimit) {
+    console.log(`[AdMob] Interstitial ad blocked: session limit reached (${interstitialShowCount}/${INTERSTITIAL_MAX_PER_SESSION})`);
+    return false;
+  }
+  
+  return true;
+};
+
+/**
+ * Record that an interstitial ad was shown
+ * Updates frequency capping counters
+ */
+const recordInterstitialAdShow = (): void => {
+  lastInterstitialShowTime = Date.now();
+  interstitialShowCount++;
+  console.log(`[AdMob] Interstitial ad shown (${interstitialShowCount}/${INTERSTITIAL_MAX_PER_SESSION} this session)`);
+};
+
+/**
+ * Reset session ad counters (call when app backgrounded/foregrounded)
+ */
+export const resetSessionAdCounters = (): void => {
+  interstitialShowCount = 0;
+  lastInterstitialShowTime = 0;
+  console.log('[AdMob] Session ad counters reset');
+};
 
 /**
  * Initialize AdMob service
@@ -98,6 +187,7 @@ export const initializeAdMob = async () => {
       try {
         console.log('[AdMob] Loading ads in background');
         loadInterstitialAd();
+        loadRewardedAd();
       } catch (error) {
         console.warn('[AdMob] Error loading ads in background:', error);
       }
@@ -128,19 +218,46 @@ const loadInterstitialAd = async () => {
     if (interstitialAd && typeof interstitialAd.addListener === 'function') {
       interstitialAd.addListener('onAdLoaded', () => {
         interstitialLoaded = true;
-        console.log('[AdMob] Interstitial ad loaded');
+        interstitialRetryCount = 0; // Reset retry count on success
+        console.log('[AdMob] Interstitial ad loaded successfully');
       });
 
       interstitialAd.addListener('onAdFailedToLoad', (error: any) => {
-        console.log('[AdMob] Interstitial ad failed to load:', error);
+        console.warn(`[AdMob] Interstitial ad failed to load (attempt ${interstitialRetryCount + 1}/${MAX_RETRIES}):`, error);
         interstitialLoaded = false;
-        // Retry loading after delay
-        setTimeout(loadInterstitialAd, 5000);
+        
+        // Implement exponential backoff retry
+        if (interstitialRetryCount < MAX_RETRIES) {
+          const retryDelay = getRetryDelay(interstitialRetryCount);
+          console.log(`[AdMob] Retrying interstitial ad in ${retryDelay}ms...`);
+          
+          // Clear any existing retry timeout
+          if (interstitialRetryTimeout) {
+            clearTimeout(interstitialRetryTimeout);
+          }
+          
+          interstitialRetryCount++;
+          interstitialRetryTimeout = setTimeout(() => {
+            loadInterstitialAd();
+          }, retryDelay);
+        } else {
+          console.error('[AdMob] Interstitial ad: Max retries exceeded. Will retry again in 5 minutes.');
+          // Try again after 5 minutes
+          interstitialRetryCount = 0;
+          if (interstitialRetryTimeout) {
+            clearTimeout(interstitialRetryTimeout);
+          }
+          interstitialRetryTimeout = setTimeout(() => {
+            console.log('[AdMob] Retrying interstitial ad after 5 minute cooldown...');
+            loadInterstitialAd();
+          }, 5 * 60 * 1000);
+        }
       });
 
       interstitialAd.addListener('onAdClosed', () => {
         console.log('[AdMob] Interstitial ad closed');
         interstitialLoaded = false;
+        interstitialRetryCount = 0; // Reset retry count
         // Reload for next time
         loadInterstitialAd();
       });
@@ -157,18 +274,100 @@ const loadInterstitialAd = async () => {
 };
 
 /**
- * Show interstitial ad if available
+ * Load rewarded ad
+ */
+const loadRewardedAd = async () => {
+  try {
+    if (!ADS_AVAILABLE || !RewardedAd) {
+      console.log('[AdMob] Cannot load rewarded ad - ads not available');
+      return;
+    }
+
+    rewardedAd = RewardedAd.createForAdRequest(getRewardedId(), {
+      requestNonPersonalizedAdsOnly: false,
+    });
+
+    if (rewardedAd && typeof rewardedAd.addListener === 'function') {
+      rewardedAd.addListener('onAdLoaded', () => {
+        rewardedLoaded = true;
+        rewardedRetryCount = 0; // Reset retry count on success
+        console.log('[AdMob] Rewarded ad loaded successfully');
+      });
+
+      rewardedAd.addListener('onAdFailedToLoad', (error: any) => {
+        console.warn(`[AdMob] Rewarded ad failed to load (attempt ${rewardedRetryCount + 1}/${MAX_RETRIES}):`, error);
+        rewardedLoaded = false;
+        
+        // Implement exponential backoff retry
+        if (rewardedRetryCount < MAX_RETRIES) {
+          const retryDelay = getRetryDelay(rewardedRetryCount);
+          console.log(`[AdMob] Retrying rewarded ad in ${retryDelay}ms...`);
+          
+          // Clear any existing retry timeout
+          if (rewardedRetryTimeout) {
+            clearTimeout(rewardedRetryTimeout);
+          }
+          
+          rewardedRetryCount++;
+          rewardedRetryTimeout = setTimeout(() => {
+            loadRewardedAd();
+          }, retryDelay);
+        } else {
+          console.error('[AdMob] Rewarded ad: Max retries exceeded. Will retry again in 5 minutes.');
+          // Try again after 5 minutes
+          rewardedRetryCount = 0;
+          if (rewardedRetryTimeout) {
+            clearTimeout(rewardedRetryTimeout);
+          }
+          rewardedRetryTimeout = setTimeout(() => {
+            console.log('[AdMob] Retrying rewarded ad after 5 minute cooldown...');
+            loadRewardedAd();
+          }, 5 * 60 * 1000);
+        }
+      });
+
+      rewardedAd.addListener('onAdClosed', () => {
+        console.log('[AdMob] Rewarded ad closed');
+        rewardedLoaded = false;
+        rewardedRetryCount = 0; // Reset retry count
+        // Reload for next time
+        loadRewardedAd();
+      });
+
+      rewardedAd.addListener('onUserEarnedReward', (reward: any) => {
+        console.log(`[AdMob] User earned reward: ${reward.amount} ${reward.type}`);
+      });
+    } else {
+      console.warn('[AdMob] RewardedAd.addListener not available');
+    }
+
+    if (rewardedAd && typeof rewardedAd.load === 'function') {
+      await rewardedAd.load();
+    }
+  } catch (error) {
+    console.error('[AdMob] Error loading rewarded ad:', error);
+  }
+};
+
+/**
+ * Show interstitial ad if available and not blocked by frequency caps
  * Returns true if ad was shown, false otherwise
  */
 export const showInterstitialAd = async (): Promise<boolean> => {
   try {
+    // Check frequency caps first (prevent ad fatigue)
+    if (!canShowInterstitialAd()) {
+      return false;
+    }
+    
     if (interstitialLoaded && interstitialAd) {
       await interstitialAd.show();
+      recordInterstitialAdShow();
       return true;
     }
     return false;
   } catch (error) {
-    console.error('Error showing interstitial ad:', error);
+    console.error('[AdMob] Error showing interstitial ad:', error);
     return false;
   }
 };
@@ -178,6 +377,30 @@ export const showInterstitialAd = async (): Promise<boolean> => {
  */
 export const isInterstitialAdReady = (): boolean => {
   return interstitialLoaded;
+};
+
+/**
+ * Show rewarded ad if available
+ * Returns true if ad was shown, false otherwise
+ */
+export const showRewardedAd = async (): Promise<boolean> => {
+  try {
+    if (rewardedLoaded && rewardedAd) {
+      await rewardedAd.show();
+      return true;
+    }
+    return false;
+  } catch (error) {
+    console.error('[AdMob] Error showing rewarded ad:', error);
+    return false;
+  }
+};
+
+/**
+ * Check if rewarded ad is ready
+ */
+export const isRewardedAdReady = (): boolean => {
+  return rewardedLoaded;
 };
 
 /**
@@ -201,6 +424,10 @@ export default {
   initializeAdMob,
   showInterstitialAd,
   isInterstitialAdReady,
+  showRewardedAd,
+  isRewardedAdReady,
   getBannerAdId,
   getBannerAdSize,
+  resetSessionAdCounters,
+  canShowInterstitialAd,
 };

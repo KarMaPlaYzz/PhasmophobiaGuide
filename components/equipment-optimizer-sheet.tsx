@@ -5,15 +5,17 @@ import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { LoadoutPresetSheet } from '@/components/loadout-preset-sheet';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
+import { useRewardedAds } from '@/hooks/use-rewarded-ads';
 import { ALL_EQUIPMENT } from '@/lib/data/equipment';
 import { PLAYSTYLE_PROFILES } from '@/lib/data/equipment-optimizer';
 import { GHOSTS } from '@/lib/data/ghosts';
@@ -39,6 +41,8 @@ export const EquipmentOptimizerSheet = ({
   const colors = Colors['dark'];
   const { t } = useLocalization();
   const { isPremium, handlePurchase, isPurchasing } = usePremium();
+  const { showAd, isLoading: isAdLoading, error: adError, dismissError } = useRewardedAds();
+  const { showAd: showInterstitial, canShowAd: canShowInterstitial } = useInterstitialAds();
   const snapPoints = useMemo(() => ['80%', '100%'], []);
 
   const [selectedEquipmentId, setSelectedEquipmentId] = useState<string | undefined>(undefined);
@@ -102,6 +106,33 @@ export const EquipmentOptimizerSheet = ({
               <Ionicons name="diamond" size={20} color="white" />
               <ThemedText style={styles.premiumButtonText}>
                 {isPurchasing ? 'Processing...' : 'Unlock Premium - $2.99'}
+              </ThemedText>
+            </Pressable>
+            <View style={styles.divider} />
+            <Pressable
+              onPress={async () => {
+                try {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  const shown = await showAd();
+                  if (shown) {
+                    // Show interstitial after user watches rewarded ad (if frequency caps allow)
+                    if (canShowInterstitial()) {
+                      setTimeout(async () => {
+                        await showInterstitial();
+                      }, 500); // Delay to let user process the reward first
+                    }
+                    Alert.alert('Success!', 'You now have access to the Equipment Optimizer!');
+                  }
+                } catch (err) {
+                  Alert.alert('Error', 'Failed to show ad. Please try again.');
+                }
+              }}
+              disabled={isAdLoading}
+              style={[styles.premiumButtonSecondary, { borderColor: colors.spectral, opacity: isAdLoading ? 0.6 : 1 }]}
+            >
+              <Ionicons name="play" size={20} color={colors.spectral} />
+              <ThemedText style={[styles.premiumButtonSecondaryText, { color: colors.spectral }]}>
+                {isAdLoading ? 'Loading...' : 'Watch Ad to Unlock'}
               </ThemedText>
             </Pressable>
           </View>
@@ -513,7 +544,10 @@ const styles = StyleSheet.create({
   infoBoxText: { fontSize: 12, opacity: 0.8, lineHeight: 17, paddingLeft: 4 },
   premiumPaywall: { justifyContent: 'center', alignItems: 'center', paddingVertical: 80, gap: 16 },
   premiumTitle: { fontSize: 24, fontWeight: '800', textAlign: 'center' },
-  premiumDescription: { fontSize: 14, textAlign: 'center', marginHorizontal: 20, lineHeight: 20 },
+  premiumDescription: { fontSize: 14, textAlign: 'center', marginHorizontal: 20 },
   premiumButton: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, gap: 8, alignItems: 'center' },
   premiumButtonText: { fontSize: 16, fontWeight: '800', color: 'white' },
+  divider: { width: '100%', height: 1, backgroundColor: 'rgba(255, 255, 255, 0.1)', marginVertical: 8 },
+  premiumButtonSecondary: { flexDirection: 'row', paddingHorizontal: 20, paddingVertical: 12, borderRadius: 12, gap: 8, alignItems: 'center', borderWidth: 2, marginHorizontal: 20 },
+  premiumButtonSecondaryText: { fontSize: 16, fontWeight: '800' },
 });

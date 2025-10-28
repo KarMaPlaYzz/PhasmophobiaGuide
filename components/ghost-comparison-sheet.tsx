@@ -3,13 +3,15 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import * as Haptics from 'expo-haptics';
 import { useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GhostComparisonAnimation } from '@/components/ghost-comparison-animation';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
+import { useRewardedAds } from '@/hooks/use-rewarded-ads';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { getGhostName } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
@@ -36,6 +38,8 @@ export const GhostComparisonSheet = ({
   const colors = Colors['dark'];
   const { language } = useLocalization();
   const { isPremium, handlePurchase, isPurchasing } = usePremium();
+  const { showAd, isLoading: isAdLoading, error: adError, dismissError } = useRewardedAds();
+  const { showAd: showInterstitial, canShowAd: canShowInterstitial } = useInterstitialAds();
   const snapPoints = useMemo(() => ['65%', '100%'], []);
   const screenWidth = Dimensions.get('window').width;
 
@@ -390,6 +394,33 @@ export const GhostComparisonSheet = ({
               <Ionicons name="diamond" size={20} color="white" />
               <ThemedText style={styles.premiumButtonText}>
                 {isPurchasing ? 'Processing...' : 'Unlock Premium - $2.99'}
+              </ThemedText>
+            </Pressable>
+            <View style={styles.divider} />
+            <Pressable
+              onPress={async () => {
+                try {
+                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                  const shown = await showAd();
+                  if (shown) {
+                    // Show interstitial after user watches rewarded ad (if frequency caps allow)
+                    if (canShowInterstitial()) {
+                      setTimeout(async () => {
+                        await showInterstitial();
+                      }, 500); // Delay to let user process the reward first
+                    }
+                    Alert.alert('Success!', 'You now have access to Ghost Comparison!');
+                  }
+                } catch (err) {
+                  Alert.alert('Error', 'Failed to show ad. Please try again.');
+                }
+              }}
+              disabled={isAdLoading}
+              style={[styles.premiumButtonSecondary, { borderColor: colors.spectral, opacity: isAdLoading ? 0.6 : 1 }]}
+            >
+              <Ionicons name="play" size={20} color={colors.spectral} />
+              <ThemedText style={[styles.premiumButtonSecondaryText, { color: colors.spectral }]}>
+                {isAdLoading ? 'Loading...' : 'Watch Ad to Unlock'}
               </ThemedText>
             </Pressable>
           </View>
@@ -835,5 +866,18 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: 'white',
+  },
+  premiumButtonSecondary: {
+    flexDirection: 'row',
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    gap: 8,
+    alignItems: 'center',
+    borderWidth: 2,
+  },
+  premiumButtonSecondaryText: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });

@@ -11,7 +11,9 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, EquipmentCategoryColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { SYNERGIES } from '@/lib/data/equipment';
 import { getEquipmentDescription, getEquipmentName, getEquipmentUsage } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
@@ -27,6 +29,8 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
   const colorScheme = useColorScheme();
   const colors = Colors['dark'];
   const { language, t } = useLocalization();
+  const { isPremium } = usePremium();
+  const { showAd, canShowAd } = useInterstitialAds();
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     tiers: false,
@@ -34,6 +38,10 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
     synergies: false,
     recommended: false,
   });
+  
+  // Engagement tracking for interstitial ads
+  const [detailOpenTime, setDetailOpenTime] = useState<number | null>(null);
+  const [deepViewCount, setDeepViewCount] = useState(0);
 
   // Close sheet when tab changes and reset expanded sections
   useEffect(() => {
@@ -54,8 +62,33 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
   useEffect(() => {
     if (isVisible && equipment) {
       HistoryService.trackView('equipment', equipment.id, equipment.name);
+      setDetailOpenTime(Date.now()); // Start engagement timer
     }
   }, [isVisible, equipment]);
+
+  // Handle close and check for ad opportunity
+  useEffect(() => {
+    if (!isVisible && detailOpenTime) {
+      const timeSpent = Date.now() - detailOpenTime;
+      
+      // Only count as "engaged" if spent 5+ seconds reading
+      if (timeSpent > 5000) {
+        const newCount = deepViewCount + 1;
+        setDeepViewCount(newCount);
+        
+        // Show ad after every 3 deep views (respects frequency caps)
+        if (newCount % 3 === 0 && !isPremium && canShowAd()) {
+          setTimeout(async () => {
+            await showAd();
+          }, 500); // Delay to let user transition smoothly
+        }
+        
+        console.log(`[EquipmentDetail] Engaged view ${newCount} (${Math.floor(timeSpent / 1000)}s spent)`);
+      }
+      
+      setDetailOpenTime(null);
+    }
+  }, [isVisible, detailOpenTime, deepViewCount, isPremium, canShowAd, showAd]);
 
   // Reset sections when sheet becomes invisible
   useEffect(() => {

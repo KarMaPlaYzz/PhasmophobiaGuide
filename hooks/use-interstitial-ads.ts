@@ -1,36 +1,75 @@
 import { usePremium } from '@/hooks/use-premium';
-import { showInterstitialAd } from '@/lib/services/admobService';
-import { useEffect, useRef } from 'react';
+import admobService from '@/lib/services/admobService';
+import { useCallback } from 'react';
 
 /**
- * Hook for managing interstitial ad impressions
- * Shows ads after user interactions with a configurable frequency
+ * Hook for managing interstitial ads with intelligent frequency capping
+ * 
+ * Features:
+ * - Respects premium user status (no ads for premium users)
+ * - Automatically respects frequency capping (max 3 ads per session, min 2 minutes apart)
+ * - Non-intrusive placement only
+ * - Graceful fallback if ads not available
+ * 
+ * Usage:
+ * ```typescript
+ * const { showAd, isReady, canShowAd } = useInterstitialAds();
+ * 
+ * // Check if ad can be shown
+ * if (canShowAd()) {
+ *   await showAd();
+ * }
+ * ```
  */
-export const useInterstitialAds = (triggerKey: string, triggerCount: number = 3, dependency?: number | string) => {
+export const useInterstitialAds = () => {
   const { isPremium } = usePremium();
-  const impressionCount = useRef(0);
 
-  useEffect(() => {
-    // Don't show ads for premium users
+  /**
+   * Check if an interstitial ad can be shown
+   * Returns false if: user is premium, ads not ready, frequency caps exceeded
+   */
+  const canShowAd = useCallback((): boolean => {
     if (isPremium) {
-      impressionCount.current = 0;
-      return;
+      return false;
+    }
+    return admobService.canShowInterstitialAd();
+  }, [isPremium]);
+
+  /**
+   * Show an interstitial ad if conditions are met
+   * Automatically respects: premium status, frequency caps, ad availability
+   * 
+   * @returns true if ad was shown, false otherwise
+   */
+  const showAd = useCallback(async (): Promise<boolean> => {
+    if (isPremium) {
+      console.log('[InterstitialAds] Premium user - skipping ad');
+      return false;
     }
 
-    // If dependency is provided and is a number (usage count), check if we should show ad
-    if (dependency !== undefined && typeof dependency === 'number') {
-      if (dependency > 0 && dependency % triggerCount === 0) {
-        showInterstitialAd().then(() => {
-          // Counter reset is handled by parent since this is usage-based
-        });
-      }
+    if (!canShowAd()) {
+      return false;
     }
-  }, [triggerKey, isPremium, dependency, triggerCount]);
+
+    try {
+      const shown = await admobService.showInterstitialAd();
+      return shown;
+    } catch (error) {
+      console.error('[InterstitialAds] Error showing ad:', error);
+      return false;
+    }
+  }, [isPremium, canShowAd]);
+
+  /**
+   * Check if interstitial ad is loaded and ready
+   */
+  const isReady = useCallback((): boolean => {
+    return admobService.isInterstitialAdReady();
+  }, []);
 
   return {
-    impressionCount: impressionCount.current,
-    resetCount: () => {
-      impressionCount.current = 0;
-    },
+    showAd,
+    canShowAd,
+    isReady,
   };
 };

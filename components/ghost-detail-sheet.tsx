@@ -13,7 +13,9 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import { ALL_EQUIPMENT } from '@/lib/data/equipment';
 import { getDifficultyLabel, getGhostDescription, getGhostName } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
@@ -31,6 +33,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
   const colors = Colors['dark'];
   const navigation = useNavigation<any>();
   const { language, t } = useLocalization();
+  const { isPremium } = usePremium();
+  const { showAd, canShowAd } = useInterstitialAds();
   const snapPoints = useMemo(() => ['75%', '100%'], []);
   const [expandedSections, setExpandedSections] = useState<Record<string, boolean>>({
     evidence: true,
@@ -41,6 +45,10 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
     identification: false,
   });
   const [pressedEquipmentId, setPressedEquipmentId] = useState<string | null>(null);
+  
+  // Engagement tracking for interstitial ads
+  const [detailOpenTime, setDetailOpenTime] = useState<number | null>(null);
+  const [deepViewCount, setDeepViewCount] = useState(0);
 
   useEffect(() => {
     const unsubscribe = detailSheetEmitter.subscribe(() => {
@@ -62,8 +70,33 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
   useEffect(() => {
     if (isVisible && ghost) {
       HistoryService.trackView('ghost', ghost.id, ghost.name);
+      setDetailOpenTime(Date.now()); // Start engagement timer
     }
   }, [isVisible, ghost]);
+
+  // Handle close and check for ad opportunity
+  useEffect(() => {
+    if (!isVisible && detailOpenTime) {
+      const timeSpent = Date.now() - detailOpenTime;
+      
+      // Only count as "engaged" if spent 5+ seconds reading
+      if (timeSpent > 5000) {
+        const newCount = deepViewCount + 1;
+        setDeepViewCount(newCount);
+        
+        // Show ad after every 3 deep views (respects frequency caps)
+        if (newCount % 3 === 0 && !isPremium && canShowAd()) {
+          setTimeout(async () => {
+            await showAd();
+          }, 500); // Delay to let user transition smoothly
+        }
+        
+        console.log(`[GhostDetail] Engaged view ${newCount} (${Math.floor(timeSpent / 1000)}s spent)`);
+      }
+      
+      setDetailOpenTime(null);
+    }
+  }, [isVisible, detailOpenTime, deepViewCount, isPremium, canShowAd, showAd]);
 
   // Reset sections when sheet becomes invisible
   useEffect(() => {

@@ -1,8 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
 import {
   useSharedValue
@@ -13,6 +14,7 @@ import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
 import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
+import { useRewardedAds } from '@/hooks/use-rewarded-ads';
 
 interface PremiumPaywallSheetProps {
   isVisible: boolean;
@@ -66,8 +68,23 @@ export const PremiumPaywallSheet = ({
   const { t } = useLocalization();
   const { isPremium, isPurchasing, error, handlePurchase, handleRestore } = usePremium();
   const { isMockPremiumEnabled, toggleMockPremium, isAvailable: isMockAvailable } = useMockPremium();
+  const { showAd, isLoading: isAdLoading, error: adError, dismissError } = useRewardedAds();
+  const [trialUsed, setTrialUsed] = useState(false);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const animatedPosition = useSharedValue(0);
+
+  // Check if user already used trial
+  useEffect(() => {
+    const checkTrialStatus = async () => {
+      try {
+        const hasUsedTrial = await AsyncStorage.getItem('trial_ad_used');
+        setTrialUsed(!!hasUsedTrial);
+      } catch (error) {
+        console.warn('Error checking trial status:', error);
+      }
+    };
+    checkTrialStatus();
+  }, []);
 
   // Handle sheet visibility
   useEffect(() => {
@@ -108,6 +125,30 @@ export const PremiumPaywallSheet = ({
       await handleRestore();
     } catch (err) {
       Alert.alert('Error', 'Failed to restore purchases. Please try again.');
+    }
+  };
+
+  const handleWatchAdForTrial = async () => {
+    try {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      const shown = await showAd();
+      
+      if (shown) {
+        // Grant 15-minute trial access
+        const trialExpiry = Date.now() + (15 * 60 * 1000); // 15 minutes
+        await AsyncStorage.setItem('trial_ad_expiry', trialExpiry.toString());
+        await AsyncStorage.setItem('trial_ad_used', 'true');
+        
+        setTrialUsed(true);
+        
+        Alert.alert(
+          'Trial Started!',
+          'You now have access to premium features for 15 minutes. Try them out and consider getting the full version!',
+          [{ text: 'OK', onPress: onClose }]
+        );
+      }
+    } catch (err) {
+      Alert.alert('Error', 'Failed to start trial. Please try again.');
     }
   };
 
@@ -212,6 +253,35 @@ export const PremiumPaywallSheet = ({
 
         {/* Action Buttons */}
         <View style={styles.buttonsContainer}>
+          {!trialUsed && (
+            <Pressable
+              onPress={handleWatchAdForTrial}
+              disabled={isAdLoading || isPurchasing}
+              style={({ pressed }) => [
+                styles.trialButton,
+                {
+                  backgroundColor: colors.tint + '20',
+                  opacity: pressed || isAdLoading ? 0.7 : 1,
+                },
+              ]}
+            >
+              <Ionicons
+                name="play"
+                size={18}
+                color={colors.tint}
+                style={{ marginRight: 8 }}
+              />
+              <ThemedText
+                style={[
+                  styles.trialButtonText,
+                  { color: colors.tint, fontWeight: '600' },
+                ]}
+              >
+                {isAdLoading ? 'Loading Ad...' : 'Try for 15 Minutes'}
+              </ThemedText>
+            </Pressable>
+          )}
+
           <Pressable
             onPress={handlePurchasePress}
             disabled={isPurchasing}
@@ -429,6 +499,18 @@ const styles = StyleSheet.create({
   buttonsContainer: {
     gap: 12,
     marginBottom: 20,
+  },
+  trialButton: {
+    paddingVertical: 12,
+    borderRadius: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 48,
+  },
+  trialButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
   },
   purchaseButton: {
     paddingVertical: 14,

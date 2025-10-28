@@ -13,7 +13,9 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
+import { usePremium } from '@/hooks/use-premium';
 import {
     DIFFICULTY_SETTINGS,
     getSanityStatus,
@@ -28,6 +30,8 @@ export default function SanityCulculatorScreen() {
   const insets = useSafeAreaInsets();
   const route = useRoute();
   const { t } = useLocalization();
+  const { isPremium } = usePremium();
+  const { showAd, canShowAd } = useInterstitialAds();
 
   const DIFFICULTIES: { key: Difficulty; label: string }[] = [
     { key: 'amateur', label: t('tabs.sanity_diffAmateur') },
@@ -47,6 +51,7 @@ export default function SanityCulculatorScreen() {
   const [selectedMapSize, setSelectedMapSize] = useState<MapSize>('medium');
   const [currentSanity, setCurrentSanity] = useState(100);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [calculationCount, setCalculationCount] = useState(0);
 
   // Use callback ref to always have the latest ref
   const handleScrollRef = (ref: ScrollView | null) => {
@@ -54,6 +59,15 @@ export default function SanityCulculatorScreen() {
       scrollRefRegistry.set(route.name, ref as any);
     }
   };
+
+  // Track calculation count and show interstitial ad
+  React.useEffect(() => {
+    if (calculationCount >= 2 && !isPremium && canShowAd()) {
+      setTimeout(async () => {
+        await showAd();
+      }, 500); // Delay to let user see result
+    }
+  }, [calculationCount, isPremium, canShowAd, showAd]);
 
   // Get difficulty settings
   const difficultySettings = useMemo(() => {
@@ -274,6 +288,7 @@ export default function SanityCulculatorScreen() {
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setCurrentSanity(Math.max(0, currentSanity - 10));
+                setCalculationCount(prev => prev + 1);
               }}
               style={[
                 styles.sliderButton,
@@ -292,6 +307,7 @@ export default function SanityCulculatorScreen() {
               onPress={() => {
                 Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
                 setCurrentSanity(Math.min(100, currentSanity + 10));
+                setCalculationCount(prev => prev + 1);
               }}
               style={[
                 styles.sliderButton,
@@ -307,7 +323,10 @@ export default function SanityCulculatorScreen() {
             </TouchableOpacity>
 
             <TouchableOpacity
-              onPress={() => setCurrentSanity(100)}
+              onPress={() => {
+                setCurrentSanity(100);
+                setCalculationCount(prev => prev + 1);
+              }}
               style={[
                 styles.sliderButton,
                 { backgroundColor: colorScheme === 'dark' ? colors.spectral + '25' : colors.spectral + '15' },

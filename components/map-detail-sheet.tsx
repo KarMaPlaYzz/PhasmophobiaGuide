@@ -13,6 +13,8 @@ import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
+import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
+import { usePremium } from '@/hooks/use-premium';
 import { getDifficultyLabel } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
 import { Map } from '@/lib/types';
@@ -26,6 +28,8 @@ interface MapDetailSheetProps {
 export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps) => {
   const colors = Colors['dark'];
   const { language, t } = useLocalization();
+  const { isPremium } = usePremium();
+  const { showAd, canShowAd } = useInterstitialAds();
   const snapPoints = useMemo(() => ['60%', '100%'], []);
   const { width: screenWidth } = Dimensions.get('window');
   const [imageLoading, setImageLoading] = useState(true);
@@ -35,6 +39,10 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
     hazards: false,
     features: false,
   });
+  
+  // Track first map open per session for interstitial ad
+  const [firstMapViewThisSession, setFirstMapViewThisSession] = useState(true);
+  const [detailOpenTime, setDetailOpenTime] = useState<number | null>(null);
 
   // Close sheet when tab changes
   useEffect(() => {
@@ -55,8 +63,28 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
   useEffect(() => {
     if (isVisible && map) {
       HistoryService.trackView('map', map.id, map.name);
+      setDetailOpenTime(Date.now()); // Start engagement timer
+      
+      // Show ad on first map view this session (if conditions allow)
+      if (firstMapViewThisSession && !isPremium && canShowAd()) {
+        setTimeout(async () => {
+          await showAd();
+          setFirstMapViewThisSession(false);
+        }, 1000); // Delay to let map load
+      }
     }
-  }, [isVisible, map]);
+  }, [isVisible, map, firstMapViewThisSession, isPremium, canShowAd, showAd]);
+
+  // Handle close and track deep engagement
+  useEffect(() => {
+    if (!isVisible && detailOpenTime) {
+      const timeSpent = Date.now() - detailOpenTime;
+      if (timeSpent > 5000) {
+        console.log(`[MapDetail] Deep engagement (${Math.floor(timeSpent / 1000)}s spent)`);
+      }
+      setDetailOpenTime(null);
+    }
+  }, [isVisible, detailOpenTime]);
 
   // Reset sections when sheet becomes invisible
   useEffect(() => {
