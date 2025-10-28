@@ -1,5 +1,5 @@
 import { isExpoGo } from '@/lib/utils/is-expo-go';
-import { Platform } from 'react-native';
+import { AppState, Platform } from 'react-native';
 
 /**
  * AdMob Service
@@ -109,9 +109,16 @@ let interstitialShowCount = 0;
 const INTERSTITIAL_MIN_INTERVAL = 2 * 60 * 1000; // 2 minutes between ads
 const INTERSTITIAL_MAX_PER_SESSION = 3; // Max 3 ads per session
 
+// Daily capping (prevent excessive ads across sessions)
+let dailyAdCount = 0;
+let lastDailyResetTime = Date.now();
+const INTERSTITIAL_MAX_PER_DAY = 6; // Max 6 ads per 24 hours
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
 // Configuration
 const INITIAL_RETRY_DELAY = 5000; // 5 seconds
-const MAX_RETRIES = 5; // Max retry attempts
+const MAX_RETRIES = 5; // Max retry attempts for interstitial/rewarded
+const MAX_RETRIES_BANNER = 6; // Max retry attempts for banner (more aggressive)
 const BACKOFF_MULTIPLIER = 1.5; // Exponential backoff multiplier
 const MAX_BACKOFF_DELAY = 60000; // Cap at 60 seconds
 
@@ -125,10 +132,38 @@ const getRetryDelay = (retryCount: number): number => {
 };
 
 /**
+ * Check if daily ad limit has been exceeded
+ * Returns true if we can show an ad, false if daily limit reached
+ */
+const checkDailyAdCap = (): boolean => {
+  const now = Date.now();
+  const timeSinceLastReset = now - lastDailyResetTime;
+  
+  // Reset daily count if 24 hours have passed
+  if (timeSinceLastReset >= ONE_DAY_MS) {
+    dailyAdCount = 0;
+    lastDailyResetTime = now;
+    console.log('[AdMob] Daily ad counter reset (24 hours passed)');
+  }
+  
+  if (dailyAdCount >= INTERSTITIAL_MAX_PER_DAY) {
+    console.log(`[AdMob] Daily ad cap reached (${dailyAdCount}/${INTERSTITIAL_MAX_PER_DAY})`);
+    return false;
+  }
+  
+  return true;
+};
+
+/**
  * Check if enough time has passed since last interstitial ad
  * Returns true if we can show an ad, false if too soon
  */
 const canShowInterstitialAd = (): boolean => {
+  // Check daily cap first
+  if (!checkDailyAdCap()) {
+    return false;
+  }
+  
   const now = Date.now();
   const timeSinceLastAd = now - lastInterstitialShowTime;
   const enoughTimeHasPassed = timeSinceLastAd >= INTERSTITIAL_MIN_INTERVAL;
@@ -155,7 +190,8 @@ const canShowInterstitialAd = (): boolean => {
 const recordInterstitialAdShow = (): void => {
   lastInterstitialShowTime = Date.now();
   interstitialShowCount++;
-  console.log(`[AdMob] Interstitial ad shown (${interstitialShowCount}/${INTERSTITIAL_MAX_PER_SESSION} this session)`);
+  dailyAdCount++;
+  console.log(`[AdMob] Interstitial ad shown (${interstitialShowCount}/${INTERSTITIAL_MAX_PER_SESSION} session, ${dailyAdCount}/${INTERSTITIAL_MAX_PER_DAY} daily)`);
 };
 
 /**
@@ -181,6 +217,14 @@ export const initializeAdMob = async () => {
     console.log('[AdMob] Starting initialization');
     // AdMob SDK is automatically initialized by the plugin
     console.log('[AdMob] SDK auto-initialized by plugin');
+    
+    // Set up app state listener to reset session counters when app returns from background
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        console.log('[AdMob] App returned to foreground - resetting session counters');
+        resetSessionAdCounters();
+      }
+    });
     
     // Load ads asynchronously without blocking
     setTimeout(() => {

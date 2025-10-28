@@ -27,7 +27,7 @@ interface AdBannerProps {
 
 // Retry configuration for banner ads
 const INITIAL_RETRY_DELAY = 8000; // 8 seconds
-const MAX_RETRIES = 4; // Max retry attempts
+const MAX_RETRIES = 6; // Max retry attempts (more aggressive than interstitials)
 const BACKOFF_MULTIPLIER = 1.5; // Exponential backoff multiplier
 const MAX_BACKOFF_DELAY = 120000; // Cap at 2 minutes
 
