@@ -77,10 +77,15 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
         setDeepViewCount(newCount);
         
         // Show ad after every 3 deep views (respects frequency caps)
+        // IMPORTANT: Don't show ad while sheet is animating - wait longer to avoid memory issues
         if (newCount % 3 === 0 && !isPremium && canShowAd()) {
           setTimeout(async () => {
-            await showAd();
-          }, 500); // Delay to let user transition smoothly
+            try {
+              await showAd();
+            } catch (error) {
+              console.error('[EquipmentDetail] Error showing ad:', error);
+            }
+          }, 1500); // Increased delay to let animations complete
         }
         
         console.log(`[EquipmentDetail] Engaged view ${newCount} (${Math.floor(timeSpent / 1000)}s spent)`);

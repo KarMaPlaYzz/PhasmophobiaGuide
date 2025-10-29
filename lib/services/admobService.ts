@@ -290,6 +290,9 @@ export const initializeAdMob = async () => {
     }
     
     // Load ads asynchronously without blocking
+    // IMPORTANT: Use long delay (3 seconds) to avoid memory pressure during app startup
+    // On first load, there are many competing processes (fonts, localization, navigation, UI rendering)
+    // If we try to load ads too early, it can cause memory allocation issues with Hermes
     setTimeout(() => {
       try {
         console.log('[AdMob] Loading ads in background');
@@ -304,7 +307,7 @@ export const initializeAdMob = async () => {
         );
         console.warn('[AdMob] Error loading ads in background:', error);
       }
-    }, 1000);
+    }, 3000); // Increased from 1000ms to 3000ms for app startup stability
     
     console.log('[AdMob] Initialization complete');
   } catch (error) {

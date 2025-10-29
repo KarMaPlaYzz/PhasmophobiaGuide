@@ -17,8 +17,8 @@ import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import {
-    DIFFICULTY_SETTINGS,
-    getSanityStatus,
+  DIFFICULTY_SETTINGS,
+  getSanityStatus,
 } from '@/lib/data/sanity';
 
 type Difficulty = 'amateur' | 'intermediate' | 'professional' | 'nightmare' | 'insanity';
@@ -64,8 +64,12 @@ export default function SanityCulculatorScreen() {
   React.useEffect(() => {
     if (calculationCount >= 2 && !isPremium && canShowAd()) {
       setTimeout(async () => {
-        await showAd();
-      }, 500); // Delay to let user see result
+        try {
+          await showAd();
+        } catch (error) {
+          console.error('[SanityCalculator] Error showing ad:', error);
+        }
+      }, 800); // Delay to let user see result (longer delay for safety)
     }
   }, [calculationCount, isPremium, canShowAd, showAd]);
 

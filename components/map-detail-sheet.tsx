@@ -12,8 +12,8 @@ import { FloorPlanViewer } from '@/components/floor-plan-viewer';
 import { detailSheetEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
-import { useLocalization } from '@/hooks/use-localization';
 import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
+import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import { getDifficultyLabel } from '@/lib/localization';
 import { HistoryService } from '@/lib/storage/storageService';
@@ -66,11 +66,16 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
       setDetailOpenTime(Date.now()); // Start engagement timer
       
       // Show ad on first map view this session (if conditions allow)
+      // IMPORTANT: Increased delay to avoid conflict with blur animations
       if (firstMapViewThisSession && !isPremium && canShowAd()) {
         setTimeout(async () => {
-          await showAd();
-          setFirstMapViewThisSession(false);
-        }, 1000); // Delay to let map load
+          try {
+            await showAd();
+            setFirstMapViewThisSession(false);
+          } catch (error) {
+            console.error('[MapDetail] Error showing ad:', error);
+          }
+        }, 2000); // Longer delay to let blur animations complete
       }
     }
   }, [isVisible, map, firstMapViewThisSession, isPremium, canShowAd, showAd]);

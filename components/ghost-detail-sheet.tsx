@@ -85,10 +85,15 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         setDeepViewCount(newCount);
         
         // Show ad after every 3 deep views (respects frequency caps)
+        // IMPORTANT: Don't show ad while sheet is animating - wait longer to avoid memory issues
         if (newCount % 3 === 0 && !isPremium && canShowAd()) {
           setTimeout(async () => {
-            await showAd();
-          }, 500); // Delay to let user transition smoothly
+            try {
+              await showAd();
+            } catch (error) {
+              console.error('[GhostDetail] Error showing ad:', error);
+            }
+          }, 1500); // Increased delay to let animations complete
         }
         
         console.log(`[GhostDetail] Engaged view ${newCount} (${Math.floor(timeSpent / 1000)}s spent)`);
