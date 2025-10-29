@@ -1,5 +1,5 @@
 import { isExpoGo } from '@/lib/utils/is-expo-go';
-import { AppState, Platform } from 'react-native';
+import { Alert, AppState, Platform } from 'react-native';
 
 /**
  * AdMob Service
@@ -15,6 +15,7 @@ let BannerAdSize: any = null;
 let InterstitialAd: any = null;
 let RewardedAd: any = null;
 let TestIds: any = null;
+let adsInitializationError: string | null = null;
 
 const initializeGoogleMobileAds = () => {
   if (isExpoGo()) {
@@ -31,7 +32,9 @@ const initializeGoogleMobileAds = () => {
     console.log('[AdMob] Google Mobile Ads module loaded successfully');
     return true;
   } catch (error) {
-    console.warn('[AdMob] Failed to load Google Mobile Ads module:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    console.error('[AdMob] CRITICAL: Failed to load Google Mobile Ads module:', error);
+    adsInitializationError = `AdMob module failed to load: ${errorMsg}. Check native configuration.`;
     return false;
   }
 };
@@ -65,30 +68,63 @@ const PRODUCTION_REWARDED_ID = {
 const USE_TEST_IDS = false; // Set to false in production
 
 const getBannerId = (): string => {
-  if (!ADS_AVAILABLE) return 'ads_disabled';
-  if (USE_TEST_IDS) return TEST_BANNER_ID;
-  const platformId = Platform.OS === 'ios' 
-    ? PRODUCTION_BANNER_ID.ios 
-    : PRODUCTION_BANNER_ID.android;
-  return platformId;
+  try {
+    if (!ADS_AVAILABLE) return 'ads_disabled';
+    if (USE_TEST_IDS) return TEST_BANNER_ID;
+    const platformId = Platform.OS === 'ios' 
+      ? PRODUCTION_BANNER_ID.ios 
+      : PRODUCTION_BANNER_ID.android;
+    return platformId;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Banner ID',
+      `Failed to get banner ad ID: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Error getting banner ID:', error);
+    return 'ads_disabled';
+  }
 };
 
 const getInterstitialId = (): string => {
-  if (!ADS_AVAILABLE) return 'ads_disabled';
-  if (USE_TEST_IDS) return TEST_INTERSTITIAL_ID;
-  const platformId = Platform.OS === 'ios'
-    ? PRODUCTION_INTERSTITIAL_ID.ios
-    : PRODUCTION_INTERSTITIAL_ID.android;
-  return platformId;
+  try {
+    if (!ADS_AVAILABLE) return 'ads_disabled';
+    if (USE_TEST_IDS) return TEST_INTERSTITIAL_ID;
+    const platformId = Platform.OS === 'ios'
+      ? PRODUCTION_INTERSTITIAL_ID.ios
+      : PRODUCTION_INTERSTITIAL_ID.android;
+    return platformId;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Interstitial ID',
+      `Failed to get interstitial ad ID: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Error getting interstitial ID:', error);
+    return 'ads_disabled';
+  }
 };
 
 const getRewardedId = (): string => {
-  if (!ADS_AVAILABLE) return 'ads_disabled';
-  if (USE_TEST_IDS) return TEST_REWARDED_ID;
-  const platformId = Platform.OS === 'ios'
-    ? PRODUCTION_REWARDED_ID.ios
-    : PRODUCTION_REWARDED_ID.android;
-  return platformId;
+  try {
+    if (!ADS_AVAILABLE) return 'ads_disabled';
+    if (USE_TEST_IDS) return TEST_REWARDED_ID;
+    const platformId = Platform.OS === 'ios'
+      ? PRODUCTION_REWARDED_ID.ios
+      : PRODUCTION_REWARDED_ID.android;
+    return platformId;
+  } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Rewarded ID',
+      `Failed to get rewarded ad ID: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Error getting rewarded ID:', error);
+    return 'ads_disabled';
+  }
 };
 
 // State tracking
@@ -114,6 +150,9 @@ let dailyAdCount = 0;
 let lastDailyResetTime = Date.now();
 const INTERSTITIAL_MAX_PER_DAY = 6; // Max 6 ads per 24 hours
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+
+// App state listener subscription (kept to prevent garbage collection)
+let appStateSubscription: any = null;
 
 // Configuration
 const INITIAL_RETRY_DELAY = 5000; // 5 seconds
@@ -209,6 +248,17 @@ export const resetSessionAdCounters = (): void => {
  */
 export const initializeAdMob = async () => {
   try {
+    // If ads failed to initialize at module load, show alert and return early
+    if (adsInitializationError) {
+      console.error(`[AdMob] Initialization blocked: ${adsInitializationError}`);
+      Alert.alert(
+        'AdMob Initialization Failed',
+        adsInitializationError,
+        [{ text: 'Continue Anyway' }]
+      );
+      return;
+    }
+
     if (!ADS_AVAILABLE) {
       console.log('[AdMob] Ads not available (running in Expo Go or module not loaded)');
       return;
@@ -219,12 +269,25 @@ export const initializeAdMob = async () => {
     console.log('[AdMob] SDK auto-initialized by plugin');
     
     // Set up app state listener to reset session counters when app returns from background
-    const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') {
-        console.log('[AdMob] App returned to foreground - resetting session counters');
-        resetSessionAdCounters();
+    // Store subscription to prevent garbage collection
+    try {
+      if (!appStateSubscription) {
+        appStateSubscription = AppState.addEventListener('change', (state) => {
+          if (state === 'active') {
+            console.log('[AdMob] App returned to foreground - resetting session counters');
+            resetSessionAdCounters();
+          }
+        });
       }
-    });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: App State',
+        `Failed to set up app state listener: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error setting up app state listener:', error);
+    }
     
     // Load ads asynchronously without blocking
     setTimeout(() => {
@@ -233,12 +296,24 @@ export const initializeAdMob = async () => {
         loadInterstitialAd();
         loadRewardedAd();
       } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : String(error);
+        Alert.alert(
+          'AdMob Error: Background Load',
+          `Failed to load ads in background: ${errorMsg}`,
+          [{ text: 'OK' }]
+        );
         console.warn('[AdMob] Error loading ads in background:', error);
       }
     }, 1000);
     
     console.log('[AdMob] Initialization complete');
   } catch (error) {
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Initialization',
+      `Failed to initialize AdMob: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
     console.error('[AdMob] Failed to initialize:', error);
     throw error;
   }
@@ -254,9 +329,20 @@ const loadInterstitialAd = async () => {
       return;
     }
 
-    interstitialAd = InterstitialAd.createForAdRequest(getInterstitialId(), {
-      requestNonPersonalizedAdsOnly: false,
-    });
+    try {
+      interstitialAd = InterstitialAd.createForAdRequest(getInterstitialId(), {
+        requestNonPersonalizedAdsOnly: false,
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: Interstitial Creation',
+        `Failed to create interstitial ad: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error creating interstitial ad:', error);
+      throw error;
+    }
 
     // Check if addListener method exists before calling
     if (interstitialAd && typeof interstitialAd.addListener === 'function') {
@@ -309,11 +395,27 @@ const loadInterstitialAd = async () => {
       console.warn('[AdMob] InterstitialAd.addListener not available');
     }
 
-    if (interstitialAd && typeof interstitialAd.load === 'function') {
-      await interstitialAd.load();
+    try {
+      if (interstitialAd && typeof interstitialAd.load === 'function') {
+        await interstitialAd.load();
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: Interstitial Load',
+        `Failed to load interstitial ad: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error loading interstitial ad:', error);
     }
   } catch (error) {
-    console.error('[AdMob] Error loading interstitial ad:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Interstitial',
+      `Fatal error with interstitial ad: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Fatal error loading interstitial ad:', error);
   }
 };
 
@@ -327,9 +429,20 @@ const loadRewardedAd = async () => {
       return;
     }
 
-    rewardedAd = RewardedAd.createForAdRequest(getRewardedId(), {
-      requestNonPersonalizedAdsOnly: false,
-    });
+    try {
+      rewardedAd = RewardedAd.createForAdRequest(getRewardedId(), {
+        requestNonPersonalizedAdsOnly: false,
+      });
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: Rewarded Creation',
+        `Failed to create rewarded ad: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error creating rewarded ad:', error);
+      throw error;
+    }
 
     if (rewardedAd && typeof rewardedAd.addListener === 'function') {
       rewardedAd.addListener('onAdLoaded', () => {
@@ -385,11 +498,27 @@ const loadRewardedAd = async () => {
       console.warn('[AdMob] RewardedAd.addListener not available');
     }
 
-    if (rewardedAd && typeof rewardedAd.load === 'function') {
-      await rewardedAd.load();
+    try {
+      if (rewardedAd && typeof rewardedAd.load === 'function') {
+        await rewardedAd.load();
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: Rewarded Load',
+        `Failed to load rewarded ad: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error loading rewarded ad:', error);
     }
   } catch (error) {
-    console.error('[AdMob] Error loading rewarded ad:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Rewarded',
+      `Fatal error with rewarded ad: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Fatal error loading rewarded ad:', error);
   }
 };
 
@@ -404,14 +533,30 @@ export const showInterstitialAd = async (): Promise<boolean> => {
       return false;
     }
     
-    if (interstitialLoaded && interstitialAd) {
-      await interstitialAd.show();
-      recordInterstitialAdShow();
-      return true;
+    try {
+      if (interstitialLoaded && interstitialAd) {
+        await interstitialAd.show();
+        recordInterstitialAdShow();
+        return true;
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: Show Interstitial',
+        `Failed to show interstitial ad: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error showing interstitial ad:', error);
     }
     return false;
   } catch (error) {
-    console.error('[AdMob] Error showing interstitial ad:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Interstitial',
+      `Fatal error showing interstitial ad: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Fatal error showing interstitial ad:', error);
     return false;
   }
 };
@@ -429,13 +574,29 @@ export const isInterstitialAdReady = (): boolean => {
  */
 export const showRewardedAd = async (): Promise<boolean> => {
   try {
-    if (rewardedLoaded && rewardedAd) {
-      await rewardedAd.show();
-      return true;
+    try {
+      if (rewardedLoaded && rewardedAd) {
+        await rewardedAd.show();
+        return true;
+      }
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : String(error);
+      Alert.alert(
+        'AdMob Error: Show Rewarded',
+        `Failed to show rewarded ad: ${errorMsg}`,
+        [{ text: 'OK' }]
+      );
+      console.error('[AdMob] Error showing rewarded ad:', error);
     }
     return false;
   } catch (error) {
-    console.error('[AdMob] Error showing rewarded ad:', error);
+    const errorMsg = error instanceof Error ? error.message : String(error);
+    Alert.alert(
+      'AdMob Error: Rewarded',
+      `Fatal error showing rewarded ad: ${errorMsg}`,
+      [{ text: 'OK' }]
+    );
+    console.error('[AdMob] Fatal error showing rewarded ad:', error);
     return false;
   }
 };
