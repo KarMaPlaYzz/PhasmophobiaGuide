@@ -195,6 +195,75 @@ export const LoadoutPresetSheet = ({
     }
   };
 
+  const handleUpdatePreset = async () => {
+    console.log('[LoadoutPresetSheet] Update button pressed');
+    console.log('[LoadoutPresetSheet] Current form data:', formData);
+    console.log('[LoadoutPresetSheet] Selected preset:', selectedPreset);
+    
+    if (!formData.name.trim()) {
+      console.warn('[LoadoutPresetSheet] Update failed: No preset name provided');
+      Alert.alert('Validation', 'Please enter a preset name');
+      return;
+    }
+
+    if (!selectedPreset) {
+      console.warn('[LoadoutPresetSheet] Update failed: No preset selected');
+      Alert.alert('Error', 'No preset selected for editing');
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      console.log('[LoadoutPresetSheet] Attempting to update preset:', selectedPreset.id);
+      
+      const updates = {
+        name: formData.name,
+        description: formData.description,
+        tags: formData.tags
+          .split(',')
+          .map(t => t.trim())
+          .filter(t => t.length > 0),
+      };
+      
+      console.log('[LoadoutPresetSheet] Updates to apply:', JSON.stringify(updates, null, 2));
+      
+      const updatedPreset = await loadoutService.updatePreset(selectedPreset.id, updates);
+      
+      console.log('[LoadoutPresetSheet] Preset updated successfully:', updatedPreset.id);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      
+      // Update the selected preset state
+      setSelectedPreset(updatedPreset);
+      
+      // Update the presets list
+      setPresets(prev => 
+        prev.map(preset => 
+          preset.id === updatedPreset.id ? updatedPreset : preset
+        )
+      );
+      
+      console.log('[LoadoutPresetSheet] Updated preset in list and returning to details view');
+      
+      // Show alert then navigate back to details
+      Alert.alert('Success', `Preset "${updatedPreset.name}" updated!`, [
+        {
+          text: 'OK',
+          onPress: () => {
+            console.log('[LoadoutPresetSheet] User dismissed update alert, switching to details view');
+            setView('details');
+            console.log('[LoadoutPresetSheet] Returned to details view with updated preset');
+          },
+        },
+      ]);
+    } catch (error) {
+      console.error('[LoadoutPresetSheet] Error updating preset:', error);
+      console.error('[LoadoutPresetSheet] Error details:', JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      Alert.alert('Error', `Failed to update preset: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleDeletePreset = (presetId: string) => {
     Alert.alert('Delete Preset', 'Are you sure you want to delete this preset?', [
       { text: 'Cancel', style: 'cancel' },
@@ -434,7 +503,7 @@ export const LoadoutPresetSheet = ({
                           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
                             <Ionicons name="person" size={12} color={colors.spectral} />
                             <ThemedText style={[styles.presetItemCardMetaText, { color: colors.text + '99' }]}>
-                              {preset.playstyle}
+                              {preset.playstyle.charAt(0).toUpperCase() + preset.playstyle.slice(1)}
                             </ThemedText>
                           </View>
                           <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
@@ -708,6 +777,145 @@ export const LoadoutPresetSheet = ({
     );
   }
 
+  // EDIT VIEW
+  if (view === 'edit' && selectedPreset) {
+    return (
+      <>
+        <BottomSheet
+          snapPoints={[600, 800]}
+          enablePanDownToClose={true}
+          onClose={onClose}
+          index={isVisible ? 0 : -1}
+          animateOnMount={true}
+          backgroundComponent={() => (
+            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+          )}
+          handleIndicatorStyle={{ backgroundColor: colors.spectral }}
+        >
+          <BottomSheetScrollView
+            style={[styles.container, { backgroundColor: colors.background }]}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Header */}
+            <View style={styles.header}>
+              <TouchableOpacity onPress={() => setView('details')}>
+                <Ionicons name="chevron-back" size={24} color={colors.spectral} />
+              </TouchableOpacity>
+              <TextInput
+                style={[styles.title, { color: colors.text }]}
+                value={formData.name}
+                onChangeText={name => setFormData({ ...formData, name })}
+                placeholder="Preset Name"
+                placeholderTextColor={colors.text + '66'}
+                editable={!isLoading}
+                maxLength={30}
+              />
+              <View style={{ width: 24 }} />
+            </View>
+
+            {/* Form Section */}
+            <CollapsibleSection
+              title="Edit Preset Details"
+              isExpanded={expandedFormSection}
+              onPress={() => setExpandedFormSection(!expandedFormSection)}
+              backgroundColor={colors.spectral + '08'}
+              borderColor={colors.spectral + '20'}
+              headerBackgroundColor={colors.spectral + '12'}
+              titleColor={colors.spectral}
+              iconColor={colors.spectral}
+            >
+              <View style={{ gap: 16 }}>
+                {/* Name Input */}
+                <View style={styles.formField}>
+                  <ThemedText style={styles.formLabel}>Preset Name *</ThemedText>
+                  <TextInput
+                    style={[styles.textInput, { borderColor: colors.spectral, color: colors.text }]}
+                    placeholder="e.g., Wraith Hunter"
+                    placeholderTextColor={colors.text + '66'}
+                    value={formData.name}
+                    onChangeText={name => setFormData({ ...formData, name })}
+                    editable={!isLoading}
+                  />
+                </View>
+
+                {/* Description Input */}
+                <View style={styles.formField}>
+                  <ThemedText style={styles.formLabel}>Description (Optional)</ThemedText>
+                  <TextInput
+                    style={[
+                      styles.textInput,
+                      styles.textAreaInput,
+                      { borderColor: colors.spectral, color: colors.text },
+                    ]}
+                    placeholder="e.g., Best loadout for aggressive hunting"
+                    placeholderTextColor={colors.text + '66'}
+                    value={formData.description}
+                    onChangeText={description => setFormData({ ...formData, description })}
+                    multiline
+                    numberOfLines={4}
+                    editable={!isLoading}
+                  />
+                </View>
+
+                {/* Tags Input */}
+                <View style={styles.formField}>
+                  <ThemedText style={styles.formLabel}>Tags (Optional)</ThemedText>
+                  <ThemedText style={[styles.formHint, { color: colors.text + '66' }]}>
+                    Separate tags with commas
+                  </ThemedText>
+                  <TextInput
+                    style={[styles.textInput, { borderColor: colors.spectral, color: colors.text }]}
+                    placeholder="e.g., aggressive, wraith, solo"
+                    placeholderTextColor={colors.text + '66'}
+                    value={formData.tags}
+                    onChangeText={tags => setFormData({ ...formData, tags })}
+                    editable={!isLoading}
+                  />
+                </View>
+              </View>
+            </CollapsibleSection>
+
+            {/* Action Buttons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.background, borderWidth: 1, borderColor: colors.border }]}
+                onPress={() => setView('details')}
+                disabled={isLoading}
+              >
+                <ThemedText style={[styles.buttonText, { color: colors.text }]}>Cancel</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  { backgroundColor: colors.spectral, opacity: isLoading ? 0.6 : 1 },
+                ]}
+                onPress={() => {
+                  console.log('[LoadoutPresetSheet] Update button pressed');
+                  handleUpdatePreset();
+                }}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <ThemedText style={styles.buttonText}>Update Preset</ThemedText>
+                )}
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ height: 20 }} />
+          </BottomSheetScrollView>
+        </BottomSheet>
+        <EquipmentDetailSheet
+          equipment={selectedEquipment}
+          isVisible={showEquipmentDetail}
+          onClose={() => setShowEquipmentDetail(false)}
+        />
+      </>
+    );
+  }
+
   // DETAILS VIEW
   if (view === 'details' && selectedPreset) {
     return (
@@ -737,7 +945,18 @@ export const LoadoutPresetSheet = ({
               <ThemedText style={styles.title} numberOfLines={1}>
                 {selectedPreset.name}
               </ThemedText>
-              <View style={{ width: 24 }} />
+              <TouchableOpacity 
+                onPress={() => {
+                  setFormData({
+                    name: selectedPreset.name,
+                    description: selectedPreset.description || '',
+                    tags: selectedPreset.tags.join(', '),
+                  });
+                  setView('edit');
+                }}
+              >
+                <Ionicons name="create-outline" size={24} color={colors.spectral} />
+              </TouchableOpacity>
             </View>
 
             {/* Description */}
@@ -754,7 +973,7 @@ export const LoadoutPresetSheet = ({
             <View style={styles.statsGrid}>
               <StatCard
                 label="Playstyle"
-                value={selectedPreset.playstyle}
+                value={selectedPreset.playstyle.charAt(0).toUpperCase() + selectedPreset.playstyle.slice(1)}
                 icon="person"
                 colors={colors}
               />
@@ -859,6 +1078,46 @@ export const LoadoutPresetSheet = ({
                 </View>
               </CollapsibleSection>
             )}
+
+            {/* Action Buttons */}
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.spectral, flex: 1 }]}
+                onPress={() => {
+                  handleLoadPreset(selectedPreset);
+                }}
+              >
+                <Ionicons name="checkmark" size={18} color="white" />
+                <ThemedText style={[styles.buttonText, { color: 'white' }]}>Load</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.spectral + '66', flex: 1 }]}
+                onPress={() => {
+                  handleSharePreset(selectedPreset);
+                }}
+              >
+                <Ionicons name="share-social" size={18} color="white" />
+                <ThemedText style={[styles.buttonText, { color: 'white' }]}>Share</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: colors.paranormal, flex: 1 }]}
+                onPress={() => {
+                  handleClonePreset(selectedPreset);
+                }}
+              >
+                <Ionicons name="copy" size={18} color="white" />
+                <ThemedText style={[styles.buttonText, { color: 'white' }]}>Clone</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, { backgroundColor: '#FF4444', flex: 1 }]}
+                onPress={() => {
+                  handleDeletePreset(selectedPreset.id);
+                }}
+              >
+                <Ionicons name="trash" size={18} color="white" />
+                <ThemedText style={[styles.buttonText, { color: 'white' }]}>Delete</ThemedText>
+              </TouchableOpacity>
+            </View>
 
             <View style={{ height: 20 }} />
           </BottomSheetScrollView>

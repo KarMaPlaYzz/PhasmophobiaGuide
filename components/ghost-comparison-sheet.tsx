@@ -38,7 +38,7 @@ export const GhostComparisonSheet = ({
   const colors = Colors['dark'];
   const { language } = useLocalization();
   const { isPremium, handlePurchase, isPurchasing } = usePremium();
-  const { showAd, isLoading: isAdLoading, error: adError, dismissError } = useRewardedAds();
+  const { showAd, isLoading: isAdLoading, error: adError, dismissError, isAdReady } = useRewardedAds();
   const { showAd: showInterstitial, canShowAd: canShowInterstitial } = useInterstitialAds();
   const snapPoints = useMemo(() => ['65%', '100%'], []);
   const screenWidth = Dimensions.get('window').width;
@@ -397,32 +397,43 @@ export const GhostComparisonSheet = ({
               </ThemedText>
             </Pressable>
             <View style={styles.divider} />
-            <Pressable
-              onPress={async () => {
-                try {
-                  await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  const shown = await showAd();
-                  if (shown) {
-                    // Show interstitial after user watches rewarded ad (if frequency caps allow)
-                    if (canShowInterstitial()) {
-                      setTimeout(async () => {
-                        await showInterstitial();
-                      }, 500); // Delay to let user process the reward first
+            {/* Only show Watch Ad button if ad is ready */}
+            {isAdReady && (
+              <Pressable
+                onPress={async () => {
+                  try {
+                    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                    const shown = await showAd();
+                    if (shown) {
+                      // Show interstitial after user watches rewarded ad (if frequency caps allow)
+                      if (canShowInterstitial()) {
+                        setTimeout(async () => {
+                          await showInterstitial();
+                        }, 500); // Delay to let user process the reward first
+                      }
+                      Alert.alert('Success!', 'You now have access to Ghost Comparison!');
+                    } else if (adError) {
+                      Alert.alert('Ad Not Ready', adError);
                     }
-                    Alert.alert('Success!', 'You now have access to Ghost Comparison!');
+                  } catch (err) {
+                    Alert.alert('Error', 'Failed to show ad. Please try again.');
                   }
-                } catch (err) {
-                  Alert.alert('Error', 'Failed to show ad. Please try again.');
-                }
-              }}
-              disabled={isAdLoading}
-              style={[styles.premiumButtonSecondary, { borderColor: colors.spectral, opacity: isAdLoading ? 0.6 : 1 }]}
-            >
-              <Ionicons name="play" size={20} color={colors.spectral} />
-              <ThemedText style={[styles.premiumButtonSecondaryText, { color: colors.spectral }]}>
-                {isAdLoading ? 'Loading...' : 'Watch Ad to Unlock'}
-              </ThemedText>
-            </Pressable>
+                }}
+                disabled={isAdLoading}
+                style={[
+                  styles.premiumButtonSecondary, 
+                  { 
+                    borderColor: colors.spectral, 
+                    opacity: isAdLoading ? 0.6 : 1 
+                  }
+                ]}
+              >
+                <Ionicons name="play" size={20} color={colors.spectral} />
+                <ThemedText style={[styles.premiumButtonSecondaryText, { color: colors.spectral }]}>
+                  {isAdLoading ? 'Loading...' : 'Watch Ad to Unlock'}
+                </ThemedText>
+              </Pressable>
+            )}
           </View>
         ) : (
           <>

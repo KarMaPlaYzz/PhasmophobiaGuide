@@ -16,7 +16,6 @@ import { equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter }
 import { HistoryDetailSheet } from '@/components/history-detail-sheet';
 import { LibraryHeader } from '@/components/library-header';
 import { MapDetailSheet } from '@/components/map-detail-sheet';
-import { OnboardingScreen } from '@/components/onboarding-screen';
 import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { SettingsDetailSheet } from '@/components/settings-detail-sheet';
 import { WhatsNewDetailSheet } from '@/components/whats-new-detail-sheet';
@@ -231,11 +230,12 @@ export default function RootLayout() {
                 isVisible={selectedMap !== null}
                 onClose={() => setSelectedMap(null)}
               />
-              <OnboardingScreen
+              {/* OnboardingScreen temporarily disabled due to crashes */}
+              {/* <OnboardingScreen
                 isVisible={isOnboardingVisible}
                 onClose={handleOnboardingClose}
                 onShowPremium={() => setIsPremiumPaywallVisible(true)}
-              />
+              /> */}
               {isPremiumPaywallVisible && (
                 <PremiumPaywallSheet
                   isVisible={isPremiumPaywallVisible}

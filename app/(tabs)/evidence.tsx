@@ -1,8 +1,10 @@
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
+import { usePremium } from '@/hooks/use-premium';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { BlurView } from 'expo-blur';
-import React, { useMemo, useState } from 'react';
+import * as Haptics from 'expo-haptics';
+import React, { useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -10,6 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AdBanner } from '@/components/ad-banner';
 import { AnimatedScreen } from '@/components/animated-screen';
 import { EvidenceCollectionAnimation } from '@/components/evidence-collection-animation';
+import { EvidenceIdentifierSheet } from '@/components/evidence-identifier-sheet';
 import { ghostSelectionEmitter } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -23,7 +26,6 @@ import {
   filterGhostsByEvidence,
   generateSmartHints,
 } from '@/lib/utils/evidence-identifier';
-import * as Haptics from 'expo-haptics';
 
 const styles = StyleSheet.create({
   container: {
@@ -154,21 +156,25 @@ const styles = StyleSheet.create({
   },
   fab: {
     position: 'absolute',
-    bottom: 34,
     right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
+    shadowColor: '#00D9FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 5,
+    zIndex: 5,
   },
-  fabBlur: {
-    flex: 1,
+  fabContent: {
+    width: 64,
+    height: 64,
     justifyContent: 'center',
     alignItems: 'center',
-    width: 56,
-    height: 56,
   },
   adContainer: { marginVertical: 12, marginHorizontal: -16 },
 });
@@ -177,6 +183,9 @@ export default function EvidenceScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors['dark'];
   const insets = useSafeAreaInsets();
+  const { isPremium } = usePremium();
+  const calibrationSheetRef = useRef<any>(null);
+  const [isCalibrationSheetVisible, setIsCalibrationSheetVisible] = useState(false);
 
   // Evidence collection state
   const [evidenceState, setEvidenceState] = useState<EvidenceState>({
@@ -501,16 +510,58 @@ export default function EvidenceScreen() {
 
       {/* Reset FAB */}
       {confirmedCount > 0 && (
-        <TouchableOpacity
-          onPress={resetAll}
-          activeOpacity={0.7}
-          style={[styles.fab, { backgroundColor: colors.spectral + '30' }]}
+        <BlurView
+          intensity={15}
+          style={[
+            styles.fab,
+            {
+              bottom: insets.bottom + 20,
+              borderWidth: 1.5,
+              borderColor: colors.spectral + '50',
+            },
+          ]}
         >
-          <BlurView intensity={90} style={styles.fabBlur}>
-            <MaterialIcons name="refresh" size={24} color={colors.spectral} />
-          </BlurView>
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={resetAll}
+            activeOpacity={0.7}
+            style={styles.fabContent}
+          >
+            <MaterialIcons name="refresh" size={28} color={colors.spectral} />
+          </TouchableOpacity>
+        </BlurView>
       )}
+
+      {/* BPM Finder FAB - Hidden when sheet is open */}
+      {!isCalibrationSheetVisible && (
+        <BlurView
+          intensity={15}
+          style={[
+            styles.fab,
+            {
+              bottom: confirmedCount > 0 ? insets.bottom + 100 : insets.bottom + 20,
+              borderWidth: 1.5,
+              borderColor: colors.spectral + '50',
+            },
+          ]}
+        >
+          <TouchableOpacity
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              setIsCalibrationSheetVisible(true);
+            }}
+            activeOpacity={0.7}
+            style={styles.fabContent}
+          >
+            <MaterialIcons name="flash-on" size={28} color={colors.spectral} />
+          </TouchableOpacity>
+        </BlurView>
+      )}
+
+      {/* BPM Finder Calibration Sheet */}
+      <EvidenceIdentifierSheet
+        isVisible={isCalibrationSheetVisible}
+        onClose={() => setIsCalibrationSheetVisible(false)}
+      />
       </ThemedView>
     </AnimatedScreen>
   );

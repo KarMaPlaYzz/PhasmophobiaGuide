@@ -27,6 +27,7 @@ const PREMIUM_PRODUCT_ID = 'no_ad';
 const PREMIUM_STATUS_KEY = 'premium_status';
 const PURCHASE_DATE_KEY = 'premium_purchase_date';
 const MOCK_PREMIUM_KEY = 'mock_premium_enabled'; // For Expo Go testing
+const DISABLE_PREMIUM_TEST_KEY = 'disable_premium_for_testing'; // For testing ads even with premium
 
 // Enable mock premium in Expo Go for easier debugging
 const ENABLE_MOCK_PREMIUM = isExpoGo();
@@ -269,6 +270,13 @@ const checkExistingPurchases = async () => {
  */
 export const isPremiumUser = async (): Promise<boolean> => {
   try {
+    // Check if premium is disabled for testing
+    const disabledForTesting = await AsyncStorage.getItem(DISABLE_PREMIUM_TEST_KEY);
+    if (disabledForTesting === 'true') {
+      console.log('[Premium] Premium disabled for testing ads');
+      return false;
+    }
+
     // In Expo Go, check mock premium first
     if (ENABLE_MOCK_PREMIUM) {
       const mockEnabled = await isMockPremiumEnabled();
@@ -458,6 +466,47 @@ export const resetPremiumStatus = async () => {
   }
 };
 
+/**
+ * Disable premium for testing ads (persists across app restarts)
+ * This allows testing ads even if you have purchased premium
+ */
+export const disablePremiumForTesting = async () => {
+  try {
+    await AsyncStorage.setItem(DISABLE_PREMIUM_TEST_KEY, 'true');
+    console.log('[Premium] Premium disabled for testing');
+    premiumEmitter.emit('premium-status-changed', false);
+  } catch (error) {
+    console.error('[Premium] Error disabling premium for testing:', error);
+  }
+};
+
+/**
+ * Re-enable premium after testing
+ */
+export const enablePremiumAfterTesting = async () => {
+  try {
+    await AsyncStorage.removeItem(DISABLE_PREMIUM_TEST_KEY);
+    console.log('[Premium] Premium re-enabled after testing');
+    const isPremium = await isPremiumUser();
+    premiumEmitter.emit('premium-status-changed', isPremium);
+  } catch (error) {
+    console.error('[Premium] Error re-enabling premium:', error);
+  }
+};
+
+/**
+ * Check if premium is currently disabled for testing
+ */
+export const isPremiumDisabledForTesting = async (): Promise<boolean> => {
+  try {
+    const disabled = await AsyncStorage.getItem(DISABLE_PREMIUM_TEST_KEY);
+    return disabled === 'true';
+  } catch (error) {
+    console.error('[Premium] Error checking premium test status:', error);
+    return false;
+  }
+};
+
 export default {
   initializePremium,
   endPremiumConnection,
@@ -471,4 +520,7 @@ export default {
   enableMockPremium,
   disableMockPremium,
   isMockPremiumEnabled,
+  disablePremiumForTesting,
+  enablePremiumAfterTesting,
+  isPremiumDisabledForTesting,
 };

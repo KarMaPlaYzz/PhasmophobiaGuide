@@ -3,11 +3,10 @@ import * as Haptics from 'expo-haptics';
 import * as Notifications from 'expo-notifications';
 import React, { useRef, useState } from 'react';
 import {
-    Dimensions,
-    Modal,
-    Pressable,
-    StyleSheet,
-    View,
+  Dimensions,
+  Pressable,
+  StyleSheet,
+  View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -140,14 +139,20 @@ export const OnboardingScreen = ({
   };
 
   const handleRequestNotifications = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    
     try {
-      await Notifications.requestPermissionsAsync();
-      // Permission requested, move to next step
-      if (currentStep < onboardingSteps.length - 1) {
-        setCurrentStep(currentStep + 1);
-      }
+      // Request permissions and wait for response
+      const { status } = await Notifications.requestPermissionsAsync();
+      console.log('[Onboarding] Notification permission status:', status);
     } catch (error) {
-      console.error('Error requesting notification permissions:', error);
+      console.error('[Onboarding] Error requesting notification permissions:', error);
+    } finally {
+      // Always close onboarding after permission request completes (or fails)
+      // Use a small delay to ensure native module has finished
+      setTimeout(() => {
+        onClose();
+      }, 100);
     }
   };
 
@@ -178,8 +183,17 @@ export const OnboardingScreen = ({
     }
   };
 
+  if (!isVisible) {
+    return null;
+  }
+
   return (
-    <Modal visible={isVisible} animationType="slide" transparent={false}>
+    <View
+      style={[
+        styles.overlay,
+        { backgroundColor: colors.background }
+      ]}
+    >
       <View
         style={[styles.container, { backgroundColor: colors.background }]}
         onTouchStart={handleTouchStart}
@@ -430,11 +444,19 @@ export const OnboardingScreen = ({
           )}
         </View>
       </View>
-    </Modal>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  overlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+  },
   container: {
     flex: 1,
   },

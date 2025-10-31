@@ -12,7 +12,6 @@ import { AnimatedScreen } from '@/components/animated-screen';
 import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { EquipmentOptimizerSheet } from '@/components/equipment-optimizer-sheet';
-import { NativeAdCard } from '@/components/native-ad-card';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -280,16 +279,8 @@ export default function EquipmentScreen() {
         {filteredEquipment.length > 0 ? (
           filteredEquipment.map((item, index) => (
             <React.Fragment key={item.id}>
-              {/* Show native ad every 6th equipment */}
-              {index > 0 && index % 6 === 0 && (
-                <NativeAdCard
-                  title="Remove Ads"
-                  description="Experience a cleaner interface with Premium"
-                  buttonText="Upgrade"
-                />
-              )}
               {/* Show banner ad in the middle of the list */}
-              {index === Math.floor(filteredEquipment.length / 2) && (
+              {index > 0 && index % 8 === 0 && (
                 <View style={styles.adContainer}>
                   <AdBanner />
                 </View>

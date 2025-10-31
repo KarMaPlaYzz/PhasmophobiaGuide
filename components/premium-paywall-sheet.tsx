@@ -48,6 +48,11 @@ const PREMIUM_FEATURES = [
     description: 'Identify ghosts by evidence',
   },
   {
+    icon: 'pulse' as const,
+    title: 'BPM Finder',
+    description: 'Adjust offsets and convert BPM to timing',
+  },
+  {
     icon: 'bookmark' as const,
     title: 'Smart Bookmarks',
     description: 'Organize with notes, colors & collections',
@@ -68,7 +73,7 @@ export const PremiumPaywallSheet = ({
   const { t } = useLocalization();
   const { isPremium, isPurchasing, error, handlePurchase, handleRestore } = usePremium();
   const { isMockPremiumEnabled, toggleMockPremium, isAvailable: isMockAvailable } = useMockPremium();
-  const { showAd, isLoading: isAdLoading, error: adError, dismissError } = useRewardedAds();
+  const { showAd, isLoading: isAdLoading, error: adError, dismissError, isAdReady } = useRewardedAds();
   const [trialUsed, setTrialUsed] = useState(false);
   const bottomSheetRef = useRef<BottomSheet>(null);
   const animatedPosition = useSharedValue(0);
@@ -146,6 +151,8 @@ export const PremiumPaywallSheet = ({
           'You now have access to premium features for 15 minutes. Try them out and consider getting the full version!',
           [{ text: 'OK', onPress: onClose }]
         );
+      } else if (adError) {
+        Alert.alert('Ad Not Ready', adError);
       }
     } catch (err) {
       Alert.alert('Error', 'Failed to start trial. Please try again.');
@@ -253,7 +260,8 @@ export const PremiumPaywallSheet = ({
 
         {/* Action Buttons */}
         <View style={styles.buttonsContainer}>
-          {!trialUsed && (
+          {/* Only show trial button if trial not used AND ad is ready */}
+          {!trialUsed && isAdReady && (
             <Pressable
               onPress={handleWatchAdForTrial}
               disabled={isAdLoading || isPurchasing}

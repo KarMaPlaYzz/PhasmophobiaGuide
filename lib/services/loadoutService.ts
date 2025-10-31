@@ -286,6 +286,22 @@ export const loadoutService = {
       }
 
       // Create a basic loadout from decoded data
+      // Calculate totalCost from equipment
+      const allEquipment = [...equipment.slice(0, 4), ...equipment.slice(4, 8)];
+      const equipmentCosts: Record<string, number> = {
+        'emf-reader': 45, 'spirit-box': 50, 'ghost-writing-book': 40, 'uv-light': 35,
+        'video-camera': 50, 'dots-projector': 65, 'thermometer': 30, 'parabolic-microphone': 45,
+        'sound-recorder': 50, 'motion-sensor': 40, 'temperature-sensor': 35, 'head-mounted-camera': 60,
+        'crucifix': 30, 'sanity-medication': 20, 'smudge-sticks': 35, 'incense': 30,
+        'salt': 15, 'prayer-candle': 25, 'photo-camera': 40, 'tripod': 25,
+      };
+      const totalCost = allEquipment.reduce((sum, item) => sum + (equipmentCosts[item] || 0), 0);
+      
+      // Calculate basic efficiency (0-100)
+      let efficiency = 60; // Base score
+      efficiency += Math.min(20, allEquipment.length * 5); // Equipment count bonus
+      efficiency = Math.min(100, efficiency);
+
       const preset: Omit<LoadoutRecommendation, 'id' | 'savedAt'> = {
         name: `Imported ${playstyle.charAt(0).toUpperCase() + playstyle.slice(1)} Loadout`,
         description: 'Imported from shareable code',
@@ -295,9 +311,9 @@ export const loadoutService = {
         essential: equipment.slice(0, 4),
         recommended: equipment.slice(4, 8),
         optional: [],
-        totalCost: 0, // Will be recalculated
+        totalCost,
         maxBudget: 1000,
-        efficiency: 0,
+        efficiency,
         explanation: ['Imported from shared code'],
         gaps: [],
         ghostMatchup: [],
@@ -375,18 +391,46 @@ export const loadoutService = {
     try {
       console.log('[LoadoutService] Parsing JSON preset...');
       const data = JSON.parse(jsonString);
+      
+      // Equipment costs lookup
+      const equipmentCosts: Record<string, number> = {
+        'emf-reader': 45, 'spirit-box': 50, 'ghost-writing-book': 40, 'uv-light': 35,
+        'video-camera': 50, 'dots-projector': 65, 'thermometer': 30, 'parabolic-microphone': 45,
+        'sound-recorder': 50, 'motion-sensor': 40, 'temperature-sensor': 35, 'head-mounted-camera': 60,
+        'crucifix': 30, 'sanity-medication': 20, 'smudge-sticks': 35, 'incense': 30,
+        'salt': 15, 'prayer-candle': 25, 'photo-camera': 40, 'tripod': 25,
+      };
+      
+      // Get equipment arrays
+      const essential = data.essential || [];
+      const recommended = data.recommended || [];
+      const allEquipment = [...essential, ...recommended];
+      
+      // Calculate totalCost from equipment if not provided or is 0
+      let totalCost = data.totalCost || 0;
+      if (totalCost === 0 && allEquipment.length > 0) {
+        totalCost = allEquipment.reduce((sum: number, item: string) => sum + (equipmentCosts[item] || 0), 0);
+      }
+      
+      // Calculate efficiency if not provided or is 0
+      let efficiency = data.efficiency || 0;
+      if (efficiency === 0 && allEquipment.length > 0) {
+        efficiency = 60 + Math.min(20, allEquipment.length * 5);
+        efficiency = Math.min(100, efficiency);
+      }
+      
       const preset: Omit<LoadoutRecommendation, 'id' | 'savedAt'> = {
         name: data.name || 'Imported Preset',
         description: data.description || '',
         playstyle: data.playstyle || 'balanced',
         difficulty: data.difficulty || 'Intermediate',
         ghostType: data.ghostType || 'all',
-        essential: data.essential || [],
-        recommended: data.recommended || [],
+        essential,
+        recommended,
         optional: data.optional || [],
-        totalCost: data.totalCost || 0,
+        totalCost,
         maxBudget: data.maxBudget || 1000,
-        efficiency: data.efficiency || 0,
+        efficiency,
         explanation: data.explanation || [],
         gaps: data.gaps || [],
         ghostMatchup: data.ghostMatchup || [],

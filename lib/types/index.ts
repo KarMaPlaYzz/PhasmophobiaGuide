@@ -75,6 +75,9 @@ export interface Ghost {
   movementSpeed: 'Slow' | 'Normal' | 'Fast' | 'Variable';
   activityLevel: 'Low' | 'Medium' | 'High' | 'Very High' | 'Variable';
   difficulty: 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
+  // Hunting speeds in m/s (meters per second)
+  huntSpeed?: number; // Base hunting speed
+  huntSpeedLoS?: number; // Line of sight variant (some ghosts have +65%)
   imageUrl?: string;
 }
 

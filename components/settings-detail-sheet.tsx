@@ -11,6 +11,7 @@ import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
 import { useMockPremium } from '@/hooks/use-mock-premium';
 import { usePremium } from '@/hooks/use-premium';
+import { getAdSystemStatus } from '@/lib/services/admobService';
 import * as premiumService from '@/lib/services/premiumService';
 import { disableMockPremium } from '@/lib/services/premiumService';
 import { PreferencesService } from '@/lib/storage/preferencesService';
@@ -43,6 +44,7 @@ export const SettingsDetailSheet = ({
   const [showPurchaseSuccess, setShowPurchaseSuccess] = useState(false);
   const [showRestoreSuccess, setShowRestoreSuccess] = useState(false);
   const [premiumDetailSheetVisible, setPremiumDetailSheetVisible] = useState(false);
+  const [isPremiumDisabledForTest, setIsPremiumDisabledForTest] = useState(false);
 
   // Track premium status changes to show success alerts
   useEffect(() => {
@@ -106,6 +108,10 @@ export const SettingsDetailSheet = ({
         day: 'numeric',
       });
       setGameVersionDate(lastUpdated);
+
+      // Load premium testing state
+      const premiumTestDisabled = await premiumService.isPremiumDisabledForTesting();
+      setIsPremiumDisabledForTest(premiumTestDisabled);
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
@@ -146,6 +152,66 @@ export const SettingsDetailSheet = ({
       await PreferencesService.setDefaultTab(tab);
     } catch (error) {
       console.error('Error updating default tab:', error);
+    }
+  };
+
+  const handleTogglePremiumTest = async () => {
+    try {
+      if (hapticFeedbackEnabled) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+      
+      if (isPremiumDisabledForTest) {
+        await premiumService.enablePremiumAfterTesting();
+        Alert.alert('Premium Re-enabled', 'Premium features restored');
+      } else {
+        await premiumService.disablePremiumForTesting();
+        Alert.alert('Premium Disabled', 'You can now test ads. Toggle back to restore premium.');
+      }
+      setIsPremiumDisabledForTest(!isPremiumDisabledForTest);
+    } catch (error) {
+      console.error('Error toggling premium test mode:', error);
+    }
+  };
+
+  const handleCheckAdStatus = async () => {
+    try {
+      if (hapticFeedbackEnabled) {
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      }
+      
+      const status = getAdSystemStatus();
+      
+      // Create a readable summary
+      const summary = `
+📱 Ad System Status:
+
+Module Available: ${status.adsAvailable ? '✅' : '❌'}
+Test IDs: ${status.useTestIds ? '✅' : '❌ (Production)'}
+Init Error: ${status.initError || 'None'}
+
+🎬 Interstitial Ad:
+- Loaded: ${status.interstitial.loaded ? '✅' : '❌'}
+- Instance: ${status.interstitial.adInstanceExists ? '✅' : '❌'}
+- Retry Count: ${status.interstitial.retryCount}
+- ID: ${status.interstitial.adId}
+
+🎁 Rewarded Ad:
+- Loaded: ${status.rewarded.loaded ? '✅' : '❌'}
+- Instance: ${status.rewarded.adInstanceExists ? '✅' : '❌'}
+- Retry Count: ${status.rewarded.retryCount}
+- ID: ${status.rewarded.adId}
+
+📊 Frequency Caps:
+- Session: ${status.frequencyCaps.sessionCount}/${status.frequencyCaps.sessionMax}
+- Daily: ${status.frequencyCaps.dailyCount}/${status.frequencyCaps.dailyMax}
+- Time Since Last: ${status.frequencyCaps.timeSinceLastAd >= 0 ? Math.round(status.frequencyCaps.timeSinceLastAd / 1000) + 's' : 'Never'}
+      `.trim();
+      
+      Alert.alert('Ad System Status', summary, [{ text: 'OK' }]);
+    } catch (error) {
+      console.error('Error checking ad status:', error);
+      Alert.alert('Error', 'Failed to get ad status');
     }
   };
 
@@ -449,6 +515,29 @@ export const SettingsDetailSheet = ({
             />
           </View>
         )} */}
+
+        {/* Premium Testing Toggle - For testing ads with real premium purchase */}
+        {/* <View style={styles.section}>
+          <ThemedText style={styles.sectionTitle}>🧪 Developer Testing</ThemedText>
+          <SettingItem
+            icon="flask-outline"
+            label={isPremiumDisabledForTest ? 'Premium Disabled' : 'Disable Premium for Testing'}
+            description={isPremiumDisabledForTest 
+              ? 'Premium is disabled - you can test ads now' 
+              : 'Temporarily disable premium to test ad functionality'}
+            toggle={true}
+            value={isPremiumDisabledForTest}
+            onToggle={handleTogglePremiumTest}
+            colors={colors}
+          />
+          <SettingItem
+            icon="bar-chart-outline"
+            label="Check Ad Status"
+            description="View detailed ad system status and troubleshoot loading issues"
+            onPress={handleCheckAdStatus}
+            colors={colors}
+          />
+        </View> */}
 
         {/* Restore Purchases Button - Always show */}
         <View style={styles.section}>

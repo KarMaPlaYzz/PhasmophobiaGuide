@@ -13,7 +13,6 @@ import { AnimatedScreen } from '@/components/animated-screen';
 import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { GhostComparisonSheet } from '@/components/ghost-comparison-sheet';
 import { GhostDetailSheet } from '@/components/ghost-detail-sheet';
-import { NativeAdCard } from '@/components/native-ad-card';
 import { scrollRefRegistry } from '@/components/haptic-tab';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -22,9 +21,9 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useLocalization } from '@/hooks/use-localization';
 import { usePremium } from '@/hooks/use-premium';
 import { GHOST_LIST } from '@/lib/data/ghosts';
-import { getActivityLabel, getDifficultyLabel, getGhostDescription, getGhostName, getSpeedLabel } from '@/lib/localization';
+import { getActivityLabel, getDifficultyLabel, getGhostDescription, getGhostName } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
-import { getActivityIndicator, getMovementIndicator } from '@/lib/utils/colors';
+import { getActivityIndicator } from '@/lib/utils/colors';
 
 export default function GhostsScreen() {
   const colorScheme = useColorScheme();
@@ -390,16 +389,8 @@ export default function GhostsScreen() {
           {filteredGhosts.length > 0 ? (
             filteredGhosts.map((ghost, index) => (
               <React.Fragment key={ghost.id}>
-                {/* Show native ad every 5th ghost */}
-                {index > 0 && index % 5 === 0 && (
-                  <NativeAdCard
-                    title="Unlock Premium"
-                    description="Remove all ads and get exclusive features"
-                    buttonText="Upgrade"
-                  />
-                )}
                 {/* Show banner ad in the middle of the list */}
-                {index === Math.floor(filteredGhosts.length / 2) && (
+                {index > 0 && index % 8 === 0 && (
                   <View style={styles.adContainer}>
                     <AdBanner />
                   </View>
@@ -463,12 +454,12 @@ export default function GhostsScreen() {
                         <ThemedText style={styles.statLabel}>{t('tabs.ghosts_speed')}</ThemedText>
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
                           <Ionicons 
-                            name={getMovementIndicator(ghost.movementSpeed).icon as any} 
+                            name="flash" 
                             size={14} 
-                            color={getMovementIndicator(ghost.movementSpeed).color} 
+                            color={colors.paranormal} 
                           />
-                          <ThemedText style={[styles.statValue, { color: getMovementIndicator(ghost.movementSpeed).color }]}>
-                            {getSpeedLabel(ghost.movementSpeed, language)}
+                          <ThemedText style={[styles.statValue, { color: colors.paranormal }]}>
+                            {ghost.huntSpeed ? `${ghost.huntSpeed} m/s` : 'N/A'}
                           </ThemedText>
                         </View>
                       </View>

@@ -59,6 +59,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
     difficulty: 'Beginner',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/c1/Spirit_Discovered.jpg/revision/latest?cb=20231115114542',
   },
 
@@ -124,6 +125,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Fast',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/c/c1/Wraith_Discovered.jpg/revision/latest?cb=20231115114549',
   },
 
@@ -191,6 +193,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/27/Phantom_Discovered.jpg/revision/latest?cb=20231115114535',
   },
 
@@ -257,6 +260,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
     difficulty: 'Beginner',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/10/Poltergeist_Discovered.jpg/revision/latest?cb=20231115114536',
   },
 
@@ -324,6 +328,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/26/Banshee_Discovered.jpg/revision/latest?cb=20231115114509',
   },
 
@@ -392,6 +397,8 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
+    huntSpeedLoS: 2.78,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/5/56/Jinn_Discovered.jpg/revision/latest?cb=20231115114529',
   },
 
@@ -458,6 +465,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'High',
     difficulty: 'Beginner',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/3/32/Mare_Discovered.jpg/revision/latest?cb=20231115114529',
   },
 
@@ -516,6 +524,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'Medium',
     difficulty: 'Advanced',
+    huntSpeed: 1.4,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/1/16/Revenant_Discovered.jpg/revision/latest?cb=20231115114538',
   },
 
@@ -577,6 +586,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Low',
     difficulty: 'Beginner',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/f/ff/Shade_Discovered.jpg/revision/latest?cb=20231115114541',
   },
 
@@ -638,6 +648,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
     difficulty: 'Expert',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/f/f5/Demon_Discovered.jpg/revision/latest?cb=20231115114516',
   },
 
@@ -705,6 +716,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/3/31/Yurei_Discovered.jpg/revision/latest?cb=20231115114551',
   },
 
@@ -772,6 +784,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/8/86/Oni_Discovered.jpg/revision/latest?cb=20231115114533',
   },
 
@@ -834,6 +847,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/2/27/Yokai_Discovered.jpg/revision/latest?cb=20231115114550',
   },
 
@@ -910,6 +924,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.4,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/e/e0/Hantu_Discovered.jpg/revision/latest?cb=20231115114526',
   },
 
@@ -980,6 +995,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
     difficulty: 'Advanced',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/6/6b/Goryo_Discovered.jpg/revision/latest?cb=20231115114525',
   },
 
@@ -1043,6 +1059,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Very High',
     difficulty: 'Beginner',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/e/e0/Myling_Discovered.jpg/revision/latest?cb=20231115114531',
   },
 
@@ -1104,6 +1121,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/f/f3/Onryo_Discovered.jpg/revision/latest?cb=20231115114534',
   },
 
@@ -1173,6 +1191,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'Very High',
     difficulty: 'Advanced',
+    huntSpeed: 1.4,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/f/f8/The_Twins_Discovered.jpg/revision/latest?cb=20231115114546',
   },
 
@@ -1240,6 +1259,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Intermediate',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/a/aa/Raiju_Discovered.jpg/revision/latest?cb=20231115114537',
   },
 
@@ -1317,6 +1337,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Normal',
     activityLevel: 'Medium',
     difficulty: 'Advanced',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/7/7e/Obake_Discovered.jpg/revision/latest?cb=20231115114533',
   },
 
@@ -1386,6 +1407,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Expert',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/e/e0/The_Mimic_Discovered.jpg/revision/latest?cb=20231115114545',
   },
 
@@ -1456,6 +1478,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Advanced',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/9/95/Moroi_Discovered.jpg/revision/latest?cb=20231115114530',
   },
 
@@ -1525,6 +1548,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'High',
     difficulty: 'Expert',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/d/dd/Deogen_Discovered.jpg/revision/latest?cb=20231115114517',
   },
 
@@ -1591,6 +1615,7 @@ export const GHOSTS: Record<string, Ghost> = {
     movementSpeed: 'Variable',
     activityLevel: 'Variable',
     difficulty: 'Beginner',
+    huntSpeed: 1.69,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/6/6a/Thaye_Discovered.jpg/revision/latest?cb=20231115114544',
   },
 };

@@ -67,6 +67,16 @@ export const equipmentDescriptions: Record<string, Record<SupportedLanguage, str
     pt: 'Evita que os fantasmas cacem dentro de um certo raio',
     sv: 'Förhindrar spökjakt inom en viss radie',
   },
+  'salt': {
+    en: 'Salt piles that ghosts interact with to leave footprints. Used to track ghost movement patterns',
+    de: 'Salzhaufen mit denen Geister interagieren und Fußabdrücke hinterlassen',
+    nl: 'Zouthopen waarmee geesten interacteren om voetstappen achter te laten',
+    fr: 'Des tas de sel avec lesquels les fantômes interagissent pour laisser des empreintes',
+    es: 'Montones de sal con los que los fantasmas interactúan para dejar huellas',
+    it: 'Mucchi di sale con cui i fantasmi interagiscono per lasciare impronte',
+    pt: 'Pilhas de sal com as quais os fantasmas interagem para deixar pegadas',
+    sv: 'Salthögar som spöken interagerar med för att lämna fotspår',
+  },
   'dots-projector': {
     en: 'Projects laser dots that reveal ghost silhouettes when the ghost passes through',
     de: 'Projiziert Laserpunkte die Geistsilhouetten offenbaren',
@@ -450,6 +460,16 @@ export const equipmentUsage: Record<string, Record<SupportedLanguage, string>> =
     it: 'Posiziona sul terreno vicino all\'apparizione del fantasma.',
     pt: 'Coloque no chão perto do aparecimento do fantasma.',
     sv: 'Placera på marken nära spökapparitionen.',
+  },
+  'salt': {
+    en: 'Place salt piles in high-traffic areas. Ghost will walk through and leave footprints visible with UV light.',
+    de: 'Platzieren Sie Salzhaufen in stark frequentierten Bereichen. Geister hinterlassen Fußabdrücke.',
+    nl: 'Plaats zouthopen in drukke gebieden. Geesten laten voetstappen achter zichtbaar met UV-licht.',
+    fr: 'Placez des tas de sel dans les zones à fort trafic. Les fantômes laissent des empreintes visibles avec UV.',
+    es: 'Coloca montones de sal en áreas de alto tráfico. Los fantasmas dejan huellas visibles con luz UV.',
+    it: 'Posiziona mucchi di sale nelle aree ad alto traffico. I fantasmi lasciano impronte visibili con UV.',
+    pt: 'Coloque pilhas de sal em áreas de alto tráfego. Fantasmas deixam pegadas visíveis com UV.',
+    sv: 'Placera salthögar i högtrafik områden. Spöken lämnar fotspår synliga med UV-ljus.',
   },
   'incense': {
     en: 'Light with igniter. Prevents hunts for 60-120 seconds depending on difficulty.',
