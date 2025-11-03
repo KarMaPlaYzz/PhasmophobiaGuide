@@ -1,7 +1,8 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
+
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Switch, View } from 'react-native';
 
@@ -405,7 +406,7 @@ Init Error: ${status.initError || 'None'}
         }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
-          <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+          <PlatformBlurView intensity={94} style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.spectral }}
       >
@@ -434,7 +435,7 @@ Init Error: ${status.initError || 'None'}
         }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
-          <BlurView intensity={94} style={StyleSheet.absoluteFillObject} />
+          <PlatformBlurView intensity={94} style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.spectral }}
       >

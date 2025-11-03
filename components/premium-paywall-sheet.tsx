@@ -1,10 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Pressable, StyleSheet, View } from 'react-native';
+
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import {
   useSharedValue
 } from 'react-native-reanimated';
@@ -177,7 +178,7 @@ export const PremiumPaywallSheet = ({
         </View>
       )}
       backgroundComponent={() => (
-        <BlurView intensity={90} tint="dark" style={styles.blurContainer} />
+        <PlatformBlurView intensity={90} tint="dark" style={styles.blurContainer} />
       )}
     >
       <BottomSheetScrollView

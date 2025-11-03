@@ -2,7 +2,6 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -17,6 +16,7 @@ import {
 import { AnimatedPressable } from '@/components/animated-pressable';
 import { EmptyStateAnimation } from '@/components/empty-state-animation';
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { PremiumBookmarksFeaturesSheet } from '@/components/premium-bookmarks-features';
 import { PremiumPaywallSheet } from '@/components/premium-paywall-sheet';
 import { StaggeredListAnimation } from '@/components/staggered-list-animation';
@@ -607,7 +607,7 @@ export const BookmarksDetailSheet = ({ isVisible, onClose }: BookmarksDetailShee
         }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
-          <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <PlatformBlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.spectral }}
       >

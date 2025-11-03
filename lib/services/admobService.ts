@@ -58,7 +58,9 @@ const PRODUCTION_BANNER_IDS = {
     // Add more banner units here for rotation, e.g.:
   ],
   android: [
-    'ca-app-pub-3940256099942544/6300978111', // Replace with your Android banner ID
+    'ca-app-pub-1542092338741994/4213338090', // Primary banner unit
+    'ca-app-pub-1542092338741994/2900256420', // Secondary banner unit (replace with your own)
+    'ca-app-pub-1542092338741994/8559777211', // Tertiary banner unit (replace with your own)
     // Add more banner units here for rotation
   ],
 };

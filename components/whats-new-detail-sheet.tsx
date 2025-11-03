@@ -1,11 +1,11 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Linking, Pressable, StyleSheet, View } from 'react-native';
 
 import { ImageCarouselModal } from '@/components/image-carousel-modal';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { BlogPost, clearBlogCache, getRecentBlogPosts } from '@/lib/data/blog-fetcher';
@@ -352,7 +352,7 @@ export const WhatsNewDetailSheet = ({
       }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
+        <PlatformBlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

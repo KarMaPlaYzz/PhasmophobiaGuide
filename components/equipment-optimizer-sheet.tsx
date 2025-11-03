@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import React, { useMemo, useState } from 'react';
@@ -10,6 +9,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { LoadoutPresetSheet } from '@/components/loadout-preset-sheet';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
@@ -82,7 +82,7 @@ export const EquipmentOptimizerSheet = ({
       }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+        <PlatformBlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

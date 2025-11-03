@@ -2,7 +2,7 @@
   "expo": {
     "name": "PhasmophobiaGuide",
     "slug": "phasmophobiaguide",
-    "version": "234",
+    "version": "235",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "phasmophobiaguide",
@@ -11,13 +11,13 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.Playzzon.PhasmophobiaGuide",
-      "buildNumber": "234",
+      "buildNumber": "235",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.Playzzon.PhasmophobiaGuide",
+      "package": "com.Playzzon.PhasmoCompanion",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
@@ -26,7 +26,7 @@
         "react-native-google-mobile-ads",
         {
           "iosAppId": "ca-app-pub-1542092338741994~7842939410",
-          "androidAppId": "ca-app-pub-3940256099942544~3347511713"
+          "androidAppId": "ca-app-pub-1542092338741994~8306117037"
         }
       ],
       "expo-font"

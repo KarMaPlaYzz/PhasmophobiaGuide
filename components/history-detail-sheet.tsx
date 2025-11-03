@@ -1,7 +1,6 @@
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import {
@@ -15,6 +14,7 @@ import {
 import { AnimatedPressable } from '@/components/animated-pressable';
 import { EmptyStateAnimation } from '@/components/empty-state-animation';
 import { detailSheetEmitter, equipmentSelectionEmitter, ghostSelectionEmitter, mapSelectionEmitter } from '@/components/haptic-tab';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { StaggeredListAnimation } from '@/components/staggered-list-animation';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
@@ -257,7 +257,7 @@ export const HistoryDetailSheet = ({
         }}
         style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
         backgroundComponent={() => (
-          <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <PlatformBlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.info }}
       >

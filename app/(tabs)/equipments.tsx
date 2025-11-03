@@ -1,7 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
@@ -13,6 +12,7 @@ import { AnimatedSearchBar } from '@/components/animated-search-bar';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
 import { EquipmentOptimizerSheet } from '@/components/equipment-optimizer-sheet';
 import { scrollRefRegistry } from '@/components/haptic-tab';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Colors } from '@/constants/theme';
@@ -364,7 +364,7 @@ export default function EquipmentScreen() {
 
       {/* Floating Action Button - Glassmorphism Design with BlurView */}
       {selectedEquipment === null && !optimizerVisible && (
-        <BlurView intensity={15} style={[
+        <PlatformBlurView intensity={15} style={[
           styles.fab,
           { 
             bottom: insets.bottom + 20,
@@ -384,7 +384,7 @@ export default function EquipmentScreen() {
           >
             <MaterialIcons name="construction" size={28} color={colors.spectral} />
           </TouchableOpacity>
-        </BlurView>
+        </PlatformBlurView>
       )}
 
       <EquipmentDetailSheet

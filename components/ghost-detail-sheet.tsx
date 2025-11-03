@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
 import { useNavigation } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, Pressable, StyleSheet, View } from 'react-native';
@@ -10,6 +9,7 @@ import { Image, Pressable, StyleSheet, View } from 'react-native';
 import { BookmarkButton } from '@/components/bookmark-button';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { detailSheetEmitter } from '@/components/haptic-tab';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -185,8 +185,8 @@ export const GhostDetailSheet = ({ ghost, isVisible, onClose }: GhostDetailSheet
         overshootClamping: true,
       }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
-      backgroundComponent={() => (
-        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
+        backgroundComponent={() => (
+        <PlatformBlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

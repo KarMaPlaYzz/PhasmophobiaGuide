@@ -6,7 +6,6 @@
 
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
 import * as Clipboard from 'expo-clipboard';
 import * as Haptics from 'expo-haptics';
 import * as Sharing from 'expo-sharing';
@@ -23,6 +22,7 @@ import Animated, { FadeInDown, FadeOutUp } from 'react-native-reanimated';
 
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { EquipmentDetailSheet } from '@/components/equipment-detail-sheet';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors } from '@/constants/theme';
 import { useLocalization } from '@/hooks/use-localization';
@@ -346,7 +346,7 @@ export const LoadoutPresetSheet = ({
         index={isVisible ? 0 : -1}
         animateOnMount={true}
         backgroundComponent={() => (
-          <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+          <PlatformBlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
         handleIndicatorStyle={{ backgroundColor: colors.spectral }}
       >
@@ -375,7 +375,7 @@ export const LoadoutPresetSheet = ({
           animateOnMount={true}
           style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
           backgroundComponent={() => (
-            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <PlatformBlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
           )}
           handleIndicatorStyle={{ backgroundColor: colors.spectral }}
         >
@@ -609,7 +609,7 @@ export const LoadoutPresetSheet = ({
           index={isVisible ? 0 : -1}
           animateOnMount={true}
           backgroundComponent={() => (
-            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <PlatformBlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
           )}
           handleIndicatorStyle={{ backgroundColor: colors.spectral }}
         >
@@ -788,7 +788,7 @@ export const LoadoutPresetSheet = ({
           index={isVisible ? 0 : -1}
           animateOnMount={true}
           backgroundComponent={() => (
-            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <PlatformBlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
           )}
           handleIndicatorStyle={{ backgroundColor: colors.spectral }}
         >
@@ -928,7 +928,7 @@ export const LoadoutPresetSheet = ({
           animateOnMount={true}
           style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
           backgroundComponent={() => (
-            <BlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
+            <PlatformBlurView intensity={90} tint="dark" style={StyleSheet.absoluteFillObject} />
           )}
           handleIndicatorStyle={{ backgroundColor: colors.spectral }}
         >

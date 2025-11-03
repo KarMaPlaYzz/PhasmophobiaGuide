@@ -6,6 +6,7 @@ import { useMemo, useState } from 'react';
 import { Alert, Dimensions, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import { GhostComparisonAnimation } from '@/components/ghost-comparison-animation';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, DifficultyColors } from '@/constants/theme';
 import { useInterstitialAds } from '@/hooks/use-interstitial-ads';
@@ -15,7 +16,6 @@ import { useRewardedAds } from '@/hooks/use-rewarded-ads';
 import { GHOST_LIST } from '@/lib/data/ghosts';
 import { getGhostName } from '@/lib/localization';
 import { Ghost } from '@/lib/types';
-import BlurView from 'expo-blur/build/BlurView';
 
 interface GhostComparisonSheetProps {
   isVisible: boolean;
@@ -370,7 +370,7 @@ export const GhostComparisonSheet = ({
       }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-              <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
+              <PlatformBlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
         )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >

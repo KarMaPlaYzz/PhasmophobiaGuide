@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
 import BottomSheet, { BottomSheetScrollView } from '@gorhom/bottom-sheet';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
 import React, { useEffect, useMemo, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
@@ -8,6 +7,7 @@ import { Image, StyleSheet, View } from 'react-native';
 import { BookmarkButton } from '@/components/bookmark-button';
 import { CollapsibleSection } from '@/components/collapsible-section';
 import { detailSheetEmitter } from '@/components/haptic-tab';
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { ThemedText } from '@/components/themed-text';
 import { Colors, EquipmentCategoryColors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -173,7 +173,7 @@ export const EquipmentDetailSheet = ({ equipment, isVisible, onClose }: Equipmen
       }}
       style={{ borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: 'hidden' }}
       backgroundComponent={() => (
-        <BlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
+        <PlatformBlurView intensity={94} tint="dark" style={StyleSheet.absoluteFillObject} />
       )}
       handleIndicatorStyle={{ backgroundColor: colors.spectral }}
     >
