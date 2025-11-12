@@ -1,13 +1,13 @@
 /**
  * Maps Database
- * All 13 playable maps with details, unlock levels, and difficulty
+ * All 14 playable maps with details, unlock levels, and difficulty
  * Includes map characteristics, room counts, and strategy tips
  */
 
 import { Map } from '@/lib/types';
 
 // ============================================================================
-// SMALL MAPS (6 locations, ~45-60 minutes)
+// SMALL MAPS (7 locations, ~45-60 minutes)
 // ============================================================================
 
 export const SMALL_MAPS: Record<string, Map> = {
@@ -292,6 +292,87 @@ export const SMALL_MAPS: Record<string, Map> = {
       'Atmosphere appreciation',
       'Dark location practice',
     ],
+  },
+
+  'nells-diner': {
+    id: 'nells-diner',
+    name: "Nell's Diner",
+    type: 'commercial',
+    size: 'small',
+    unlocksAtLevel: 18,
+    difficulty: 'Intermediate',
+    maxRooms: 13,
+    maxPlayers: 4,
+    imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/b/bc/Nell%27s_Diner.png/revision/latest/scale-to-width-down/1000?cb=20251111161803',
+    floorPlanUrl: '',
+    characteristics: {
+      lighting: 'Moderate',
+      ghostSpawns: 'Various dining areas, kitchen, storage',
+      hazards: ['Walk-in freezer', 'Multiple interconnected rooms'],
+      specialFeatures: ['Walk-in freezer', 'Commercial kitchen', 'Dining area', 'Storage areas'],
+      fuse: true,
+      breaker: true,
+    },
+    description:
+      'A retro-themed diner with a commercial kitchen and multiple dining areas. Dense layout with many interactable objects. Similar in size to 6 Tanglewood but much denser.',
+    strategies: [
+      'Dense layout with many rooms - thorough searching needed',
+      'Multiple dining areas provide various ghost spawns',
+      'Walk-in freezer is unique low-temperature area',
+      'Kitchen equipment can be interactable',
+      'Good for practicing in confined spaces',
+    ],
+    tips: [
+      'Check dining areas and booths for ghost activity',
+      'Walk-in freezer is guaranteed cold area - good for freezing evidence',
+      'Kitchen has many objects - can create noise during hunts',
+      'Multiple rooms mean more evidence gathering opportunities',
+      'Dense layout good for practicing with limited space',
+      'Commercial setting provides unique atmosphere',
+      'Good transitional map between beginner and advanced',
+    ],
+    zones: [
+      {
+        name: 'Dining Area',
+        description: 'Main customer seating area with booths and tables',
+        huntTactics: [
+          'Tables and booths provide hiding spots during hunts',
+          'Multiple exits to kitchen and storage areas',
+          'Ghost often lingers here during events',
+          'Open layout allows ghost to see far',
+          'Use booths for cover but be ready to move',
+        ],
+        equipment: ['Video Camera', 'Motion Sensor', 'Spirit Box'],
+        difficulty: 'Easy',
+      },
+      {
+        name: 'Kitchen',
+        description: 'Commercial kitchen with stoves, counters, and cooking equipment',
+        huntTactics: [
+          'Many interactable objects - noisy during hunts',
+          'Narrow walkways between equipment',
+          'Multiple exits to dining area and storage',
+          'Ghost interactions with equipment possible',
+          'Good for evidence gathering but risky during hunts',
+        ],
+        equipment: ['Thermometer', 'EMF Reader', 'Ghost Writing Book'],
+        difficulty: 'Medium',
+      },
+      {
+        name: 'Walk-in Freezer',
+        description: 'Large cold storage area with guaranteed freezing temperatures',
+        huntTactics: [
+          'Freezing temperatures always present - good for evidence',
+          'Single exit makes it risky during hunts',
+          'Hide inside only if absolutely necessary',
+          'Thermometer useful here for confirmation',
+          'Good place to gather freezing evidence safely pre-hunt',
+        ],
+        equipment: ['Thermometer', 'UV Light', 'Crucifix'],
+        difficulty: 'Hard',
+      },
+    ],
+    bestFor: ['Intermediate players', 'Commercial setting experience', 'Transitional challenge'],
   },
 };
 

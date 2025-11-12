@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { memo, useEffect, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,6 +23,104 @@ import { ALL_EQUIPMENT, EQUIPMENT_LIST } from '@/lib/data/equipment';
 import { getEquipmentDescription, getEquipmentName } from '@/lib/localization';
 import { Equipment } from '@/lib/types';
 import { getCategoryColor } from '@/lib/utils/colors';
+
+// ============================================================================
+// MEMOIZED EQUIPMENT CARD COMPONENT
+// ============================================================================
+interface EquipmentCardProps {
+  item: Equipment;
+  colors: typeof Colors['dark'];
+  language: string;
+  onPress: (equipment: Equipment) => void;
+  getCategoryColor: (category: string) => string;
+  getCategoryIcon: (category: string) => string;
+  t: (key: string) => string;
+  styles: any;
+}
+
+const EquipmentCard = memo(({
+  item,
+  colors,
+  language,
+  onPress,
+  getCategoryColor: getCategoryColorProp,
+  getCategoryIcon,
+  t,
+  styles,
+}: EquipmentCardProps) => (
+  <TouchableOpacity
+    onPress={() => {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+      onPress(item);
+    }}
+    style={[
+      styles.equipmentCard,
+      {
+        borderLeftWidth: 4,
+        borderLeftColor: getCategoryColorProp(item.category),
+        backgroundColor: getCategoryColorProp(item.category) + '10',
+        borderColor: getCategoryColorProp(item.category) + '30',
+      },
+    ]}>
+    <View style={styles.equipmentHeader}>
+      <View style={{ flex: 1 }}>
+        <ThemedText type="defaultSemiBold" style={styles.equipmentName}>
+          {getEquipmentName(item.id, language as any)}
+        </ThemedText>
+      </View>
+      <View
+        style={[
+          styles.categoryBadge,
+          {
+            backgroundColor: getCategoryColorProp(item.category) + '20',
+            borderColor: getCategoryColorProp(item.category),
+            borderWidth: 1,
+          },
+        ]}>
+        <Ionicons
+          size={12}
+          name={getCategoryIcon(item.category) as any}
+          color={getCategoryColorProp(item.category)}
+        />
+        <ThemedText style={[styles.categoryText, { color: getCategoryColorProp(item.category) }]}>
+          {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
+        </ThemedText>
+      </View>
+    </View>
+
+    {item.description ? (
+      <ThemedText style={styles.equipmentDescription}>{getEquipmentDescription(item.id, language as any)}</ThemedText>
+    ) : null}
+
+    <View style={styles.equipmentStats}>
+      {item.cost && item.cost > 0 ? (
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statLabel}>{t('tabs.equipment_costLabel')}</ThemedText>
+          <ThemedText style={styles.statValue}>${item.cost}</ThemedText>
+        </View>
+      ) : null}
+      {item.capacity ? (
+        <View style={styles.statItem}>
+          <ThemedText style={styles.statLabel}>{t('tabs.equipment_capacityLabel')}</ThemedText>
+          <ThemedText style={styles.statValue}>{item.capacity}</ThemedText>
+        </View>
+      ) : null}
+      <View style={[styles.tapIndicator, { opacity: 0.5, marginLeft: 'auto' }]}>
+        <Ionicons size={16} name="information-circle-outline" color={colors.tabIconDefault} />
+        <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
+      </View>
+    </View>
+  </TouchableOpacity>
+), (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render), false otherwise
+  return (
+    prevProps.item.id === nextProps.item.id &&
+    prevProps.language === nextProps.language &&
+    prevProps.colors === nextProps.colors
+  );
+});
+
+EquipmentCard.displayName = 'EquipmentCard';
 
 export default function EquipmentScreen() {
   const colorScheme = useColorScheme();
@@ -285,69 +383,16 @@ export default function EquipmentScreen() {
                   <AdBanner />
                 </View>
               )}
-              <TouchableOpacity
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  handleEquipmentPress(item);
-                }}
-                style={[
-                  styles.equipmentCard,
-                  {
-                    borderLeftWidth: 4,
-                    borderLeftColor: getCategoryColor(item.category),
-                    backgroundColor: getCategoryColor(item.category) + '10',
-                    borderColor: getCategoryColor(item.category) + '30',
-                  },
-                ]}>
-                <View style={styles.equipmentHeader}>
-                  <View style={{ flex: 1 }}>
-                    <ThemedText type="defaultSemiBold" style={styles.equipmentName}>
-                      {getEquipmentName(item.id, language)}
-                    </ThemedText>
-                  </View>
-                  <View
-                    style={[
-                      styles.categoryBadge,
-                      {
-                        backgroundColor: getCategoryColor(item.category) + '20',
-                        borderColor: getCategoryColor(item.category),
-                        borderWidth: 1,
-                      },
-                    ]}>
-                    <Ionicons
-                      size={12}
-                      name={getCategoryIcon(item.category) as any}
-                      color={getCategoryColor(item.category)}
-                    />
-                    <ThemedText style={[styles.categoryText, { color: getCategoryColor(item.category) }]}>
-                      {item.category.charAt(0).toUpperCase() + item.category.slice(1)}
-                    </ThemedText>
-                  </View>
-                </View>
-
-                {item.description ? (
-                  <ThemedText style={styles.equipmentDescription}>{getEquipmentDescription(item.id, language)}</ThemedText>
-                ) : null}
-
-                <View style={styles.equipmentStats}>
-                  {item.cost && item.cost > 0 ? (
-                    <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>{t('tabs.equipment_costLabel')}</ThemedText>
-                      <ThemedText style={styles.statValue}>${item.cost}</ThemedText>
-                    </View>
-                  ) : null}
-                  {item.capacity ? (
-                    <View style={styles.statItem}>
-                      <ThemedText style={styles.statLabel}>{t('tabs.equipment_capacityLabel')}</ThemedText>
-                      <ThemedText style={styles.statValue}>{item.capacity}</ThemedText>
-                    </View>
-                  ) : null}
-                  <View style={[styles.tapIndicator, { opacity: 0.5, marginLeft: 'auto' }]}>
-                    <Ionicons size={16} name="information-circle-outline" color={colors.tabIconDefault} />
-                    <Ionicons size={14} name="chevron-forward" color={colors.tabIconDefault} />
-                  </View>
-                </View>
-              </TouchableOpacity>
+              <EquipmentCard
+                item={item}
+                colors={colors}
+                language={language}
+                onPress={handleEquipmentPress}
+                getCategoryColor={getCategoryColor}
+                getCategoryIcon={getCategoryIcon}
+                t={t}
+                styles={styles}
+              />
             </React.Fragment>
           ))
         ) : (
@@ -364,27 +409,38 @@ export default function EquipmentScreen() {
 
       {/* Floating Action Button - Glassmorphism Design with BlurView */}
       {selectedEquipment === null && !optimizerVisible && (
-        <PlatformBlurView intensity={15} style={[
-          styles.fab,
-          { 
+        <View
+          style={{
+            position: 'absolute',
             bottom: insets.bottom + 20,
             right: 20,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            overflow: 'hidden',
+            zIndex: 5,
             borderWidth: 1.5,
             borderColor: colors.spectral + '50',
-            overflow: 'hidden',
-          },
-        ]}>
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              setOptimizerVisible(true);
-            }}
-            activeOpacity={0.7}
-            style={styles.fabContent}
-          >
-            <MaterialIcons name="construction" size={28} color={colors.spectral} />
-          </TouchableOpacity>
-        </PlatformBlurView>
+          }}
+        >
+          <PlatformBlurView intensity={15} style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            height: '100%',
+          }}>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setOptimizerVisible(true);
+              }}
+              activeOpacity={0.7}
+              style={styles.fabContent}
+            >
+              <MaterialIcons name="construction" size={28} color={colors.spectral} />
+            </TouchableOpacity>
+          </PlatformBlurView>
+        </View>
       )}
 
       <EquipmentDetailSheet

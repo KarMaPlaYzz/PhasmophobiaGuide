@@ -173,6 +173,18 @@ export const PHASMOPHOBIA_UPDATES: Feature[] = [
     ],
   },
   {
+    id: 'moneybags-cosmetic',
+    title: 'Moneybags ID Card & Badge',
+    description: 'New cosmetic cosmetics unlock tied to the "Break the Bank" achievement',
+    releaseDate: new Date('2025-11-11').getTime(),
+    icon: 'wallet',
+    category: 'content',
+    status: 'released',
+    details: 'Exclusive Moneybags ID Card and Badge cosmetics reward for players who earn the "Break the Bank" achievement. Players who previously earned the achievement will receive the cosmetic upon spending $1 in the in-game shop after updating to v0.15.0.0.',
+    tags: ['Cosmetic', 'Achievement', 'Reward', 'Moneybags'],
+    source: 'game',
+  },
+  {
     id: 'bleasdale-farmhouse-rework',
     title: 'Bleasdale Farmhouse - Complete Rework',
     description: 'Visual enhancements and complete redesign with new outdoor garden areas',

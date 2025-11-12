@@ -289,16 +289,20 @@ export const MapDetailSheet = ({ map, isVisible, onClose }: MapDetailSheetProps)
           )}
 
           {/* Floor Plan */}
-          {map.floorPlanUrl && (
-            <>
-              <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
-                {t('componentLabels.floorPlan')}
-              </ThemedText>
-              <View style={{ marginHorizontal: -16, marginVertical: 12, paddingHorizontal: 16 }}>
+          <>
+            <ThemedText style={[styles.sectionTitle, { marginTop: 20, marginBottom: 12 }]}>
+              {t('componentLabels.floorPlan')}
+            </ThemedText>
+            <View style={{ marginHorizontal: -16, marginVertical: 12, paddingHorizontal: 16 }}>
+              {map.floorPlanUrl ? (
                 <FloorPlanViewer imageUrl={map.floorPlanUrl} mapName={map.name} />
-              </View>
-            </>
-          )}
+              ) : (
+                <View style={{ borderColor: colors.paranormal + '40', borderWidth: 1, borderRadius: 12, padding: 20, alignItems: 'center', justifyContent: 'center', minHeight: 200 }}>
+                  <ThemedText style={{ fontSize: 16, opacity: 0.6 }}>Coming soon...</ThemedText>
+                </View>
+              )}
+            </View>
+          </>
         </View>
 
         {/* Collapsible: Zones */}

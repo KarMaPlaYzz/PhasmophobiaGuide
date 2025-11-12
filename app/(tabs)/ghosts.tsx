@@ -1,9 +1,9 @@
+import { PlatformBlurView } from '@/components/platform-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useRoute } from '@react-navigation/native';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { GestureHandlerRootView, TapGestureHandler } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -25,6 +25,149 @@ import { getActivityLabel, getDifficultyLabel, getGhostDescription, getGhostName
 import { Ghost } from '@/lib/types';
 import { getActivityIndicator } from '@/lib/utils/colors';
 
+// ============================================================================
+// MEMOIZED GHOST CARD COMPONENT
+// ============================================================================
+interface GhostCardProps {
+  ghost: Ghost;
+  colors: typeof Colors['dark'];
+  language: string;
+  onPress: (ghost: Ghost) => void;
+  getDifficultyColor: (difficulty: string) => string;
+  getDifficultyIcon: (difficulty: string) => string;
+  getEvidenceDisplayName: (evidenceName: string) => string;
+  getSanityDrainLevel: (activityLevel: string) => { label: string; icon: string; color: string };
+  t: (key: string) => string;
+  styles: any;
+}
+
+const GhostCard = memo(({
+  ghost,
+  colors,
+  language,
+  onPress,
+  getDifficultyColor,
+  getDifficultyIcon,
+  getEvidenceDisplayName,
+  getSanityDrainLevel,
+  t,
+  styles,
+}: GhostCardProps) => (
+  <TapGestureHandler
+    onActivated={() => onPress(ghost)}
+    maxDurationMs={500}
+  >
+    <TouchableOpacity
+      onPress={() => {
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        onPress(ghost);
+      }}
+      activeOpacity={0.6}
+      delayPressIn={0}
+    >
+      <View
+        style={[
+          styles.ghostCard,
+          { 
+            borderLeftWidth: 4,
+            borderLeftColor: getDifficultyColor(ghost.difficulty),
+            backgroundColor: getDifficultyColor(ghost.difficulty) + '10',
+            borderColor: getDifficultyColor(ghost.difficulty) + '30',
+          },
+        ]}
+      >
+        <View style={styles.ghostHeader}>
+          <View style={{ flex: 1 }}>
+            <ThemedText type="defaultSemiBold" style={styles.ghostName}>
+              {getGhostName(ghost.id, language as any)}
+            </ThemedText>
+          </View>
+          <View
+            style={[
+              styles.difficultyBadge,
+              {
+                backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
+                borderColor: getDifficultyColor(ghost.difficulty),
+                borderWidth: 1,
+              },
+            ]}
+          >
+            <Ionicons
+              size={12}
+              name={getDifficultyIcon(ghost.difficulty) as any}
+              color={getDifficultyColor(ghost.difficulty)}
+            />
+            <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(ghost.difficulty) }]}>
+              {getDifficultyLabel(ghost.difficulty, language as any)}
+            </ThemedText>
+          </View>
+        </View>
+
+        {ghost.description && (
+          <ThemedText style={styles.ghostDescription}>{getGhostDescription(ghost.id, language as any)}</ThemedText>
+        )}
+
+        <View style={styles.ghostStats}>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statLabel}>{t('tabs.ghosts_speed')}</ThemedText>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <Ionicons 
+                name="flash" 
+                size={14} 
+                color={colors.paranormal} 
+              />
+              <ThemedText style={[styles.statValue, { color: colors.paranormal }]}>
+                {ghost.huntSpeed ? `${ghost.huntSpeed} m/s` : 'N/A'}
+              </ThemedText>
+            </View>
+          </View>
+          <View style={styles.statItem}>
+            <ThemedText style={styles.statLabel}>{t('tabs.ghosts_hunt')}</ThemedText>
+            <ThemedText style={styles.statValue}>{ghost.huntSanityThreshold}%</ThemedText>
+          </View>
+        </View>
+
+        {/* Sanity Drain Indicator */}
+        {ghost.activityLevel && (
+          <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
+            <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
+            <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
+              {t('tabs.ghosts_sanityDrain')} {getActivityLabel(ghost.activityLevel, language as any)}
+            </ThemedText>
+          </View>
+        )}
+
+        {ghost.evidence && ghost.evidence.length > 0 && (
+          <View style={styles.evidenceContainer}>
+            <ThemedText style={styles.evidenceLabel}>{t('tabs.ghosts_evidence')}</ThemedText>
+            <View style={styles.evidenceBadges}>
+              {ghost.evidence.map((ev) => (
+                <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '25' }]}>
+                  <ThemedText style={styles.evidenceText}>{getEvidenceDisplayName(ev)}</ThemedText>
+                </View>
+              ))}
+            </View>
+          </View>
+        )}
+
+        <ThemedText style={styles.tapTip}>{t('tabs.ghosts_tapToViewDetails')}</ThemedText>
+      </View>
+    </TouchableOpacity>
+  </TapGestureHandler>
+), (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render), false otherwise
+  return (
+    prevProps.ghost.id === nextProps.ghost.id &&
+    prevProps.language === nextProps.language &&
+    prevProps.colors === nextProps.colors
+  );
+});
+
+GhostCard.displayName = 'GhostCard';
+
+// ============================================================================
+// MAIN SCREEN
+// ============================================================================
 export default function GhostsScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors['dark'];
@@ -395,107 +538,18 @@ export default function GhostsScreen() {
                     <AdBanner />
                   </View>
                 )}
-                <TapGestureHandler
-                  onActivated={() => handleGhostPress(ghost)}
-                  maxDurationMs={500}
-                >
-                  <TouchableOpacity
-                    onPress={() => {
-                      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                      handleGhostPress(ghost);
-                    }}
-                    activeOpacity={0.6}
-                    delayPressIn={0}
-                  >
-                    <View
-                      style={[
-                        styles.ghostCard,
-                        { 
-                          borderLeftWidth: 4,
-                          borderLeftColor: getDifficultyColor(ghost.difficulty),
-                          backgroundColor: getDifficultyColor(ghost.difficulty) + '10',
-                          borderColor: getDifficultyColor(ghost.difficulty) + '30',
-                        },
-                      ]}
-                    >
-                    <View style={styles.ghostHeader}>
-                      <View style={{ flex: 1 }}>
-                        <ThemedText type="defaultSemiBold" style={styles.ghostName}>
-                          {getGhostName(ghost.id, language)}
-                        </ThemedText>
-                      </View>
-                      <View
-                        style={[
-                          styles.difficultyBadge,
-                          {
-                            backgroundColor: getDifficultyColor(ghost.difficulty) + '20',
-                            borderColor: getDifficultyColor(ghost.difficulty),
-                            borderWidth: 1,
-                          },
-                        ]}
-                      >
-                        <Ionicons
-                          size={12}
-                          name={getDifficultyIcon(ghost.difficulty) as any}
-                          color={getDifficultyColor(ghost.difficulty)}
-                        />
-                        <ThemedText style={[styles.difficultyText, { color: getDifficultyColor(ghost.difficulty) }]}>
-                          {getDifficultyLabel(ghost.difficulty, language)}
-                        </ThemedText>
-                      </View>
-                    </View>
-
-                    {ghost.description && (
-                      <ThemedText style={styles.ghostDescription}>{getGhostDescription(ghost.id, language)}</ThemedText>
-                    )}
-
-                    <View style={styles.ghostStats}>
-                      <View style={styles.statItem}>
-                        <ThemedText style={styles.statLabel}>{t('tabs.ghosts_speed')}</ThemedText>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                          <Ionicons 
-                            name="flash" 
-                            size={14} 
-                            color={colors.paranormal} 
-                          />
-                          <ThemedText style={[styles.statValue, { color: colors.paranormal }]}>
-                            {ghost.huntSpeed ? `${ghost.huntSpeed} m/s` : 'N/A'}
-                          </ThemedText>
-                        </View>
-                      </View>
-                      <View style={styles.statItem}>
-                        <ThemedText style={styles.statLabel}>{t('tabs.ghosts_hunt')}</ThemedText>
-                        <ThemedText style={styles.statValue}>{ghost.huntSanityThreshold}%</ThemedText>
-                      </View>
-                    </View>
-
-                    {/* Sanity Drain Indicator */}
-                    {ghost.activityLevel && (
-                      <View style={[styles.sanityDrainContainer, { backgroundColor: getSanityDrainLevel(ghost.activityLevel).color + '15', borderColor: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                        <Ionicons name={getSanityDrainLevel(ghost.activityLevel).icon as any} size={15} color={getSanityDrainLevel(ghost.activityLevel).color} />
-                        <ThemedText style={[styles.sanityDrainText, { color: getSanityDrainLevel(ghost.activityLevel).color }]}>
-                          {t('tabs.ghosts_sanityDrain')} {getActivityLabel(ghost.activityLevel, language)}
-                        </ThemedText>
-                      </View>
-                    )}
-
-                    {ghost.evidence && ghost.evidence.length > 0 && (
-                      <View style={styles.evidenceContainer}>
-                        <ThemedText style={styles.evidenceLabel}>{t('tabs.ghosts_evidence')}</ThemedText>
-                        <View style={styles.evidenceBadges}>
-                          {ghost.evidence.map((ev) => (
-                            <View key={ev} style={[styles.evidenceBadge, { backgroundColor: colors.tint + '25' }]}>
-                              <ThemedText style={styles.evidenceText}>{getEvidenceDisplayName(ev)}</ThemedText>
-                            </View>
-                          ))}
-                        </View>
-                      </View>
-                    )}
-
-                    <ThemedText style={styles.tapTip}>{t('tabs.ghosts_tapToViewDetails')}</ThemedText>
-                  </View>
-                </TouchableOpacity>
-              </TapGestureHandler>
+                <GhostCard
+                  ghost={ghost}
+                  colors={colors}
+                  language={language}
+                  onPress={handleGhostPress}
+                  getDifficultyColor={getDifficultyColor}
+                  getDifficultyIcon={getDifficultyIcon}
+                  getEvidenceDisplayName={getEvidenceDisplayName}
+                  getSanityDrainLevel={getSanityDrainLevel}
+                  t={t}
+                  styles={styles}
+                />
               </React.Fragment>
             ))
           ) : (
@@ -524,27 +578,38 @@ export default function GhostsScreen() {
 
       {/* Comparison FAB - Glassmorphism Design with BlurView */}
       {selectedGhost === null && !showComparisonSheet && (
-        <BlurView intensity={15} style={[
-          styles.fab,
-          { 
+        <View
+          style={{
+            position: 'absolute',
             bottom: insets.bottom + 20,
             right: 20,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            overflow: 'hidden',
+            zIndex: 5,
             borderWidth: 1.5,
             borderColor: colors.spectral + '50',
-            overflow: 'hidden',
-          },
-        ]}>
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              setShowComparisonSheet(true);
-            }}
-            activeOpacity={0.7}
-            style={styles.fabContent}
-          >
-            <MaterialIcons name="compare-arrows" size={28} color={colors.spectral} />
-          </TouchableOpacity>
-        </BlurView>
+          }}
+        >
+          <PlatformBlurView intensity={15} style={{
+            justifyContent: 'center',
+            alignItems: 'center',
+            width: '100%',
+            height: '100%',
+          }}>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setShowComparisonSheet(true);
+              }}
+              activeOpacity={0.7}
+              style={styles.fabContent}
+            >
+              <MaterialIcons name="compare-arrows" size={28} color={colors.spectral} />
+            </TouchableOpacity>
+          </PlatformBlurView>
+        </View>
       )}
     </GestureHandlerRootView>
     </AnimatedScreen>

@@ -2,12 +2,13 @@ import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
 import { usePremium } from '@/hooks/use-premium';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { BlurView } from 'expo-blur';
 import * as Haptics from 'expo-haptics';
-import React, { useMemo, useRef, useState } from 'react';
+import React, { memo, useMemo, useRef, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { LongPressGestureHandler, State } from 'react-native-gesture-handler';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { PlatformBlurView } from '@/components/platform-blur-view';
 
 import { AdBanner } from '@/components/ad-banner';
 import { AnimatedScreen } from '@/components/animated-screen';
@@ -179,6 +180,86 @@ const styles = StyleSheet.create({
   adContainer: { marginVertical: 12, marginHorizontal: -16 },
 });
 
+// ============================================================================
+// MEMOIZED EVIDENCE CARD COMPONENT
+// ============================================================================
+interface EvidenceCardProps {
+  evidenceType: EvidenceType;
+  info: any;
+  status: any;
+  statusInfo: any;
+  isLocked: boolean;
+  isCollected: boolean;
+  toggleEvidence: (evidenceType: EvidenceType) => void;
+  handleLongPress: (evidenceType: EvidenceType, state: any) => void;
+  delay: number;
+  styles: any;
+  colors: typeof Colors['dark'];
+}
+
+const EvidenceCard = memo(({
+  evidenceType,
+  info,
+  status,
+  statusInfo,
+  isLocked,
+  isCollected,
+  toggleEvidence,
+  handleLongPress,
+  delay,
+  styles,
+  colors,
+}: EvidenceCardProps) => (
+  <EvidenceCollectionAnimation
+    isCollected={isCollected}
+    delay={delay}
+  >
+    <LongPressGestureHandler
+      onHandlerStateChange={({ nativeEvent }) => handleLongPress(evidenceType, nativeEvent.state)}
+      minDurationMs={150}
+    >
+    <TouchableOpacity
+        onPress={() => toggleEvidence(evidenceType)}
+        activeOpacity={0.6}
+        disabled={isLocked}
+      >
+        <View
+          style={[
+            styles.evidenceCard,
+            {
+              backgroundColor: colors.tabIconDefault + '10',
+              borderColor: (status === 'confirmed' as any || status === 'investigating' as any) ? statusInfo.color : colors.tabIconDefault + '20',
+              opacity: isLocked ? 0.5 : 1,
+            },
+          ]}
+        >
+          <View style={styles.evidenceHeader}>
+            <Text style={styles.evidenceEmoji}>{info.emoji}</Text>
+            <View style={styles.evidenceContent}>
+              <ThemedText style={styles.evidenceTitle}>{evidenceType}</ThemedText>
+              <ThemedText style={styles.evidenceStatus}>{statusInfo.label}</ThemedText>
+            </View>
+            <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
+              <ThemedText style={styles.statusText}>
+                {statusInfo.symbol}
+              </ThemedText>
+            </View>
+          </View>
+        </View>
+      </TouchableOpacity>
+    </LongPressGestureHandler>
+  </EvidenceCollectionAnimation>
+), (prevProps, nextProps) => {
+  // Return true if props are equal (skip re-render), false otherwise
+  return (
+    prevProps.evidenceType === nextProps.evidenceType &&
+    prevProps.status === nextProps.status &&
+    prevProps.isLocked === nextProps.isLocked
+  );
+});
+
+EvidenceCard.displayName = 'EvidenceCard';
+
 export default function EvidenceScreen() {
   const colorScheme = useColorScheme();
   const colors = Colors['dark'];
@@ -333,51 +414,25 @@ export default function EvidenceScreen() {
               const info = EVIDENCE_DATABASE[evidenceType];
               const status = evidenceState[evidenceType];
               const statusInfo = getStatusInfo(status);
-              const confirmedCountLocal = Object.values(evidenceState).filter(s => s === 'confirmed').length;
-              const isLocked = confirmedCountLocal >= 3 && status !== 'confirmed';
-              const isCollected = status === 'confirmed';
+              const confirmedCountLocal = Object.values(evidenceState).filter(s => s === 'confirmed' as any).length;
+              const isLocked = confirmedCountLocal >= 3 && status !== 'confirmed' as any;
+              const isCollected = status === 'confirmed' as any;
 
               return (
-                <EvidenceCollectionAnimation
+                <EvidenceCard
                   key={idx}
+                  evidenceType={evidenceType}
+                  info={info}
+                  status={status}
+                  statusInfo={statusInfo}
+                  isLocked={isLocked}
                   isCollected={isCollected}
+                  toggleEvidence={toggleEvidence}
+                  handleLongPress={handleLongPress}
                   delay={idx * 50}
-                >
-                  <LongPressGestureHandler
-                    onHandlerStateChange={({ nativeEvent }) => handleLongPress(evidenceType, nativeEvent.state)}
-                    minDurationMs={150}
-                  >
-                  <TouchableOpacity
-                      onPress={() => toggleEvidence(evidenceType)}
-                      activeOpacity={0.6}
-                      disabled={isLocked}
-                    >
-                      <View
-                        style={[
-                          styles.evidenceCard,
-                          {
-                            backgroundColor: colors.tabIconDefault + '10',
-                            borderColor: (status === 'confirmed' || status === 'investigating') ? statusInfo.color : colors.tabIconDefault + '20',
-                            opacity: isLocked ? 0.5 : 1,
-                          },
-                        ]}
-                      >
-                        <View style={styles.evidenceHeader}>
-                          <Text style={styles.evidenceEmoji}>{info.emoji}</Text>
-                          <View style={styles.evidenceContent}>
-                            <ThemedText style={styles.evidenceTitle}>{evidenceType}</ThemedText>
-                            <ThemedText style={styles.evidenceStatus}>{statusInfo.label}</ThemedText>
-                          </View>
-                          <View style={[styles.statusBadge, { backgroundColor: statusInfo.color }]}>
-                            <ThemedText style={styles.statusText}>
-                              {statusInfo.symbol}
-                            </ThemedText>
-                          </View>
-                        </View>
-                      </View>
-                    </TouchableOpacity>
-                  </LongPressGestureHandler>
-                </EvidenceCollectionAnimation>
+                  styles={styles}
+                  colors={colors}
+                />
               );
             })}
           </View>
@@ -510,51 +565,77 @@ export default function EvidenceScreen() {
 
       {/* Reset FAB */}
       {confirmedCount > 0 && (
-        <BlurView
-          intensity={15}
-          style={[
-            styles.fab,
-            {
-              bottom: insets.bottom + 20,
-              borderWidth: 1.5,
-              borderColor: colors.spectral + '50',
-            },
-          ]}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: insets.bottom + 20,
+            right: 20,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            overflow: 'hidden',
+            zIndex: 5,
+            borderWidth: 1.5,
+            borderColor: colors.spectral + '50',
+          }}
         >
-          <TouchableOpacity
-            onPress={resetAll}
-            activeOpacity={0.7}
-            style={styles.fabContent}
+          <PlatformBlurView
+            intensity={15}
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              height: '100%',
+            }}
           >
-            <MaterialIcons name="refresh" size={28} color={colors.spectral} />
-          </TouchableOpacity>
-        </BlurView>
+            <TouchableOpacity
+              onPress={resetAll}
+              activeOpacity={0.7}
+              style={styles.fabContent}
+            >
+              <MaterialIcons name="refresh" size={28} color={colors.spectral} />
+            </TouchableOpacity>
+          </PlatformBlurView>
+        </View>
       )}
 
       {/* BPM Finder FAB - Hidden when sheet is open */}
       {!isCalibrationSheetVisible && (
-        <BlurView
-          intensity={15}
-          style={[
-            styles.fab,
-            {
-              bottom: confirmedCount > 0 ? insets.bottom + 100 : insets.bottom + 20,
-              borderWidth: 1.5,
-              borderColor: colors.spectral + '50',
-            },
-          ]}
+        <View
+          style={{
+            position: 'absolute',
+            bottom: confirmedCount > 0 ? insets.bottom + 100 : insets.bottom + 20,
+            right: 20,
+            width: 64,
+            height: 64,
+            borderRadius: 32,
+            overflow: 'hidden',
+            zIndex: 5,
+            borderWidth: 1.5,
+            borderColor: colors.spectral + '50',
+          }}
         >
-          <TouchableOpacity
-            onPress={() => {
-              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-              setIsCalibrationSheetVisible(true);
+          <PlatformBlurView
+            intensity={15}
+            style={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              width: '100%',
+              height: '100%',
             }}
-            activeOpacity={0.7}
-            style={styles.fabContent}
           >
-            <MaterialIcons name="flash-on" size={28} color={colors.spectral} />
-          </TouchableOpacity>
-        </BlurView>
+            <TouchableOpacity
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                setIsCalibrationSheetVisible(true);
+              }}
+              activeOpacity={0.7}
+              style={styles.fabContent}
+            >
+              <MaterialIcons name="flash-on" size={28} color={colors.spectral} />
+            </TouchableOpacity>
+          </PlatformBlurView>
+        </View>
       )}
 
       {/* BPM Finder Calibration Sheet */}
