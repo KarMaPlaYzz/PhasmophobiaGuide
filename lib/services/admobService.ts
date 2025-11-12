@@ -417,7 +417,9 @@ const loadInterstitialAd = async () => {
     
     try {
       interstitialAd = InterstitialAd.createForAdRequest(adId, {
-        requestNonPersonalizedAdsOnly: false,
+        requestNonPersonalizedAdsOnly: true,
+        keywords: [ 'games', 'mobile games', 'gaming', 'casual games', 'paranormal', 'horror', 'indie'],
+        contentUrl: 'https://phasmophobia.fandom.com',
       });
       console.log('[AdMob] Interstitial ad instance created successfully');
     } catch (error) {
@@ -513,7 +515,9 @@ const loadRewardedAd = async () => {
     
     try {
       rewardedAd = RewardedAd.createForAdRequest(adId, {
-        requestNonPersonalizedAdsOnly: false,
+        requestNonPersonalizedAdsOnly: true,
+        keywords: [ 'games', 'mobile games', 'gaming', 'casual games', 'paranormal', 'horror', 'indie'],
+        contentUrl: 'https://phasmophobia.fandom.com',
       });
       console.log('[AdMob] Rewarded ad instance created successfully');
     } catch (error) {

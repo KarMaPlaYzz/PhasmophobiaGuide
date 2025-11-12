@@ -262,8 +262,8 @@ export const AdBanner = ({ size = 'ANCHORED_ADAPTIVE_BANNER' }: AdBannerProps) =
               unitId={bannerId}
               size={size}
               requestOptions={{
-                requestNonPersonalizedAdsOnly: false,
-                keywords: ['game', 'guide', 'phasmophobia', 'ghost', 'horror'],
+                requestNonPersonalizedAdsOnly: true,
+                keywords: [ 'games', 'mobile games', 'gaming', 'casual games', 'paranormal', 'horror', 'indie'],
                 contentUrl: 'https://phasmophobia.fandom.com',
               }}
               onAdLoaded={handleAdLoaded}
