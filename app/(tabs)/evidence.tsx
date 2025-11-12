@@ -358,7 +358,7 @@ export default function EvidenceScreen() {
   return (
     <AnimatedScreen>
       <ThemedView style={styles.container}>
-      <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.content} showsVerticalScrollIndicator={false} scrollEventThrottle={16}>
         <View style={styles.contentPadding}>
           {/* Ghost Matches - Always reserve space */}
           <View style={{ minHeight: confirmedCount > 0 ? 'auto' : 0 }}>

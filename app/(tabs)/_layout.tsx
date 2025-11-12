@@ -1,7 +1,9 @@
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { Tabs, useRouter } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
+import { View } from 'react-native';
 
+import { AdBanner } from '@/components/ad-banner';
 import { HapticTab } from '@/components/haptic-tab';
 import { Colors } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
@@ -27,7 +29,7 @@ export default function TabLayout() {
         if (defaultTab !== 'index') {
           hasNavigated.current = true;
           // Use router.replace to navigate within the tab stack
-          router.replace(`/(tabs)/${defaultTab}`);
+          router.replace(`/(tabs)/${defaultTab}` as any);
         }
       } catch (error) {
         console.error('Error loading default tab:', error);
@@ -40,33 +42,45 @@ export default function TabLayout() {
   }, [router]);
 
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: colors.tint,
-        tabBarInactiveTintColor: colors.tabIconDefault,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarStyle: {
-          backgroundColor: colors.surface,
-          borderTopColor: colors.border,
-          borderTopWidth: 1,
-          height: 70,
-          paddingTop: 12,
-          paddingBottom: 16,
-          justifyContent: 'center',
-          alignItems: 'center',
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '600',
-          marginTop: 2,
-          marginBottom: 0,
-        },
-        tabBarIconStyle: {
-          marginBottom: 0,
-        },
-      }}
-    >
+    <View style={{ flex: 1 }}>
+      {/* Ad Banner above Tab Navigation */}
+      <View style={{ 
+        backgroundColor: colors.surface,
+        borderBottomColor: colors.border,
+        borderBottomWidth: 1,
+        paddingHorizontal: 0,
+        paddingVertical: 8,
+      }}>
+        <AdBanner />
+      </View>
+      
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: colors.tint,
+          tabBarInactiveTintColor: colors.tabIconDefault,
+          headerShown: false,
+          tabBarButton: HapticTab,
+          tabBarStyle: {
+            backgroundColor: colors.surface,
+            borderTopColor: colors.border,
+            borderTopWidth: 1,
+            height: 70,
+            paddingTop: 12,
+            paddingBottom: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            fontWeight: '600',
+            marginTop: 2,
+            marginBottom: 0,
+          },
+          tabBarIconStyle: {
+            marginBottom: 0,
+          },
+        }}
+      >
       <Tabs.Screen
         name="ghosts"
         options={{
@@ -102,6 +116,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Ionicons size={28} name="pulse" color={color} />,
         }}
       />
-    </Tabs>
+      </Tabs>
+    </View>
   );
 }

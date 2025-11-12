@@ -215,7 +215,7 @@ export default function EquipmentScreen() {
   return (
     <AnimatedScreen>
       <ThemedView style={styles.container}>
-        <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView ref={handleScrollRef} style={styles.content} showsVerticalScrollIndicator={false} scrollEventThrottle={16}>
         <AnimatedSearchBar
           placeholder={t('tabs.equipment_searchPlaceholder')}
           value={searchText}
