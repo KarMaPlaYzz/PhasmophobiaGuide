@@ -304,7 +304,7 @@ export const SMALL_MAPS: Record<string, Map> = {
     maxRooms: 13,
     maxPlayers: 4,
     imageUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/b/bc/Nell%27s_Diner.png/revision/latest/scale-to-width-down/1000?cb=20251111161803',
-    floorPlanUrl: '',
+    floorPlanUrl: 'https://static.wikia.nocookie.net/phasmophobia/images/b/bd/Rooms_Nells_Diner.png/revision/latest?cb=20251112080535',
     characteristics: {
       lighting: 'Moderate',
       ghostSpawns: 'Various dining areas, kitchen, storage',
